@@ -4,6 +4,11 @@ export interface AppUserLookup {
   isActive: boolean;
 }
 
+export interface PublishStatusLookup {
+  pkid: number;
+  description: string;
+}
+
 /** Mapped option for p-select / p-multiselect */
 export interface LookupOption<T = number | string> {
   pkid: T;

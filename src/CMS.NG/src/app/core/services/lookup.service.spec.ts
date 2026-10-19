@@ -30,4 +30,16 @@ describe('LookupService', () => {
 
     expect(result).toEqual(users);
   });
+
+  it('getPublishStatuses() GETs /api/lookups/publish-statuses', () => {
+    const statuses = [{ pkid: 1, description: '草稿' }];
+    let result: unknown;
+    service.getPublishStatuses().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/publish-statuses`);
+    expect(req.request.method).toBe('GET');
+    req.flush(statuses);
+
+    expect(result).toEqual(statuses);
+  });
 });

@@ -55,3 +55,18 @@ User assignment (`AppUserRole`, n-n keyed by `UserId`/`RoleId`) is saved by dele
 
 Frontend routes: `/app-roles` (list), `/app-roles/new`, `/app-roles/:id` (view), `/app-roles/:id/edit`.
 The list keeps its filters, sort and page in sessionStorage (`app-role-list-filters`, `app-role-list-sort`, `app-role-list-page`).
+
+### PublishStatus (`系統管理 Admin › 發布狀態 PublishStatus`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/publish-statuses` | All statuses, ordered by pkid |
+| POST   | `/api/publish-statuses/query` | Filter: `keyword` (Description), `isDraft`, `isPublished`, `isDiscontinued` |
+| GET    | `/api/publish-statuses/{pkid}` | Single status |
+| POST   | `/api/publish-statuses` | Create; pkid is user-supplied tinyint (`409` if it exists) |
+| PUT    | `/api/publish-statuses` | Update (pkid in body; pkid cannot be changed) |
+| DELETE | `/api/publish-statuses/{pkid}` | Delete (`409` if referenced by `Course` / `Promotion2`) |
+| GET    | `/api/lookups/publish-statuses` | `{ pkid, description }` lookup for FK dropdowns |
+
+Frontend routes: `/publish-statuses` (list), `/publish-statuses/new`, `/publish-statuses/:id` (view), `/publish-statuses/:id/edit`.
+The list keeps its filters, sort and page in sessionStorage (`publish-status-list-filters`, `publish-status-list-sort`, `publish-status-list-page`).
