@@ -41,6 +41,17 @@ describe('App', () => {
     expect(groupLink?.textContent).toContain('課程群組 CourseGroup');
   });
 
+  it('renders 課程 Course as the first 課程管理 Course entry', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const courseItems = el.querySelectorAll('.nav-items')[1];
+    const first = courseItems.querySelector('a');
+    expect(first?.getAttribute('href')).toBe('/courses');
+    expect(first?.textContent).toContain('課程 Course');
+  });
+
   it('collapses a nav group when toggled', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();

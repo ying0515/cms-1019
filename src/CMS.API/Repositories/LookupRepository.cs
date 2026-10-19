@@ -33,4 +33,22 @@ public class LookupRepository(IDbConnectionFactory db) : ILookupRepository
         return await conn.QueryAsync<CourseGroupLookup>(
             "SELECT pkid, Description FROM CourseGroup ORDER BY pkid ASC");
     }
+
+    public async Task<IEnumerable<CertificationLookup>> GetCertificationsAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<CertificationLookup>("""
+            SELECT c.pkid, RTRIM(c.Title) AS Title, c.Partner_pkid AS PartnerPkid, p.Name AS PartnerName
+            FROM Certification c
+            INNER JOIN Partner p ON p.pkid = c.Partner_pkid
+            ORDER BY p.DisplayOrder ASC, p.pkid ASC, c.Title ASC
+            """);
+    }
+
+    public async Task<IEnumerable<JobCategoryLookup>> GetJobCategoriesAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<JobCategoryLookup>(
+            "SELECT pkid, Description FROM JobCategory ORDER BY pkid ASC");
+    }
 }

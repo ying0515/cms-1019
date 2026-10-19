@@ -13,6 +13,12 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     public FakePublishStatusRepository PublishStatuses { get; } = new();
     public FakePartnerRepository Partners { get; } = new();
     public FakeCourseGroupRepository CourseGroups { get; } = new();
+    public FakeCourseRepository Courses { get; }
+
+    public CmsApiFactory()
+    {
+        Courses = new FakeCourseRepository(Partners, CourseGroups, PublishStatuses);
+    }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -27,8 +33,11 @@ public class CmsApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<IPartnerRepository>(Partners);
             services.RemoveAll<ICourseGroupRepository>();
             services.AddSingleton<ICourseGroupRepository>(CourseGroups);
+            services.RemoveAll<ICourseRepository>();
+            services.AddSingleton<ICourseRepository>(Courses);
             services.RemoveAll<ILookupRepository>();
-            services.AddSingleton<ILookupRepository>(new FakeLookupRepository(AppRoles, PublishStatuses, Partners, CourseGroups));
+            services.AddSingleton<ILookupRepository>(
+                new FakeLookupRepository(AppRoles, PublishStatuses, Partners, CourseGroups, Courses));
         });
     }
 }

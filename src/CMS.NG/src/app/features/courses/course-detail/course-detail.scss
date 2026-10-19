@@ -1,0 +1,21 @@
+.not-found {
+  text-align: center;
+  padding: 40px;
+}
+
+.link {
+  color: var(--p-primary-color);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.certifications,
+.job-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  white-space: normal;
+}

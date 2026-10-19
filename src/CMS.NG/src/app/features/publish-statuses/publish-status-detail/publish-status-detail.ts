@@ -44,7 +44,11 @@ export class PublishStatusDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({ severity: 'error', summary: '載入失敗', detail: httpErrorMessage(err) });
+          this.messages.add({
+            severity: 'error',
+            summary: '載入失敗',
+            detail: httpErrorMessage(err),
+          });
         }
       },
     });
@@ -57,6 +61,11 @@ export class PublishStatusDetail implements OnInit {
   edit(): void {
     const item = this.item();
     if (item) this.router.navigate(['/publish-statuses', item.pkid, 'edit']);
+  }
+
+  viewCourses(): void {
+    const item = this.item();
+    if (item) this.router.navigate(['/courses'], { queryParams: { publishStatusPkid: item.pkid } });
   }
 
   confirmDelete(): void {
@@ -77,7 +86,11 @@ export class PublishStatusDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({ severity: 'error', summary: '刪除失敗', detail: httpErrorMessage(err) }),
+            this.messages.add({
+              severity: 'error',
+              summary: '刪除失敗',
+              detail: httpErrorMessage(err),
+            }),
         }),
     });
   }

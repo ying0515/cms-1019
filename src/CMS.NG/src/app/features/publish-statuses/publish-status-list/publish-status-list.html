@@ -1,5 +1,7 @@
 <div class="page-header">
-  <h1 class="title">發布狀態 PublishStatus <span class="subtitle">課程與促銷活動的發布狀態代碼</span></h1>
+  <h1 class="title">
+    發布狀態 PublishStatus <span class="subtitle">課程與促銷活動的發布狀態代碼</span>
+  </h1>
   <div class="actions">
     <p-button
       label="搜尋條件"
@@ -44,7 +46,7 @@
         <th pSortableColumn="isDiscontinued" class="text-center" style="width: 7rem">
           已停用 <p-sortIcon field="isDiscontinued" />
         </th>
-        <th class="text-center" style="width: 9rem">操作</th>
+        <th class="text-center" style="width: 11rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>
@@ -53,11 +55,36 @@
         <td>
           <a [routerLink]="['/publish-statuses', item.pkid]" class="link">{{ item.description }}</a>
         </td>
-        <td class="text-center"><i [class]="item.isDraft ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'" [attr.aria-label]="item.isDraft ? '是' : '否'"></i></td>
-        <td class="text-center"><i [class]="item.isPublished ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'" [attr.aria-label]="item.isPublished ? '是' : '否'"></i></td>
-        <td class="text-center"><i [class]="item.isDiscontinued ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'" [attr.aria-label]="item.isDiscontinued ? '是' : '否'"></i></td>
+        <td class="text-center">
+          <i
+            [class]="item.isDraft ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'"
+            [attr.aria-label]="item.isDraft ? '是' : '否'"
+          ></i>
+        </td>
+        <td class="text-center">
+          <i
+            [class]="item.isPublished ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'"
+            [attr.aria-label]="item.isPublished ? '是' : '否'"
+          ></i>
+        </td>
+        <td class="text-center">
+          <i
+            [class]="item.isDiscontinued ? 'pi pi-check flag-on' : 'pi pi-minus text-muted'"
+            [attr.aria-label]="item.isDiscontinued ? '是' : '否'"
+          ></i>
+        </td>
         <td>
           <div class="row-actions">
+            <p-button
+              icon="pi pi-book"
+              [text]="true"
+              [rounded]="true"
+              severity="help"
+              pTooltip="查看課程"
+              ariaLabel="查看課程"
+              [routerLink]="['/courses']"
+              [queryParams]="{ publishStatusPkid: item.pkid }"
+            />
             <p-button
               icon="pi pi-eye"
               [text]="true"
@@ -97,12 +124,17 @@
   </p-table>
 </div>
 
-
 <p-drawer [(visible)]="drawerVisible" position="right" header="搜尋條件" styleClass="filter-drawer">
   <form (ngSubmit)="search()">
     <div class="field">
       <label for="f-keyword">關鍵字</label>
-      <input pInputText id="f-keyword" name="keyword" [(ngModel)]="filters.keyword" placeholder="狀態名稱" />
+      <input
+        pInputText
+        id="f-keyword"
+        name="keyword"
+        [(ngModel)]="filters.keyword"
+        placeholder="狀態名稱"
+      />
     </div>
 
     <div class="field">
@@ -151,7 +183,13 @@
     </div>
 
     <div class="drawer-actions">
-      <p-button type="button" label="清除" icon="pi pi-times" severity="secondary" (onClick)="clearFilters()" />
+      <p-button
+        type="button"
+        label="清除"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="clearFilters()"
+      />
       <p-button type="submit" label="查詢" icon="pi pi-search" />
     </div>
   </form>

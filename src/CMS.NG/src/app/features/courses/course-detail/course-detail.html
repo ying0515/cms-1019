@@ -1,0 +1,112 @@
+<div class="page-header">
+  <h1 class="title">檢視課程</h1>
+  <div class="actions">
+    <p-button label="返回" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
+    @if (item()) {
+      <p-button
+        label="刪除"
+        icon="pi pi-trash"
+        severity="danger"
+        [outlined]="true"
+        (onClick)="confirmDelete()"
+      />
+      <p-button label="編輯" icon="pi pi-pencil" (onClick)="edit()" />
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="panel text-muted"><i class="pi pi-spin pi-spinner"></i> 載入中…</div>
+} @else if (notFound()) {
+  <div class="panel text-muted not-found">找不到此課程資料</div>
+} @else if (item(); as c) {
+  <section class="panel">
+    <h2>基本資料</h2>
+    <dl class="view-grid">
+      <dt>主代碼</dt>
+      <dd>{{ c.pkid }}</dd>
+      <dt>課程名稱</dt>
+      <dd class="title-value">{{ c.title }}</dd>
+      <dt>官方課程名稱</dt>
+      <dd class="official-title">{{ c.officialTitle ?? '—' }}</dd>
+      <dt>簡介代碼</dt>
+      <dd class="course-id">{{ c.courseId }}</dd>
+      <dt>科目代碼</dt>
+      <dd class="prod-course-id">{{ c.prodCourseId }}</dd>
+      <dt>友善網址</dt>
+      <dd class="friendly-url">{{ c.friendlyUrl }}</dd>
+      <dt>顯示順序</dt>
+      <dd>{{ c.displayOrder }}</dd>
+      <dt>原廠</dt>
+      <dd class="partner">
+        <a [routerLink]="['/partners', c.partnerPkid]" class="link">{{ c.partner?.name }}</a>
+      </dd>
+      <dt>課程群組</dt>
+      <dd class="course-group">
+        @if (c.courseGroup) {
+          <a [routerLink]="['/course-groups', c.courseGroupPkid]" class="link">{{
+            c.courseGroup.description
+          }}</a>
+        } @else {
+          —
+        }
+      </dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>上架設定</h2>
+    <dl class="view-grid">
+      <dt>上架狀態</dt>
+      <dd class="publish-status">
+        <a [routerLink]="['/publish-statuses', c.publishStatusPkid]" class="link">{{
+          c.publishStatus?.description
+        }}</a>
+      </dd>
+      <dt>上架日期</dt>
+      <dd class="schedule-on">{{ c.scheduleOn }}</dd>
+      <dt>下架日期</dt>
+      <dd class="schedule-off">{{ c.scheduleOff }}</dd>
+      <dt>時數</dt>
+      <dd class="hour">{{ c.hour }}</dd>
+      <dt>定價</dt>
+      <dd class="list-price">{{ c.listPrice | number }}</dd>
+      <dt>點數</dt>
+      <dd class="learning-credit">{{ c.learningCredit | number: '1.1-1' }}</dd>
+      <dt>允許重聽</dt>
+      <dd class="can-repeat">{{ c.canRepeat ? '是' : '否' }}</dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>課程內容</h2>
+    <dl class="view-grid">
+      @for (f of contentFields; track f.key) {
+        <dt>{{ f.label }}</dt>
+        <dd [class]="'content-' + f.key">{{ text(c, f.key) ?? '—' }}</dd>
+      }
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>關聯</h2>
+    <dl class="view-grid">
+      <dt>相關認證</dt>
+      <dd class="certifications">
+        @for (cert of c.certifications; track cert.pkid) {
+          <p-chip [label]="certificationLabel(cert)" />
+        } @empty {
+          <span class="text-muted">無</span>
+        }
+      </dd>
+      <dt>職務類別</dt>
+      <dd class="job-categories">
+        @for (j of c.jobCategories; track j.pkid) {
+          <p-chip [label]="j.description" />
+        } @empty {
+          <span class="text-muted">無</span>
+        }
+      </dd>
+    </dl>
+  </section>
+}

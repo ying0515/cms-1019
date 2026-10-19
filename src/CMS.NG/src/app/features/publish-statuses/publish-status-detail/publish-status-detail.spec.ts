@@ -13,7 +13,10 @@ describe('PublishStatusDetail', () => {
   let service: jasmine.SpyObj<PublishStatusService>;
 
   async function setup(id: string | null) {
-    service = jasmine.createSpyObj<PublishStatusService>('PublishStatusService', ['getById', 'delete']);
+    service = jasmine.createSpyObj<PublishStatusService>('PublishStatusService', [
+      'getById',
+      'delete',
+    ]);
     service.getById.and.returnValue(of(DRAFT_STATUS));
     service.delete.and.returnValue(of(void 0));
 
@@ -25,7 +28,10 @@ describe('PublishStatusDetail', () => {
         MessageService,
         ConfirmationService,
         { provide: PublishStatusService, useValue: service },
-        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { paramMap: convertToParamMap(id ? { id } : {}) } },
+        },
       ],
     }).compileComponents();
   }
@@ -98,5 +104,16 @@ describe('PublishStatusDetail', () => {
 
     expect(service.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/publish-statuses']);
+  });
+
+  it('viewCourses() opens the course list filtered by this row', async () => {
+    await setup('1');
+    const fixture = create();
+    const nav = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    expect(fixture.nativeElement.textContent).toContain('查看課程');
+    fixture.componentInstance.viewCourses();
+
+    expect(nav).toHaveBeenCalledWith(['/courses'], { queryParams: { publishStatusPkid: 1 } });
   });
 });

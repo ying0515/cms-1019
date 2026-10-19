@@ -30,7 +30,7 @@ Reference and one-time context moved out of `CLAUDE.md`.
 
 ## Pending
 
-- `spec/feature-spec.template.md` references `core/utils/date.util.ts`, `spec/dapper.md`, and `spec/inline-edit.md`, which **do not exist yet** — create them when the first feature needs them.
+- `spec/feature-spec.template.md` references `spec/dapper.md` and `spec/inline-edit.md`, which **do not exist yet** (`core/utils/date.util.ts` now exists) — create them when the first feature needs them.
 
 ## Implemented features
 
@@ -40,11 +40,13 @@ Reference and one-time context moved out of `CLAUDE.md`.
 | PublishStatus (系統管理 Admin › 發布狀態) | `PublishStatusesController`, `PublishStatusRepository`; user-supplied tinyint pkid; delete → 409 via `ReferenceConflictException` (SQL 547); `GET /api/lookups/publish-statuses` | `/publish-statuses`, `/publish-statuses/new`, `/publish-statuses/:id`, `/publish-statuses/:id/edit` |
 | Partner (課程管理 Course › 合作廠商) | `PartnersController`, `PartnerRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/partners` | `/partners`, `/partners/new`, `/partners/:id`, `/partners/:id/edit` |
 | CourseGroup (課程管理 Course › 課程群組) | `CourseGroupsController`, `CourseGroupRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/course-groups` | `/course-groups`, `/course-groups/new`, `/course-groups/:id`, `/course-groups/:id/edit` |
+| Course (課程管理 Course › 課程) | `CoursesController`, `CourseRepository`; multi-map FK nav objects; n-n `CourseInCertification` / `CourseJobCategories`; bad FK → 400 via `InvalidReferenceException`; delete → 409; `GET /api/lookups/certifications`, `/job-categories` | `/courses`, `/courses/new`, `/courses/:id`, `/courses/:id/edit` (accepts `?partnerPkid=`, `?courseGroupPkid=`, `?publishStatusPkid=`) |
 
 ## Change log
 
 Newest first, one dated line per meaningful change.
 
+- 2026-10-19 — Added Course CRUD (spec `spec/course/Course.md`): API with JOINed Partner/CourseGroup/PublishStatus nav objects, n-n Certifications/JobCategories, date-range + FK + CanRepeat filters, new lookups `certifications` / `job-categories`; Angular list/detail/form under 課程管理 Course; new `core/utils/date.util.ts`. Partner / CourseGroup / PublishStatus list + detail gained 查看課程 buttons. Copy, QR, print and sub-panels from `sample1.spec.md` deferred.
 - 2026-10-19 — Added CourseGroup CRUD (spec `spec/course/CourseGroup.md`): API + `GET /api/lookups/course-groups`, Angular list/detail/form under 課程管理 Course. Course/PartnerCourseGroup link buttons deferred until those features exist.
 - 2026-10-19 — Added Partner CRUD (spec `spec/course/Partner.md`): API + `GET /api/lookups/partners`, Angular list/detail/form, new sidebar group 課程管理 Course. Course/Certification/PartnerCourseGroup/Promotion2 link buttons deferred until those features exist.
 - 2026-10-19 — Added PublishStatus CRUD (spec `spec/admin/PublishStatus.md`): API + lookup endpoint, Angular list/detail/form, sidebar entry. Tests now fake `ILookupRepository` too (`FakeLookupRepository`). Course/Promotion2 link buttons deferred until those features exist.

@@ -119,7 +119,11 @@ export class PublishStatusList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({ severity: 'error', summary: '查詢失敗', detail: httpErrorMessage(err) });
+        this.messages.add({
+          severity: 'error',
+          summary: '查詢失敗',
+          detail: httpErrorMessage(err),
+        });
       },
     });
   }
@@ -170,7 +174,11 @@ export class PublishStatusList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({ severity: 'error', summary: '刪除失敗', detail: httpErrorMessage(err) }),
+        this.messages.add({
+          severity: 'error',
+          summary: '刪除失敗',
+          detail: httpErrorMessage(err),
+        }),
     });
   }
 }

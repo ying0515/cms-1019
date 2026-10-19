@@ -105,4 +105,15 @@ describe('PartnerDetail', () => {
     expect(service.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/partners']);
   });
+
+  it('viewCourses() opens the course list filtered by this row', async () => {
+    await setup('1');
+    const fixture = create();
+    const nav = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+
+    expect(fixture.nativeElement.textContent).toContain('查看課程');
+    fixture.componentInstance.viewCourses();
+
+    expect(nav).toHaveBeenCalledWith(['/courses'], { queryParams: { partnerPkid: 1 } });
+  });
 });

@@ -66,4 +66,28 @@ describe('LookupService', () => {
 
     expect(result).toEqual(groups);
   });
+
+  it('getCertifications() GETs /api/lookups/certifications', () => {
+    const certs = [{ pkid: 1, title: 'CCNA', partnerPkid: 2, partnerName: 'Cisco' }];
+    let result: unknown;
+    service.getCertifications().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/certifications`);
+    expect(req.request.method).toBe('GET');
+    req.flush(certs);
+
+    expect(result).toEqual(certs);
+  });
+
+  it('getJobCategories() GETs /api/lookups/job-categories', () => {
+    const jobs = [{ pkid: 1, description: '系統管理' }];
+    let result: unknown;
+    service.getJobCategories().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/job-categories`);
+    expect(req.request.method).toBe('GET');
+    req.flush(jobs);
+
+    expect(result).toEqual(jobs);
+  });
 });

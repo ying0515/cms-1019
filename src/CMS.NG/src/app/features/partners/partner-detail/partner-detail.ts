@@ -62,6 +62,11 @@ export class PartnerDetail implements OnInit {
     if (item) this.router.navigate(['/partners', item.pkid, 'edit']);
   }
 
+  viewCourses(): void {
+    const item = this.item();
+    if (item) this.router.navigate(['/courses'], { queryParams: { partnerPkid: item.pkid } });
+  }
+
   confirmDelete(): void {
     const item = this.item();
     if (!item) return;

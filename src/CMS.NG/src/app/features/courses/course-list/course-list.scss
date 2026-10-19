@@ -1,0 +1,59 @@
+.table-card {
+  background: #fff;
+  border: 1px solid #eef0f3;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+.text-right {
+  text-align: right !important;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--p-primary-color);
+    text-decoration: underline;
+  }
+}
+
+.can-repeat {
+  color: var(--p-green-500);
+}
+
+.empty {
+  padding: 24px !important;
+}
+
+.range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  p-datepicker {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+:host ::ng-deep .range .p-datepicker,
+:host ::ng-deep .range .p-datepicker input {
+  width: 100%;
+}

@@ -23,4 +23,12 @@ public class LookupsController(ILookupRepository repository) : ControllerBase
     [HttpGet("course-groups")]
     public async Task<ActionResult<IEnumerable<CourseGroupLookup>>> GetCourseGroups()
         => Ok(await repository.GetCourseGroupsAsync());
+
+    [HttpGet("certifications")]
+    public async Task<ActionResult<IEnumerable<CertificationLookup>>> GetCertifications()
+        => Ok(await repository.GetCertificationsAsync());
+
+    [HttpGet("job-categories")]
+    public async Task<ActionResult<IEnumerable<JobCategoryLookup>>> GetJobCategories()
+        => Ok(await repository.GetJobCategoriesAsync());
 }

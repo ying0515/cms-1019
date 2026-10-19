@@ -100,3 +100,20 @@ The list keeps its filters, sort and page in sessionStorage (`partner-list-filte
 
 Frontend routes: `/course-groups` (list), `/course-groups/new`, `/course-groups/:id` (view), `/course-groups/:id/edit`.
 The list keeps its filters, sort and page in sessionStorage (`course-group-list-filters`, `course-group-list-sort`, `course-group-list-page`).
+
+### Course (`課程管理 Course › 課程 Course`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/courses` | All courses with `partner` / `courseGroup` / `publishStatus` nav objects, ordered by DisplayOrder ASC, pkid DESC |
+| POST   | `/api/courses/query` | Filters: `keyword` (Title, OfficialTitle, CourseId, ProdCourseId, FriendlyUrl), `partnerPkid`, `courseGroupPkid`, `publishStatusPkid`, `scheduleOnFrom/To`, `scheduleOffFrom/To` (inclusive), `canRepeat` |
+| GET    | `/api/courses/{pkid}` | Single course incl. n-n `certifications` / `jobCategories` |
+| POST   | `/api/courses` | Create; pkid is int IDENTITY (body pkid ignored); `400` if ScheduleOff < ScheduleOn or a FK does not exist |
+| PUT    | `/api/courses` | Update (pkid in body); n-n lists are delete-then-reinserted |
+| DELETE | `/api/courses/{pkid}` | Delete (`409` if referenced by `CourseFAQ` / `CourseRelatedLink` / `HotCourse`; n-n rows cascade) |
+| GET    | `/api/lookups/certifications` | `{ pkid, title, partnerPkid, partnerName }`, ordered by partner then title |
+| GET    | `/api/lookups/job-categories` | `{ pkid, description }`, ordered by pkid |
+
+Frontend routes: `/courses` (list), `/courses/new`, `/courses/:id` (view), `/courses/:id/edit`.
+The list keeps its filters, sort and page in sessionStorage (`course-list-filters`, `course-list-sort`, `course-list-page`);
+`?partnerPkid=` / `?courseGroupPkid=` / `?publishStatusPkid=` (查看課程 buttons on those pages) replace the saved filters.

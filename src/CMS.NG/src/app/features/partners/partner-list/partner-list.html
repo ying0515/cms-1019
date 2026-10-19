@@ -46,7 +46,7 @@
           顯示順序 <p-sortIcon field="displayOrder" />
         </th>
         <th pSortableColumn="imageFilename">圖檔名稱 <p-sortIcon field="imageFilename" /></th>
-        <th class="text-center" style="width: 9rem">操作</th>
+        <th class="text-center" style="width: 11rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>
@@ -68,6 +68,16 @@
         </td>
         <td>
           <div class="row-actions">
+            <p-button
+              icon="pi pi-book"
+              [text]="true"
+              [rounded]="true"
+              severity="help"
+              pTooltip="查看課程"
+              ariaLabel="查看課程"
+              [routerLink]="['/courses']"
+              [queryParams]="{ partnerPkid: item.pkid }"
+            />
             <p-button
               icon="pi pi-eye"
               [text]="true"

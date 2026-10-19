@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import {
   AppUserLookup,
+  CertificationLookup,
   CourseGroupLookup,
+  JobCategoryLookup,
   PartnerLookup,
   PublishStatusLookup,
 } from '../models/lookup.model';
@@ -28,5 +30,13 @@ export class LookupService {
 
   getCourseGroups(): Observable<CourseGroupLookup[]> {
     return this.http.get<CourseGroupLookup[]>(`${this.baseUrl}/course-groups`);
+  }
+
+  getCertifications(): Observable<CertificationLookup[]> {
+    return this.http.get<CertificationLookup[]>(`${this.baseUrl}/certifications`);
+  }
+
+  getJobCategories(): Observable<JobCategoryLookup[]> {
+    return this.http.get<JobCategoryLookup[]>(`${this.baseUrl}/job-categories`);
   }
 }

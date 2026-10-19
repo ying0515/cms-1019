@@ -114,5 +114,29 @@ export const routes: Routes = [
         (m) => m.CourseGroupForm,
       ),
   },
+  {
+    path: 'courses',
+    title: '課程 Course',
+    loadComponent: () =>
+      import('./features/courses/course-list/course-list').then((m) => m.CourseList),
+  },
+  {
+    path: 'courses/new',
+    title: '新增課程',
+    loadComponent: () =>
+      import('./features/courses/course-form/course-form').then((m) => m.CourseForm),
+  },
+  {
+    path: 'courses/:id',
+    title: '檢視課程',
+    loadComponent: () =>
+      import('./features/courses/course-detail/course-detail').then((m) => m.CourseDetail),
+  },
+  {
+    path: 'courses/:id/edit',
+    title: '編輯課程',
+    loadComponent: () =>
+      import('./features/courses/course-form/course-form').then((m) => m.CourseForm),
+  },
   { path: '**', redirectTo: 'app-roles' },
 ];

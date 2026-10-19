@@ -19,6 +19,18 @@ export interface CourseGroupLookup {
   description: string;
 }
 
+export interface CertificationLookup {
+  pkid: number;
+  title: string | null;
+  partnerPkid: number;
+  partnerName: string;
+}
+
+export interface JobCategoryLookup {
+  pkid: number;
+  description: string;
+}
+
 /** Mapped option for p-select / p-multiselect */
 export interface LookupOption<T = number | string> {
   pkid: T;

@@ -62,6 +62,11 @@ export class CourseGroupDetail implements OnInit {
     if (item) this.router.navigate(['/course-groups', item.pkid, 'edit']);
   }
 
+  viewCourses(): void {
+    const item = this.item();
+    if (item) this.router.navigate(['/courses'], { queryParams: { courseGroupPkid: item.pkid } });
+  }
+
   confirmDelete(): void {
     const item = this.item();
     if (!item) return;
