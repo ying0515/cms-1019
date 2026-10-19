@@ -1,0 +1,70 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header">
+    <h1 class="title">{{ isEdit ? '編輯角色' : '新增角色' }}</h1>
+    <div class="actions">
+      <p-button type="button" label="取消" icon="pi pi-times" severity="secondary" (onClick)="cancel()" />
+      <p-button type="submit" label="儲存" icon="pi pi-check" [loading]="saving()" [disabled]="loading()" />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>角色資料</h2>
+
+    <div class="field">
+      <label for="roleId" class="required">角色代碼</label>
+      <input pInputText id="roleId" formControlName="roleId" placeholder="請輸入角色代碼" [class.ng-dirty]="isInvalid('roleId')" />
+      @if (isInvalid('roleId')) {
+        <small class="error">
+          {{ form.controls.roleId.hasError('maxlength') ? '最多 200 字' : '請輸入角色代碼' }}
+        </small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="roleName" class="required">角色名稱</label>
+      <input pInputText id="roleName" formControlName="roleName" [class.ng-dirty]="isInvalid('roleName')" />
+      @if (isInvalid('roleName')) {
+        <small class="error">
+          {{ form.controls.roleName.hasError('maxlength') ? '最多 200 字' : '請輸入角色名稱' }}
+        </small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="permissionLevel" class="required">權限等級</label>
+      <p-inputnumber inputId="permissionLevel" formControlName="permissionLevel" [useGrouping]="false" />
+      @if (isInvalid('permissionLevel')) {
+        <small class="error">請輸入權限等級</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="description">描述</label>
+      <input pInputText id="description" formControlName="description" />
+      @if (isInvalid('description')) {
+        <small class="error">最多 400 字</small>
+      }
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>使用者</h2>
+    <div class="field users-field">
+      <p-multiselect
+        inputId="userIds"
+        formControlName="userIds"
+        [options]="userOptions"
+        optionLabel="label"
+        optionValue="pkid"
+        display="chip"
+        [maxSelectedLabels]="9999"
+        [filter]="true"
+        [showClear]="true"
+        placeholder="選擇使用者（可複選）"
+        appendTo="body"
+        [virtualScroll]="userOptions.length >= 100"
+        [virtualScrollItemSize]="43"
+      />
+    </div>
+  </section>
+</form>

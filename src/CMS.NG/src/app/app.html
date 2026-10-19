@@ -1,0 +1,39 @@
+<div class="layout" [class.collapsed]="collapsed()">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-text">CMS</span>
+      <button type="button" class="sidebar-toggle" (click)="toggleSidebar()" aria-label="切換側邊欄">
+        <i class="pi" [class.pi-angle-left]="!collapsed()" [class.pi-angle-right]="collapsed()"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      @for (group of navGroups; track group.key) {
+        <button type="button" class="nav-group" (click)="toggleGroup(group.key)" [attr.aria-expanded]="!!expanded()[group.key]">
+          <i [class]="group.icon"></i>
+          <span class="nav-label">{{ group.label }}</span>
+          <i class="pi nav-caret" [class.pi-angle-down]="expanded()[group.key]" [class.pi-angle-right]="!expanded()[group.key]"></i>
+        </button>
+        @if (expanded()[group.key]) {
+          <ul class="nav-items">
+            @for (item of group.items; track item.route) {
+              <li>
+                <a [routerLink]="item.route" routerLinkActive="active" [title]="item.label">
+                  <i [class]="item.icon"></i>
+                  <span class="nav-label">{{ item.label }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>
+
+<p-toast position="top-right" />
+<p-confirmdialog />

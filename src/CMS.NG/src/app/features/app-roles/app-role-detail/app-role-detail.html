@@ -1,0 +1,51 @@
+<div class="page-header">
+  <h1 class="title">檢視角色</h1>
+  <div class="actions">
+    <p-button label="返回" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
+    @if (item()) {
+      <p-button label="刪除" icon="pi pi-trash" severity="danger" [outlined]="true" (onClick)="confirmDelete()" />
+      <p-button label="編輯" icon="pi pi-pencil" (onClick)="edit()" />
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="panel text-muted"><i class="pi pi-spin pi-spinner"></i> 載入中…</div>
+} @else if (notFound()) {
+  <div class="panel text-muted not-found">找不到此角色資料</div>
+} @else if (item(); as r) {
+  <section class="panel">
+    <h2>角色資料</h2>
+    <dl class="view-grid">
+      <dt>主代碼</dt>
+      <dd>{{ r.pkid }}</dd>
+      <dt>角色代碼</dt>
+      <dd class="role-id">{{ r.roleId }}</dd>
+      <dt>角色名稱</dt>
+      <dd class="role-name">{{ r.roleName }}</dd>
+      <dt>權限等級</dt>
+      <dd>{{ r.permissionLevel }}</dd>
+      <dt>描述</dt>
+      <dd [class.text-muted]="!r.description">{{ r.description || '—' }}</dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>使用者 <span class="count">({{ r.users.length }})</span></h2>
+    @if (r.users.length) {
+      <ul class="user-list">
+        @for (u of r.users; track u.userId) {
+          <li>
+            <i class="pi pi-user"></i>
+            <span>{{ u.userName }} ({{ u.userId }})</span>
+            @if (!u.isActive) {
+              <p-tag value="停用" severity="secondary" />
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <span class="text-muted">尚未指派使用者</span>
+    }
+  </section>
+}

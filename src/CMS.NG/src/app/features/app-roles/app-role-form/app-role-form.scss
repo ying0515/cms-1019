@@ -1,0 +1,21 @@
+:host ::ng-deep {
+  .p-inputnumber input {
+    width: 100%;
+  }
+
+  .p-inputtext:disabled {
+    background: #e2e8f0;
+    color: #64748b;
+  }
+
+  // Wrap selected-user chips onto multiple lines
+  .users-field .p-multiselect-label {
+    flex-wrap: wrap;
+    gap: 4px;
+    white-space: normal;
+  }
+}
+
+.users-field {
+  margin-bottom: 0;
+}

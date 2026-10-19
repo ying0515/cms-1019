@@ -1,0 +1,41 @@
+using CMS.API.Data;
+using CMS.API.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+const string CorsPolicy = "LocalhostCors";
+
+DapperConfig.RegisterTypeHandlers();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CorsPolicy, policy => policy
+        .SetIsOriginAllowed(origin => Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback)
+        .AllowAnyHeader()
+        .AllowAnyMethod());
+});
+
+builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
+builder.Services.AddScoped<IAppRoleRepository, AppRoleRepository>();
+builder.Services.AddScoped<ILookupRepository, LookupRepository>();
+
+var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CMS.API v1");
+    options.RoutePrefix = "swagger";
+});
+
+app.UseCors(CorsPolicy);
+app.UseAuthorization();
+app.MapControllers();
+
+app.Run();
+
+public partial class Program { }
