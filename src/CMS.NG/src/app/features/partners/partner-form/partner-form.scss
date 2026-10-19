@@ -1,0 +1,10 @@
+:host ::ng-deep {
+  .p-inputnumber input {
+    width: 100%;
+  }
+}
+
+input:disabled {
+  background: #e2e8f0;
+  color: #64748b;
+}

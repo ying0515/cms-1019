@@ -58,5 +58,61 @@ export const routes: Routes = [
         (m) => m.PublishStatusForm,
       ),
   },
+  {
+    path: 'partners',
+    title: '合作廠商 Partner',
+    loadComponent: () =>
+      import('./features/partners/partner-list/partner-list').then((m) => m.PartnerList),
+  },
+  {
+    path: 'partners/new',
+    title: '新增合作廠商',
+    loadComponent: () =>
+      import('./features/partners/partner-form/partner-form').then((m) => m.PartnerForm),
+  },
+  {
+    path: 'partners/:id',
+    title: '檢視合作廠商',
+    loadComponent: () =>
+      import('./features/partners/partner-detail/partner-detail').then((m) => m.PartnerDetail),
+  },
+  {
+    path: 'partners/:id/edit',
+    title: '編輯合作廠商',
+    loadComponent: () =>
+      import('./features/partners/partner-form/partner-form').then((m) => m.PartnerForm),
+  },
+  {
+    path: 'course-groups',
+    title: '課程群組 CourseGroup',
+    loadComponent: () =>
+      import('./features/course-groups/course-group-list/course-group-list').then(
+        (m) => m.CourseGroupList,
+      ),
+  },
+  {
+    path: 'course-groups/new',
+    title: '新增課程群組',
+    loadComponent: () =>
+      import('./features/course-groups/course-group-form/course-group-form').then(
+        (m) => m.CourseGroupForm,
+      ),
+  },
+  {
+    path: 'course-groups/:id',
+    title: '檢視課程群組',
+    loadComponent: () =>
+      import('./features/course-groups/course-group-detail/course-group-detail').then(
+        (m) => m.CourseGroupDetail,
+      ),
+  },
+  {
+    path: 'course-groups/:id/edit',
+    title: '編輯課程群組',
+    loadComponent: () =>
+      import('./features/course-groups/course-group-form/course-group-form').then(
+        (m) => m.CourseGroupForm,
+      ),
+  },
   { path: '**', redirectTo: 'app-roles' },
 ];

@@ -28,13 +28,29 @@ describe('App', () => {
     expect(link?.getAttribute('href')).toBe('/app-roles');
   });
 
+  it('renders the 課程管理 Course > 合作廠商 Partner / 課程群組 CourseGroup sidebar entries', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const groups = Array.from(el.querySelectorAll('.nav-group')).map((g) => g.textContent);
+    expect(groups[1]).toContain('課程管理 Course');
+    const link = el.querySelector('.nav-items a[href="/partners"]');
+    expect(link?.textContent).toContain('合作廠商 Partner');
+    const groupLink = el.querySelector('.nav-items a[href="/course-groups"]');
+    expect(groupLink?.textContent).toContain('課程群組 CourseGroup');
+  });
+
   it('collapses a nav group when toggled', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const before = el.querySelectorAll('.nav-items').length;
 
-    (fixture.nativeElement.querySelector('.nav-group') as HTMLButtonElement).click();
+    (el.querySelector('.nav-group') as HTMLButtonElement).click();
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.nav-items')).toBeNull();
+    expect(el.querySelectorAll('.nav-items').length).toBe(before - 1);
+    expect(el.querySelector('.nav-items a[href="/app-roles"]')).toBeNull();
   });
 });

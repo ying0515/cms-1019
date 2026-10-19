@@ -35,9 +35,18 @@ export class App {
         { label: '發布狀態 PublishStatus', icon: 'pi pi-flag', route: '/publish-statuses' },
       ],
     },
+    {
+      key: 'course',
+      label: '課程管理 Course',
+      icon: 'pi pi-book',
+      items: [
+        { label: '合作廠商 Partner', icon: 'pi pi-building', route: '/partners' },
+        { label: '課程群組 CourseGroup', icon: 'pi pi-tags', route: '/course-groups' },
+      ],
+    },
   ];
 
-  protected readonly expanded = signal<Record<string, boolean>>({ admin: true });
+  protected readonly expanded = signal<Record<string, boolean>>({ admin: true, course: true });
 
   toggleGroup(key: string): void {
     this.expanded.update((s) => ({ ...s, [key]: !s[key] }));

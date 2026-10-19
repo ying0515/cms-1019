@@ -38,11 +38,15 @@ Reference and one-time context moved out of `CLAUDE.md`.
 |---------|---------|-----------------|
 | AppRole (系統管理 Admin › 角色) | `AppRolesController`, `AppRoleRepository`; n-n users via `AppUserRole`; `GET /api/lookups/app-users` | `/app-roles`, `/app-roles/new`, `/app-roles/:id`, `/app-roles/:id/edit` |
 | PublishStatus (系統管理 Admin › 發布狀態) | `PublishStatusesController`, `PublishStatusRepository`; user-supplied tinyint pkid; delete → 409 via `ReferenceConflictException` (SQL 547); `GET /api/lookups/publish-statuses` | `/publish-statuses`, `/publish-statuses/new`, `/publish-statuses/:id`, `/publish-statuses/:id/edit` |
+| Partner (課程管理 Course › 合作廠商) | `PartnersController`, `PartnerRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/partners` | `/partners`, `/partners/new`, `/partners/:id`, `/partners/:id/edit` |
+| CourseGroup (課程管理 Course › 課程群組) | `CourseGroupsController`, `CourseGroupRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/course-groups` | `/course-groups`, `/course-groups/new`, `/course-groups/:id`, `/course-groups/:id/edit` |
 
 ## Change log
 
 Newest first, one dated line per meaningful change.
 
+- 2026-10-19 — Added CourseGroup CRUD (spec `spec/course/CourseGroup.md`): API + `GET /api/lookups/course-groups`, Angular list/detail/form under 課程管理 Course. Course/PartnerCourseGroup link buttons deferred until those features exist.
+- 2026-10-19 — Added Partner CRUD (spec `spec/course/Partner.md`): API + `GET /api/lookups/partners`, Angular list/detail/form, new sidebar group 課程管理 Course. Course/Certification/PartnerCourseGroup/Promotion2 link buttons deferred until those features exist.
 - 2026-10-19 — Added PublishStatus CRUD (spec `spec/admin/PublishStatus.md`): API + lookup endpoint, Angular list/detail/form, sidebar entry. Tests now fake `ILookupRepository` too (`FakeLookupRepository`). Course/Promotion2 link buttons deferred until those features exist.
 
 - 2026-10-19 — Trimmed CLAUDE.md under 2K chars; moved layout, environment, git, features and change log here.

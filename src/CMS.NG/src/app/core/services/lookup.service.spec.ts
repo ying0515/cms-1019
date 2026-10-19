@@ -42,4 +42,28 @@ describe('LookupService', () => {
 
     expect(result).toEqual(statuses);
   });
+
+  it('getPartners() GETs /api/lookups/partners', () => {
+    const partners = [{ pkid: 1, name: 'Microsoft' }];
+    let result: unknown;
+    service.getPartners().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/partners`);
+    expect(req.request.method).toBe('GET');
+    req.flush(partners);
+
+    expect(result).toEqual(partners);
+  });
+
+  it('getCourseGroups() GETs /api/lookups/course-groups', () => {
+    const groups = [{ pkid: 1, description: '雲端運算' }];
+    let result: unknown;
+    service.getCourseGroups().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/course-groups`);
+    expect(req.request.method).toBe('GET');
+    req.flush(groups);
+
+    expect(result).toEqual(groups);
+  });
 });

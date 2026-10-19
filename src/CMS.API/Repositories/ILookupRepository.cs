@@ -6,4 +6,6 @@ public interface ILookupRepository
 {
     Task<IEnumerable<AppUserLookup>> GetAppUsersAsync();
     Task<IEnumerable<PublishStatusLookup>> GetPublishStatusesAsync();
+    Task<IEnumerable<PartnerLookup>> GetPartnersAsync();
+    Task<IEnumerable<CourseGroupLookup>> GetCourseGroupsAsync();
 }

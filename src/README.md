@@ -70,3 +70,33 @@ The list keeps its filters, sort and page in sessionStorage (`app-role-list-filt
 
 Frontend routes: `/publish-statuses` (list), `/publish-statuses/new`, `/publish-statuses/:id` (view), `/publish-statuses/:id/edit`.
 The list keeps its filters, sort and page in sessionStorage (`publish-status-list-filters`, `publish-status-list-sort`, `publish-status-list-page`).
+
+### Partner (`課程管理 Course › 合作廠商 Partner`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/partners` | All partners, ordered by DisplayOrder ASC, pkid DESC |
+| POST   | `/api/partners/query` | Filter: `keyword` (Name, AppKey, NameOnPartnerMenu, NameOnCourseDetailPage, ImageFilename) |
+| GET    | `/api/partners/{pkid}` | Single partner |
+| POST   | `/api/partners` | Create; pkid is smallint IDENTITY (body pkid ignored) |
+| PUT    | `/api/partners` | Update (pkid in body) |
+| DELETE | `/api/partners/{pkid}` | Delete (`409` if referenced by `Course` / `Certification` / `PartnerCourseGroup` / `Promotion2`) |
+| GET    | `/api/lookups/partners` | `{ pkid, name }` lookup for FK dropdowns, ordered by DisplayOrder |
+
+Frontend routes: `/partners` (list), `/partners/new`, `/partners/:id` (view), `/partners/:id/edit`.
+The list keeps its filters, sort and page in sessionStorage (`partner-list-filters`, `partner-list-sort`, `partner-list-page`).
+
+### CourseGroup (`課程管理 Course › 課程群組 CourseGroup`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/course-groups` | All groups, ordered by pkid DESC |
+| POST   | `/api/course-groups/query` | Filter: `keyword` (Description) |
+| GET    | `/api/course-groups/{pkid}` | Single group |
+| POST   | `/api/course-groups` | Create; pkid is smallint IDENTITY (body pkid ignored) |
+| PUT    | `/api/course-groups` | Update (pkid in body) |
+| DELETE | `/api/course-groups/{pkid}` | Delete (`409` if referenced by `Course` / `PartnerCourseGroup`) |
+| GET    | `/api/lookups/course-groups` | `{ pkid, description }` lookup for FK dropdowns, ordered by pkid |
+
+Frontend routes: `/course-groups` (list), `/course-groups/new`, `/course-groups/:id` (view), `/course-groups/:id/edit`.
+The list keeps its filters, sort and page in sessionStorage (`course-group-list-filters`, `course-group-list-sort`, `course-group-list-page`).

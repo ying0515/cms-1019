@@ -15,4 +15,12 @@ public class LookupsController(ILookupRepository repository) : ControllerBase
     [HttpGet("publish-statuses")]
     public async Task<ActionResult<IEnumerable<PublishStatusLookup>>> GetPublishStatuses()
         => Ok(await repository.GetPublishStatusesAsync());
+
+    [HttpGet("partners")]
+    public async Task<ActionResult<IEnumerable<PartnerLookup>>> GetPartners()
+        => Ok(await repository.GetPartnersAsync());
+
+    [HttpGet("course-groups")]
+    public async Task<ActionResult<IEnumerable<CourseGroupLookup>>> GetCourseGroups()
+        => Ok(await repository.GetCourseGroupsAsync());
 }
