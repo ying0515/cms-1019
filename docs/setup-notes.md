@@ -1,6 +1,6 @@
 # Setup notes
 
-Reference and one-time context moved out of `CLAUDE.md`.
+Reference context for CLAUDE.md: layout, environment, tooling gotchas, git, features and change log. Code rules live in `docs/conventions.md`.
 
 ## Layout
 
@@ -21,6 +21,12 @@ Reference and one-time context moved out of `CLAUDE.md`.
 - API base URL is `environment.apiUrl` (no dev proxy; API CORS allows any loopback origin).
 - Production build: `cd src\CMS.NG; npm run build`.
 - Dapper `date`/`time` handlers are registered via `DapperConfig.RegisterTypeHandlers()`.
+
+### Tooling gotchas
+
+- A running `dotnet run` locks `CMS.API/bin`, so `dotnet test` fails with MSB3027. Stop the API, or build elsewhere: `dotnet test --artifacts-path <temp dir>`.
+- `sqlcmd` needs `-C` (trust the self-signed cert): `sqlcmd -S .\SQLEXPRESS -d CMS -E -C -Q "..."`.
+- No Python on this machine; use PowerShell/Node for scripting.
 
 ## Git
 
@@ -47,6 +53,7 @@ Reference and one-time context moved out of `CLAUDE.md`.
 
 Newest first, one dated line per meaningful change.
 
+- 2026-10-19 — Re-organized CLAUDE.md into always-needed rules plus a "read when needed" index; code rules moved to new `docs/conventions.md`; tooling gotchas (locked `bin/`, `sqlcmd -C`, no Python) added here.
 - 2026-10-19 — Added AppUser CRUD (spec `spec/auth/AppUser.md`): API with n-n Roles, keyword / IsActive / RoleId filters, new lookup `app-roles`; PasswordHash never leaves the backend — set on create and by new `POST /api/app-users/{id}/reset-password` from `SysConfig` appConfig `defaultPassword` (SHA-256, lowercase hex); new `ISysConfigRepository` + `Data/PasswordHasher`. Angular list/detail/form under 系統管理 Admin (detail has 重設密碼 and 查看角色); AppRole list now accepts `?userId=`.
 - 2026-10-19 — Added Course CRUD (spec `spec/course/Course.md`): API with JOINed Partner/CourseGroup/PublishStatus nav objects, n-n Certifications/JobCategories, date-range + FK + CanRepeat filters, new lookups `certifications` / `job-categories`; Angular list/detail/form under 課程管理 Course; new `core/utils/date.util.ts`. Partner / CourseGroup / PublishStatus list + detail gained 查看課程 buttons. Copy, QR, print and sub-panels from `sample1.spec.md` deferred.
 - 2026-10-19 — Added CourseGroup CRUD (spec `spec/course/CourseGroup.md`): API + `GET /api/lookups/course-groups`, Angular list/detail/form under 課程管理 Course. Course/PartnerCourseGroup link buttons deferred until those features exist.

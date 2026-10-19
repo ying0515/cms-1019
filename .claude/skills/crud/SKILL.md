@@ -90,7 +90,7 @@ spec generation. Reading it now."
 
 Read `spec/{SUB_SYSTEM}/{TABLE}.md` (just generated or pre-existing).
 Read `spec/code-gen.convention.md` for scaffolding conventions.
-Follow CLAUDE.md for all non-obvious rules (string PKs, DateOnly handlers,
+Follow `docs/conventions.md` for all non-obvious rules (string PKs, DateOnly handlers,
 RowAudit logging, sticky toolbar pattern, session storage keys, etc.).
 
 Build in this order:
