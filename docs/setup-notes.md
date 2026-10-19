@@ -36,7 +36,8 @@ Reference and one-time context moved out of `CLAUDE.md`.
 
 | Feature | Backend | Frontend routes |
 |---------|---------|-----------------|
-| AppRole (系統管理 Admin › 角色) | `AppRolesController`, `AppRoleRepository`; n-n users via `AppUserRole`; `GET /api/lookups/app-users` | `/app-roles`, `/app-roles/new`, `/app-roles/:id`, `/app-roles/:id/edit` |
+| AppUser (系統管理 Admin › 使用者) | `AppUsersController`, `AppUserRepository`, `SysConfigRepository`; n-n roles via `AppUserRole`; backend-only PasswordHash (SHA-256 of `SysConfig` appConfig `defaultPassword`); `POST /api/app-users/{id}/reset-password`; `GET /api/lookups/app-roles` | `/app-users`, `/app-users/new`, `/app-users/:id`, `/app-users/:id/edit` |
+| AppRole (系統管理 Admin › 角色) | `AppRolesController`, `AppRoleRepository`; n-n users via `AppUserRole`; `GET /api/lookups/app-users` | `/app-roles` (accepts `?userId=`), `/app-roles/new`, `/app-roles/:id`, `/app-roles/:id/edit` |
 | PublishStatus (系統管理 Admin › 發布狀態) | `PublishStatusesController`, `PublishStatusRepository`; user-supplied tinyint pkid; delete → 409 via `ReferenceConflictException` (SQL 547); `GET /api/lookups/publish-statuses` | `/publish-statuses`, `/publish-statuses/new`, `/publish-statuses/:id`, `/publish-statuses/:id/edit` |
 | Partner (課程管理 Course › 合作廠商) | `PartnersController`, `PartnerRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/partners` | `/partners`, `/partners/new`, `/partners/:id`, `/partners/:id/edit` |
 | CourseGroup (課程管理 Course › 課程群組) | `CourseGroupsController`, `CourseGroupRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/course-groups` | `/course-groups`, `/course-groups/new`, `/course-groups/:id`, `/course-groups/:id/edit` |
@@ -46,6 +47,7 @@ Reference and one-time context moved out of `CLAUDE.md`.
 
 Newest first, one dated line per meaningful change.
 
+- 2026-10-19 — Added AppUser CRUD (spec `spec/auth/AppUser.md`): API with n-n Roles, keyword / IsActive / RoleId filters, new lookup `app-roles`; PasswordHash never leaves the backend — set on create and by new `POST /api/app-users/{id}/reset-password` from `SysConfig` appConfig `defaultPassword` (SHA-256, lowercase hex); new `ISysConfigRepository` + `Data/PasswordHasher`. Angular list/detail/form under 系統管理 Admin (detail has 重設密碼 and 查看角色); AppRole list now accepts `?userId=`.
 - 2026-10-19 — Added Course CRUD (spec `spec/course/Course.md`): API with JOINed Partner/CourseGroup/PublishStatus nav objects, n-n Certifications/JobCategories, date-range + FK + CanRepeat filters, new lookups `certifications` / `job-categories`; Angular list/detail/form under 課程管理 Course; new `core/utils/date.util.ts`. Partner / CourseGroup / PublishStatus list + detail gained 查看課程 buttons. Copy, QR, print and sub-panels from `sample1.spec.md` deferred.
 - 2026-10-19 — Added CourseGroup CRUD (spec `spec/course/CourseGroup.md`): API + `GET /api/lookups/course-groups`, Angular list/detail/form under 課程管理 Course. Course/PartnerCourseGroup link buttons deferred until those features exist.
 - 2026-10-19 — Added Partner CRUD (spec `spec/course/Partner.md`): API + `GET /api/lookups/partners`, Angular list/detail/form, new sidebar group 課程管理 Course. Course/Certification/PartnerCourseGroup/Promotion2 link buttons deferred until those features exist.

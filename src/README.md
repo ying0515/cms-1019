@@ -39,6 +39,24 @@ npx ng test --watch=false --browsers=ChromeHeadless   # CI / single run
 
 ## Features
 
+### AppUser (`系統管理 Admin › 使用者 AppUser`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/app-users` | All users (with `roleCount`) |
+| POST   | `/api/app-users/query` | Filter: `keyword` (UserId/UserName), `isActive`, `roleId` |
+| GET    | `/api/app-users/{pkid}` | Single user, including assigned `roles` |
+| POST   | `/api/app-users` | Create (`409` if UserId exists; `500` if the default password is not configured) |
+| PUT    | `/api/app-users` | Update (pkid in body; UserId and PasswordHash are not changed) |
+| POST   | `/api/app-users/{pkid}/reset-password` | No body; resets PasswordHash to the default password |
+| DELETE | `/api/app-users/{pkid}` | Delete (also removes its `AppUserRole` rows) |
+| GET    | `/api/lookups/app-roles` | AppRole lookup for the role picker |
+
+`PasswordHash` is backend-only: it is never in a request, response or Angular model. On create and reset-password it is set to the lowercase-hex SHA-256 of `defaultPassword` from the JSON in `SysConfig` (`configKey = 'appConfig'`), and `PasswordUpdatedTime` is set to `GETUTCDATE()`.
+
+Frontend routes: `/app-users` (list), `/app-users/new`, `/app-users/:id` (view), `/app-users/:id/edit`.
+The list keeps its filters, sort and page in sessionStorage (`app-user-list-filters`, `app-user-list-sort`, `app-user-list-page`). 查看角色 opens `/app-roles?userId={userId}`.
+
 ### AppRole (`系統管理 Admin › 角色 AppRole`)
 
 | Method | Route | Description |

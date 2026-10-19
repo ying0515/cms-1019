@@ -90,4 +90,16 @@ describe('LookupService', () => {
 
     expect(result).toEqual(jobs);
   });
+
+  it('getAppRoles() GETs /api/lookups/app-roles', () => {
+    const roles = [{ roleId: 'Admin', roleName: 'Administrator' }];
+    let result: unknown;
+    service.getAppRoles().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/app-roles`);
+    expect(req.request.method).toBe('GET');
+    req.flush(roles);
+
+    expect(result).toEqual(roles);
+  });
 });

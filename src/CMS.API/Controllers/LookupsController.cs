@@ -12,6 +12,10 @@ public class LookupsController(ILookupRepository repository) : ControllerBase
     public async Task<ActionResult<IEnumerable<AppUserLookup>>> GetAppUsers()
         => Ok(await repository.GetAppUsersAsync());
 
+    [HttpGet("app-roles")]
+    public async Task<ActionResult<IEnumerable<AppRoleLookup>>> GetAppRoles()
+        => Ok(await repository.GetAppRolesAsync());
+
     [HttpGet("publish-statuses")]
     public async Task<ActionResult<IEnumerable<PublishStatusLookup>>> GetPublishStatuses()
         => Ok(await repository.GetPublishStatusesAsync());

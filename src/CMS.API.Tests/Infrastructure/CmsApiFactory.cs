@@ -14,10 +14,13 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     public FakePartnerRepository Partners { get; } = new();
     public FakeCourseGroupRepository CourseGroups { get; } = new();
     public FakeCourseRepository Courses { get; }
+    public FakeAppUserRepository AppUsers { get; }
+    public FakeSysConfigRepository SysConfig { get; } = new();
 
     public CmsApiFactory()
     {
         Courses = new FakeCourseRepository(Partners, CourseGroups, PublishStatuses);
+        AppUsers = new FakeAppUserRepository(AppRoles);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -25,6 +28,10 @@ public class CmsApiFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll<IAppUserRepository>();
+            services.AddSingleton<IAppUserRepository>(AppUsers);
+            services.RemoveAll<ISysConfigRepository>();
+            services.AddSingleton<ISysConfigRepository>(SysConfig);
             services.RemoveAll<IAppRoleRepository>();
             services.AddSingleton<IAppRoleRepository>(AppRoles);
             services.RemoveAll<IPublishStatusRepository>();

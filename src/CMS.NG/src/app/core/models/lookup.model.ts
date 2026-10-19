@@ -4,6 +4,11 @@ export interface AppUserLookup {
   isActive: boolean;
 }
 
+export interface AppRoleLookup {
+  roleId: string;
+  roleName: string;
+}
+
 export interface PublishStatusLookup {
   pkid: number;
   description: string;

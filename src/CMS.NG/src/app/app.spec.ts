@@ -17,15 +17,17 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('renders the 系統管理 Admin > 角色 AppRole sidebar entry', () => {
+  it('renders 使用者 AppUser then 角色 AppRole under 系統管理 Admin', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
 
     expect(el.querySelector('.nav-group')?.textContent).toContain('系統管理 Admin');
-    const link = el.querySelector('.nav-items a');
-    expect(link?.textContent).toContain('角色 AppRole');
-    expect(link?.getAttribute('href')).toBe('/app-roles');
+    const links = el.querySelectorAll('.nav-items')[0].querySelectorAll('a');
+    expect(links[0].textContent).toContain('使用者 AppUser');
+    expect(links[0].getAttribute('href')).toBe('/app-users');
+    expect(links[1].textContent).toContain('角色 AppRole');
+    expect(links[1].getAttribute('href')).toBe('/app-roles');
   });
 
   it('renders the 課程管理 Course > 合作廠商 Partner / 課程群組 CourseGroup sidebar entries', () => {

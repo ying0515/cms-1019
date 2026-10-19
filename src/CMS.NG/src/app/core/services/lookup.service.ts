@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '@env/environment';
 import {
+  AppRoleLookup,
   AppUserLookup,
   CertificationLookup,
   CourseGroupLookup,
@@ -20,7 +21,11 @@ export class LookupService {
     return this.http.get<AppUserLookup[]>(`${this.baseUrl}/app-users`);
   }
 
-  getPublishStatuses(): Observable<PublishStatusLookup[]> {
+  getAppRoles(): Observable<AppRoleLookup[]> {
+    return this.http.get<AppRoleLookup[]>(`${this.baseUrl}/app-roles`);
+  }
+
+  getPublishStatuses():Observable<PublishStatusLookup[]> {
     return this.http.get<PublishStatusLookup[]>(`${this.baseUrl}/publish-statuses`);
   }
 

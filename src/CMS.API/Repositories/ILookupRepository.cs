@@ -5,6 +5,7 @@ namespace CMS.API.Repositories;
 public interface ILookupRepository
 {
     Task<IEnumerable<AppUserLookup>> GetAppUsersAsync();
+    Task<IEnumerable<AppRoleLookup>> GetAppRolesAsync();
     Task<IEnumerable<PublishStatusLookup>> GetPublishStatusesAsync();
     Task<IEnumerable<PartnerLookup>> GetPartnersAsync();
     Task<IEnumerable<CourseGroupLookup>> GetCourseGroupsAsync();

@@ -26,6 +26,15 @@ public class FakeAppRoleRepository : IAppRoleRepository
 
     public IReadOnlyDictionary<string, AppUserLookup> Users => _users;
 
+    public IReadOnlyList<AppRoleLookup> Roles
+    {
+        get
+        {
+            lock (_lock)
+                return _roles.Select(r => new AppRoleLookup { RoleId = r.RoleId, RoleName = r.RoleName }).ToList();
+        }
+    }
+
     private void Seed(AppRoleRequest request)
     {
         request.Pkid = _nextPkid++;

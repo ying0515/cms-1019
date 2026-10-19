@@ -11,6 +11,9 @@ public class FakeLookupRepository(FakeAppRoleRepository appRoles, FakePublishSta
     public Task<IEnumerable<AppUserLookup>> GetAppUsersAsync()
         => Task.FromResult<IEnumerable<AppUserLookup>>(appRoles.Users.Values.OrderBy(u => u.UserName).ToList());
 
+    public Task<IEnumerable<AppRoleLookup>> GetAppRolesAsync()
+        => Task.FromResult<IEnumerable<AppRoleLookup>>(appRoles.Roles.OrderBy(r => r.RoleId).ToList());
+
     public Task<IEnumerable<PublishStatusLookup>> GetPublishStatusesAsync()
         => Task.FromResult<IEnumerable<PublishStatusLookup>>(publishStatuses.Items
             .OrderBy(s => s.Pkid)

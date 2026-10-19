@@ -13,6 +13,13 @@ public class LookupRepository(IDbConnectionFactory db) : ILookupRepository
             "SELECT UserId, UserName, IsActive FROM AppUser ORDER BY UserName ASC");
     }
 
+    public async Task<IEnumerable<AppRoleLookup>> GetAppRolesAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<AppRoleLookup>(
+            "SELECT RoleId, RoleName FROM AppRole ORDER BY RoleId ASC");
+    }
+
     public async Task<IEnumerable<PublishStatusLookup>> GetPublishStatusesAsync()
     {
         using var conn = await db.CreateOpenConnectionAsync();
