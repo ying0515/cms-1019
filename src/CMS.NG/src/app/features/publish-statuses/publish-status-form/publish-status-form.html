@@ -1,5 +1,5 @@
 <form [formGroup]="form" (ngSubmit)="save()">
-  <div class="page-header">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
     <h1 class="title">{{ isEdit ? '編輯發布狀態' : '新增發布狀態' }}</h1>
     <div class="actions">
       <p-button type="button" label="取消" icon="pi pi-times" severity="secondary" (onClick)="cancel()" />

@@ -7,6 +7,7 @@ import { of, throwError } from 'rxjs';
 
 import { AppUserService } from '@core/services/app-user.service';
 import { LookupService } from '@core/services/lookup.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { APP_ROLES, HELEN } from '../testing/app-user.fixtures';
 import { AppUserForm } from './app-user-form';
 
@@ -133,6 +134,10 @@ describe('AppUserForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/app-users']);
@@ -174,6 +179,10 @@ describe('AppUserForm', () => {
       });
       expect(userService.create).not.toHaveBeenCalled();
       expect(router.navigate).toHaveBeenCalledWith(['/app-users', 1]);
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

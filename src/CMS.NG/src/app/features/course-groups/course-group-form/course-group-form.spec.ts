@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 import { CourseGroupService } from '@core/services/course-group.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { SECURITY_GROUP } from '../testing/course-group.fixtures';
 import { CourseGroupForm } from './course-group-form';
 
@@ -116,6 +117,10 @@ describe('CourseGroupForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/course-groups']);
@@ -157,6 +162,10 @@ describe('CourseGroupForm', () => {
       c.save();
 
       expect(service.update).not.toHaveBeenCalled();
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

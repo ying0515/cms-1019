@@ -1,5 +1,5 @@
 <form [formGroup]="form" (ngSubmit)="save()">
-  <div class="page-header">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
     <h1 class="title">{{ isEdit ? '編輯課程群組' : '新增課程群組' }}</h1>
     <div class="actions">
       <p-button

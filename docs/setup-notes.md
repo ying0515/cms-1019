@@ -53,6 +53,8 @@ Reference context for CLAUDE.md: layout, environment, tooling gotchas, git, feat
 ## Change log
 
 Newest first, one dated line per meaningful change.
+- 2026-10-20 — Fixed `npm start` TS2304 (`expect` not found): `tsconfig.app.json` now excludes `src/**/testing/**`, so test-only helpers/fixtures (which may use Jasmine globals) stay out of the app build.
+- 2026-10-20 — Pinned Save/Cancel toolbar on all page forms (AppRole, AppUser, CourseGroup, Partner, PublishStatus, Course): `.page-header.form-toolbar` rule moved from `course-form.scss` to global `styles.scss`; shared spec helper `@core/testing/form-toolbar` (`expectPinnedToolbar`) with add + edit tests per form; documented in `docs/conventions.md`, `spec/code-gen.convention.md`, `/crud` skill. FeaturedPromoItem form is inline (no toolbar), unchanged.
 - 2026-10-20 — Course form: Save/Cancel toolbar pinned while the form scrolls (`.form-toolbar`: sticky, top 0, z-index 10, shadow; replaces ad-hoc `.sticky`); unit tests assert the pinned styling and both buttons in New and Edit; spec `spec/course/Course.md` *Form* updated.
 
 - 2026-10-20 — Documented Course list inline edit in spec: `spec/course/Course.md` (new *List — Inline Edit* section: editor + validation per column, read-only columns, GET-then-PUT save; list column notes and frontend tests updated), `spec/sample1.spec.md` (new *List — Inline Cell Edit* summary), new `spec/inline-edit.md` (reusable double-click / blur-save pattern, overlay focus handling).

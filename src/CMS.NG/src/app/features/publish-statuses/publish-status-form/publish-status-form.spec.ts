@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 import { PublishStatusService } from '@core/services/publish-status.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { DRAFT_STATUS } from '../testing/publish-status.fixtures';
 import { PublishStatusForm } from './publish-status-form';
 
@@ -125,6 +126,10 @@ describe('PublishStatusForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/publish-statuses']);
@@ -176,6 +181,10 @@ describe('PublishStatusForm', () => {
       c.save();
 
       expect(service.update).not.toHaveBeenCalled();
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

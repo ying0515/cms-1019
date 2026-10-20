@@ -14,6 +14,7 @@ Project rules for API and Angular code. Scaffolding patterns per table: `spec/co
 
 - Standalone components, `inject()`, signals; lazy routes in `app.routes.ts` (`/new` before `/:id`); sidebar in `app.ts` `navGroups`; aliases `@core/*`, `@env/*`.
 - List state: `session-state.util.ts` (`{table}-list-filters|sort|page`). Errors: `httpErrorMessage()`.
+- Form pages: header toolbar is `<div class="page-header form-toolbar" data-testid="form-toolbar">` (pinned via the global rule in `styles.scss`); spec with `expectPinnedToolbar()` from `@core/testing/form-toolbar` in add and edit mode.
 - Delete confirm: `確定要刪除主代碼 <b>{pkid}</b>「{name}」？` (escape name).
 - Dates: local components, never `toISOString().split('T')[0]` (helpers in `core/utils/date.util.ts`); append `'Z'` to API datetimes before parsing.
 - Prettier: width 100, single quotes. Run it only on files you create — existing files aren't Prettier-clean, so formatting them adds unrelated diff noise.

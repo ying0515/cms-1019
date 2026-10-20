@@ -6,6 +6,7 @@ import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 import { PartnerService } from '@core/services/partner.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { CISCO, MICROSOFT } from '../testing/partner.fixtures';
 import { PartnerForm } from './partner-form';
 
@@ -165,6 +166,10 @@ describe('PartnerForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/partners']);
@@ -219,6 +224,10 @@ describe('PartnerForm', () => {
       c.save();
 
       expect(service.update).not.toHaveBeenCalled();
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

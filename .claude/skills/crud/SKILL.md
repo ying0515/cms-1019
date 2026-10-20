@@ -123,7 +123,7 @@ Build in this order:
    - `RowAuditBadgeComponent` in toolbar `#start`
    - Primary-Foreign link buttons if spec has them
 10. **Form component** — `{NG_PROJECT}/src/app/features/{table-plural}/{table-kebab}-form/`
-    - Reactive Forms; `forkJoin` for parallel lookups; sticky `p-toolbar`
+    - Reactive Forms; `forkJoin` for parallel lookups; pinned `.page-header.form-toolbar` (see `docs/conventions.md`)
     - `RowAuditBadgeComponent` in toolbar `#start`
 11. **Lazy route** — add to `{NG_PROJECT}/src/app/app.routes.ts`
     (route order: `/new` before `/:id`)

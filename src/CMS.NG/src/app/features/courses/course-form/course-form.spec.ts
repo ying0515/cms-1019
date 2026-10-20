@@ -7,6 +7,7 @@ import { of, throwError } from 'rxjs';
 
 import { CourseService } from '@core/services/course.service';
 import { LookupService } from '@core/services/lookup.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { toIsoDate } from '@core/utils/date.util';
 import {
   AZ104,
@@ -65,23 +66,6 @@ describe('CourseForm', () => {
     const fixture = TestBed.createComponent(CourseForm);
     fixture.detectChanges();
     return fixture;
-  }
-
-  /** The Save/Cancel toolbar is pinned (sticky, top 0, stacked above fields) and holds both buttons. */
-  function expectPinnedToolbar(el: HTMLElement) {
-    const toolbar = el.querySelector<HTMLElement>('[data-testid="form-toolbar"]')!;
-    expect(toolbar).toBeTruthy();
-    expect(toolbar.parentElement!.tagName).toBe('FORM');
-
-    const style = getComputedStyle(toolbar);
-    expect(style.position).toBe('sticky');
-    expect(style.top).toBe('0px');
-    expect(Number(style.zIndex)).toBeGreaterThan(0);
-
-    const labels = Array.from(toolbar.querySelectorAll('button'), (b) => b.textContent!.trim());
-    expect(labels).toContain('取消');
-    expect(labels).toContain('儲存');
-    expect(toolbar.querySelector('button[type="submit"]')).toBeTruthy();
   }
 
   /** Fills every required field with valid values. */
