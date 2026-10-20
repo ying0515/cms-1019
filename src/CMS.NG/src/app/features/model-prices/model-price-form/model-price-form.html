@@ -1,0 +1,79 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">{{ isEdit ? '編輯模型價格' : '新增模型價格' }}</h1>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="取消"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button
+        type="submit"
+        label="儲存"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="loading()"
+      />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>模型價格資料 <span class="text-muted unit">美元／百萬 Token</span></h2>
+
+    @if (isEdit) {
+      <div class="field">
+        <label for="pkid">主代碼</label>
+        <input pInputText id="pkid" [value]="pkid" disabled />
+      </div>
+    }
+
+    <div class="field">
+      <label for="model" class="required">模型</label>
+      <input
+        pInputText
+        id="model"
+        formControlName="model"
+        maxlength="100"
+        placeholder="例如 claude-opus-5-5"
+        [class.ng-dirty]="isInvalid('model')"
+      />
+      @if (isInvalid('model')) {
+        <small class="error">{{ textError('model', '模型', 100) }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="effectiveFrom" class="required">生效日</label>
+      <p-datepicker
+        inputId="effectiveFrom"
+        formControlName="effectiveFrom"
+        dateFormat="yy-mm-dd"
+        [showIcon]="true"
+        appendTo="body"
+      />
+      @if (isInvalid('effectiveFrom')) {
+        <small class="error">請選擇生效日</small>
+      }
+    </div>
+
+    @for (f of priceFields; track f.name) {
+      <div class="field">
+        <label [for]="f.name" class="required">{{ f.label }}</label>
+        <p-inputnumber
+          [inputId]="f.name"
+          [formControlName]="f.name"
+          [minFractionDigits]="2"
+          [maxFractionDigits]="6"
+          [min]="0"
+        />
+        @if (isInvalid(f.name)) {
+          <small class="error">請輸入{{ f.label }}（不可小於 0）</small>
+        }
+      </div>
+    }
+
+    <p class="hint text-muted">儲存後將重新計算此模型相關的 Token 用量成本。</p>
+  </section>
+</form>

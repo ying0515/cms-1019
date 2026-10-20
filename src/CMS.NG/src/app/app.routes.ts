@@ -178,5 +178,37 @@ export const routes: Routes = [
         (m) => m.AgentTokenReport,
       ),
   },
+  {
+    path: 'model-prices',
+    title: '模型價格 ModelPrice',
+    loadComponent: () =>
+      import('./features/model-prices/model-price-list/model-price-list').then(
+        (m) => m.ModelPriceList,
+      ),
+  },
+  {
+    path: 'model-prices/new',
+    title: '新增模型價格',
+    loadComponent: () =>
+      import('./features/model-prices/model-price-form/model-price-form').then(
+        (m) => m.ModelPriceForm,
+      ),
+  },
+  {
+    path: 'model-prices/:id',
+    title: '檢視模型價格',
+    loadComponent: () =>
+      import('./features/model-prices/model-price-detail/model-price-detail').then(
+        (m) => m.ModelPriceDetail,
+      ),
+  },
+  {
+    path: 'model-prices/:id/edit',
+    title: '編輯模型價格',
+    loadComponent: () =>
+      import('./features/model-prices/model-price-form/model-price-form').then(
+        (m) => m.ModelPriceForm,
+      ),
+  },
   { path: '**', redirectTo: 'app-roles' },
 ];

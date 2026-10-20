@@ -1,0 +1,42 @@
+<div class="page-header">
+  <h1 class="title">檢視模型價格</h1>
+  <div class="actions">
+    <p-button label="返回" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
+    @if (item()) {
+      <p-button
+        label="刪除"
+        icon="pi pi-trash"
+        severity="danger"
+        [outlined]="true"
+        (onClick)="confirmDelete()"
+      />
+      <p-button label="編輯" icon="pi pi-pencil" (onClick)="edit()" />
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="panel text-muted"><i class="pi pi-spin pi-spinner"></i> 載入中…</div>
+} @else if (notFound()) {
+  <div class="panel text-muted not-found">找不到此模型價格資料</div>
+} @else if (item(); as p) {
+  <section class="panel">
+    <h2>模型價格資料 <span class="text-muted unit">美元／百萬 Token</span></h2>
+    <dl class="view-grid">
+      <dt>主代碼</dt>
+      <dd>{{ p.pkid }}</dd>
+      <dt>模型</dt>
+      <dd class="model">{{ p.model }}</dd>
+      <dt>生效日</dt>
+      <dd class="effective-from">{{ p.effectiveFrom }}</dd>
+      <dt>輸入單價</dt>
+      <dd class="input-price">{{ p.inputPrice | number: '1.2-6' }}</dd>
+      <dt>輸出單價</dt>
+      <dd class="output-price">{{ p.outputPrice | number: '1.2-6' }}</dd>
+      <dt>快取寫入單價</dt>
+      <dd class="cache-write-price">{{ p.cacheWritePrice | number: '1.2-6' }}</dd>
+      <dt>快取讀取單價</dt>
+      <dd class="cache-read-price">{{ p.cacheReadPrice | number: '1.2-6' }}</dd>
+    </dl>
+  </section>
+}

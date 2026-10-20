@@ -76,6 +76,16 @@ describe('App', () => {
     expect(link?.textContent).toContain('代理 Token 用量');
   });
 
+  it('renders 模型價格 inside the 代理用量 Agent group', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const groups = el.querySelectorAll('.nav-items');
+    const link = groups[groups.length - 1].querySelector('a[href="/model-prices"]');
+    expect(link?.textContent).toContain('模型價格 ModelPrice');
+  });
+
   it('collapses a nav group when toggled', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();

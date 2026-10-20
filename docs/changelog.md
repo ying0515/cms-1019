@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-20 — #9: ModelPrice CRUD (`/api/model-prices`, 409 「此模型在該生效日已有定價」, pages `/model-prices` under 「代理用量」); shared C# `CostCalculator` (latest price on or before the usage date, rounded to 6 decimals) prices usage on ingest and re-prices the affected model(s) on every price create/update/delete in the same transaction; report shows 成本 (USD) with 「未定價」 / 「部分用量未定價」; domain-rule-as-`CostFunction` pattern added to `docs/conventions.md`.
 - 2026-10-20 — #7: agent token usage tracer bullet: `POST /api/agent-token-usage` (X-Api-Key authorization filter, 400 rules, MERGE upsert, Cost NULL, Taipei "today" from an injected `TimeProvider`), `POST /api/agent-token-usage/report`, read-only page `/agent-token-report` under new sidebar group 「代理用量」; MERGE pattern added to `docs/conventions.md`; dev key in `appsettings.Development.json`.
 
 - 2026-10-20 — #1: applied `database/agent.sql` (ModelPrice, AgentTokenUsage) to local `CMS`; added re-runnable `database/agent-seed.sql` with Opus/Sonnet/Haiku 5.5 prices (USD/1M; cache write = 1h rate; Haiku cache read assumed 0.1x input).

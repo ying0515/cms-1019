@@ -1,10 +1,15 @@
+using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Repositories;
 
 namespace CMS.API.Tests.Infrastructure;
 
-/// <summary>In-memory IAgentTokenUsageRepository so ingest and report tests run without SQL Server.</summary>
-public class FakeAgentTokenUsageRepository : IAgentTokenUsageRepository
+/// <summary>
+/// In-memory IAgentTokenUsageRepository so ingest and report tests run without SQL Server.
+/// <paramref name="prices"/> reads the ModelPrice table (the fake price repository); cost always comes from the
+/// CostFunction passed in, never from the fake.
+/// </summary>
+public class FakeAgentTokenUsageRepository(Func<IReadOnlyList<ModelPrice>> prices) : IAgentTokenUsageRepository
 {
     private readonly object _lock = new();
     private readonly List<Row> _rows = [];
@@ -28,8 +33,9 @@ public class FakeAgentTokenUsageRepository : IAgentTokenUsageRepository
         => Task.FromResult(Users.TryGetValue(userId, out var u) ? u.IsActive : (bool?)null);
 
     // Mirrors the MERGE: match on (SessionId, UsageDate, Model), overwrite with absolute totals
-    public Task UpsertAsync(AgentTokenUsageSubmitRequest request)
+    public Task UpsertAsync(AgentTokenUsageSubmitRequest request, CostFunction cost)
     {
+        var priceList = prices();
         lock (_lock)
         {
             foreach (var item in request.Items)
@@ -37,10 +43,30 @@ public class FakeAgentTokenUsageRepository : IAgentTokenUsageRepository
                 var date = item.UsageDate!.Value;
                 _rows.RemoveAll(r => r.SessionId == request.SessionId && r.UsageDate == date && r.Model == item.Model);
                 _rows.Add(new Row(request.SessionId, date, item.Model, request.UserId, request.Project,
-                    item.InputTokens, item.OutputTokens, item.CacheWriteTokens, item.CacheReadTokens, null));
+                    item.InputTokens, item.OutputTokens, item.CacheWriteTokens, item.CacheReadTokens,
+                    cost(priceList, item.ToUsageTokens())));
             }
         }
         return Task.CompletedTask;
+    }
+
+    /// <summary>Used by FakeModelPriceRepository: re-prices every row of the models (case-insensitive, like SQL).</summary>
+    public void RecomputeCosts(IEnumerable<string> models, IReadOnlyList<ModelPrice> priceList, CostFunction cost)
+    {
+        var set = models.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        lock (_lock)
+        {
+            for (var i = 0; i < _rows.Count; i++)
+            {
+                var r = _rows[i];
+                if (!set.Contains(r.Model)) continue;
+                _rows[i] = r with
+                {
+                    Cost = cost(priceList, new UsageTokens(r.Model, r.UsageDate,
+                        r.InputTokens, r.OutputTokens, r.CacheWriteTokens, r.CacheReadTokens)),
+                };
+            }
+        }
     }
 
     // Mirrors the GROUP BY + ORDER BY UsageDate DESC, UserId, Project, Model

@@ -17,7 +17,8 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     public FakeAppUserRepository AppUsers { get; }
     public FakeSysConfigRepository SysConfig { get; } = new();
     public FakeFeaturedPromoItemRepository FeaturedPromoItems { get; } = new();
-    public FakeAgentTokenUsageRepository AgentTokenUsage { get; } = new();
+    public FakeAgentTokenUsageRepository AgentTokenUsage { get; }
+    public FakeModelPriceRepository ModelPrices { get; }
 
     /// <summary>X-Api-Key accepted by POST /api/agent-token-usage in tests.</summary>
     public const string ApiKey = "test-api-key";
@@ -29,6 +30,9 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     {
         Courses = new FakeCourseRepository(Partners, CourseGroups, PublishStatuses);
         AppUsers = new FakeAppUserRepository(AppRoles);
+        // Usage reads prices; price writes re-price usage
+        AgentTokenUsage = new FakeAgentTokenUsageRepository(() => ModelPrices!.Items);
+        ModelPrices = new FakeModelPriceRepository(AgentTokenUsage);
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -55,6 +59,8 @@ public class CmsApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<IFeaturedPromoItemRepository>(FeaturedPromoItems);
             services.RemoveAll<IAgentTokenUsageRepository>();
             services.AddSingleton<IAgentTokenUsageRepository>(AgentTokenUsage);
+            services.RemoveAll<IModelPriceRepository>();
+            services.AddSingleton<IModelPriceRepository>(ModelPrices);
             services.RemoveAll<TimeProvider>();
             services.AddSingleton<TimeProvider>(Clock);
             services.RemoveAll<ILookupRepository>();

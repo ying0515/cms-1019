@@ -50,13 +50,15 @@ public class AgentTokenUsageRepository(IDbConnectionFactory db) : IAgentTokenUsa
             "SELECT IsActive FROM AppUser WHERE UserId = @UserId", new { UserId = userId });
     }
 
-    public async Task UpsertAsync(AgentTokenUsageSubmitRequest request)
+    public async Task UpsertAsync(AgentTokenUsageSubmitRequest request, CostFunction cost)
     {
         using var conn = await db.CreateOpenConnectionAsync();
         using var tx = conn.BeginTransaction();
         try
         {
-            // Cost stays NULL until the price list is wired in
+            // HOLDLOCK: a concurrent price change waits until these rows are in, then re-prices them
+            var prices = await ModelPriceRepository.LoadPricesAsync(
+                conn, tx, request.Items.Select(i => i.Model), holdLock: true);
             var rows = request.Items.Select(i => new
             {
                 request.SessionId,
@@ -68,7 +70,7 @@ public class AgentTokenUsageRepository(IDbConnectionFactory db) : IAgentTokenUsa
                 i.OutputTokens,
                 i.CacheWriteTokens,
                 i.CacheReadTokens,
-                Cost = (decimal?)null,
+                Cost = cost(prices, i.ToUsageTokens()),
             });
             await conn.ExecuteAsync(MergeSql, rows, tx);
             tx.Commit();

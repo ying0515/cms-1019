@@ -51,6 +51,9 @@
         <th pSortableColumn="cacheReadTokens" class="text-right">
           快取讀取 Token <p-sortIcon field="cacheReadTokens" />
         </th>
+        <th pSortableColumn="cost" class="text-right" style="width: 9rem">
+          成本 (USD) <p-sortIcon field="cost" />
+        </th>
         <th pSortableColumn="sessionCount" class="text-right" style="width: 8rem">
           工作階段數 <p-sortIcon field="sessionCount" />
         </th>
@@ -66,12 +69,26 @@
         <td class="text-right">{{ item.outputTokens | number }}</td>
         <td class="text-right">{{ item.cacheWriteTokens | number }}</td>
         <td class="text-right">{{ item.cacheReadTokens | number }}</td>
+        <td class="text-right cost">
+          @if (item.cost === null) {
+            <span class="text-muted unpriced">未定價</span>
+          } @else {
+            @if (item.unpricedCount > 0) {
+              <i
+                class="pi pi-exclamation-triangle partial-warning"
+                pTooltip="部分用量未定價"
+                aria-label="部分用量未定價"
+              ></i>
+            }
+            {{ item.cost | number: '1.4-4' }}
+          }
+        </td>
         <td class="text-right">{{ item.sessionCount | number }}</td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>
       <tr>
-        <td colspan="9" class="text-center text-muted empty">查無資料</td>
+        <td colspan="10" class="text-center text-muted empty">查無資料</td>
       </tr>
     </ng-template>
   </p-table>

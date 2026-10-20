@@ -159,8 +159,22 @@ The tab and week are kept in sessionStorage (`featured-promo-item-list-filters`)
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| POST   | `/api/agent-token-usage` | Ingest a session's absolute totals (`sessionId`, `userId`, `project`, `items[]` of `usageDate`, `model`, four token counts). Requires header `X-Api-Key` = `AgentTokenReport:ApiKey` (`401` if missing/wrong, checked before validation). `400` (nothing written) for an empty/too-long field, unknown or inactive user, no items, a negative count, a date after today in Taipei (UTC+8), or a repeated date + model. `204` on success; MERGE upsert on (SessionId, UsageDate, Model); rows not in the payload are untouched. Cost is stored NULL for now |
+| POST   | `/api/agent-token-usage` | Ingest a session's absolute totals (`sessionId`, `userId`, `project`, `items[]` of `usageDate`, `model`, four token counts). Requires header `X-Api-Key` = `AgentTokenReport:ApiKey` (`401` if missing/wrong, checked before validation). `400` (nothing written) for an empty/too-long field, unknown or inactive user, no items, a negative count, a date after today in Taipei (UTC+8), or a repeated date + model. `204` on success; MERGE upsert on (SessionId, UsageDate, Model); rows not in the payload are untouched. Each row's `Cost` (USD) comes from the shared C# `CostCalculator`: latest ModelPrice with `EffectiveFrom <= usageDate` for that model, NULL if none |
 | POST   | `/api/agent-token-usage/report` | Filters: `usageDateFrom/To` (inclusive). Rows added up by user (with `userName`), date, project, model: token sums, `cost`, `unpricedCount`, `sessionCount`; newest date first |
 
 Dev API key: `dev-agent-token-key` in `CMS.API/appsettings.Development.json`.
 Frontend route: `/agent-token-report` (read-only). The date range defaults to the current month; filters, sort and page are kept in sessionStorage (`agent-token-report-filters`, `agent-token-report-sort`, `agent-token-report-page`).
+成本 (USD) shows 4 decimals; 「未定價」 when no row in the group is priced; a warning icon (tooltip 「部分用量未定價」) when only some are.
+
+### ModelPrice (`代理用量 Agent › 模型價格`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/model-prices` | All prices (USD per 1M tokens), Model ASC, EffectiveFrom DESC |
+| POST   | `/api/model-prices/query` | Filters: `keyword` (LIKE on Model), `effectiveFromFrom/To` (inclusive) |
+| GET    | `/api/model-prices/{pkid}` | One price; `404` if missing |
+| POST   | `/api/model-prices` | Create; `409` 「此模型在該生效日已有定價」 for a duplicate Model + EffectiveFrom; re-prices that model's usage in the same transaction |
+| PUT    | `/api/model-prices` | Update (pkid in body); `404` / `409`; re-prices the old and new model's usage |
+| DELETE | `/api/model-prices/{pkid}` | Delete; usage falls back to an earlier price, or to NULL |
+
+Frontend routes: `/model-prices`, `/model-prices/new`, `/model-prices/:id`, `/model-prices/:id/edit`. sessionStorage keys `model-price-list-filters`, `-sort`, `-page`.

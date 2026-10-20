@@ -6,6 +6,7 @@ import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DrawerModule } from 'primeng/drawer';
 import { TableModule, TablePageEvent } from 'primeng/table';
+import { TooltipModule } from 'primeng/tooltip';
 
 import {
   AgentTokenUsageReportQuery,
@@ -42,7 +43,15 @@ function currentMonth(): AgentTokenReportFilters {
 
 @Component({
   selector: 'app-agent-token-report',
-  imports: [DecimalPipe, FormsModule, ButtonModule, DatePickerModule, DrawerModule, TableModule],
+  imports: [
+    DecimalPipe,
+    FormsModule,
+    ButtonModule,
+    DatePickerModule,
+    DrawerModule,
+    TableModule,
+    TooltipModule,
+  ],
   templateUrl: './agent-token-report.html',
   styleUrl: './agent-token-report.scss',
 })

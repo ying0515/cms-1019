@@ -1,0 +1,22 @@
+:host ::ng-deep {
+  .p-inputnumber input,
+  .p-datepicker,
+  .p-datepicker input {
+    width: 100%;
+  }
+}
+
+input:disabled {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.unit {
+  font-size: 0.85rem;
+  font-weight: normal;
+  margin-left: 8px;
+}
+
+.hint {
+  margin: 8px 0 0;
+}

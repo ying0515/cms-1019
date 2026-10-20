@@ -1,3 +1,4 @@
+using CMS.API.Data;
 using CMS.API.Filters;
 using CMS.API.Models;
 using CMS.API.Repositories;
@@ -37,7 +38,7 @@ public class AgentTokenUsageController(IAgentTokenUsageRepository repository, Ti
 
         try
         {
-            await repository.UpsertAsync(request);
+            await repository.UpsertAsync(request, CostCalculator.Cost);
         }
         catch (InvalidReferenceException ex)
         {

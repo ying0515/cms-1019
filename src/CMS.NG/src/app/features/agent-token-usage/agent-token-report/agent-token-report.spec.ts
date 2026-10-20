@@ -19,8 +19,8 @@ const ROWS: AgentTokenUsageReportRow[] = [
     outputTokens: 45000,
     cacheWriteTokens: 380000,
     cacheReadTokens: 9100000,
-    cost: null,
-    unpricedCount: 2,
+    cost: 5.76048,
+    unpricedCount: 0,
     sessionCount: 2,
   },
   {
@@ -146,6 +146,7 @@ describe('AgentTokenReport', () => {
       '輸出 Token',
       '快取寫入 Token',
       '快取讀取 Token',
+      '成本 (USD)',
       '工作階段數',
     ]);
   });
@@ -163,10 +164,45 @@ describe('AgentTokenReport', () => {
         '45,000',
         '380,000',
         '9,100,000',
+        '5.7605',
         '2',
       ],
-      ['2026-10-19', 'helen', 'other-repo', 'claude-haiku-5-5', '8', '2', '3', '4', '1'],
+      ['2026-10-19', 'helen', 'other-repo', 'claude-haiku-5-5', '8', '2', '3', '4', '未定價', '1'],
     ]);
+  });
+
+  function costCells(): HTMLElement[] {
+    return Array.from<HTMLElement>(fixture.nativeElement.querySelectorAll('tbody td.cost'));
+  }
+
+  it('shows cost in USD to 4 decimals, without a warning when fully priced', () => {
+    service.report.and.returnValue(of([{ ...ROWS[0], cost: 0.000062, unpricedCount: 0 }]));
+    create();
+
+    const [cell] = costCells();
+    expect(cell.textContent!.trim()).toBe('0.0001');
+    expect(cell.querySelector('.partial-warning')).toBeNull();
+  });
+
+  it('shows 未定價 when nothing in the group is priced', () => {
+    create();
+
+    const cell = costCells()[1];
+    expect(cell.textContent!.trim()).toBe('未定價');
+    expect(cell.querySelector('.unpriced')).toBeTruthy();
+    expect(cell.querySelector('.partial-warning')).toBeNull();
+  });
+
+  it('shows the partial cost with a 部分用量未定價 warning when the group is only partly priced', () => {
+    service.report.and.returnValue(of([{ ...ROWS[0], cost: 1.5, unpricedCount: 1 }]));
+    create();
+
+    const [cell] = costCells();
+    expect(cell.textContent!.trim()).toBe('1.5000');
+    const icon = cell.querySelector<HTMLElement>('.partial-warning')!;
+    expect(icon).toBeTruthy();
+    expect(icon.getAttribute('aria-label')).toBe('部分用量未定價');
+    expect(icon.getAttribute('ptooltip')).toBe('部分用量未定價');
   });
 
   it('shows 查無資料 when nothing matches', () => {

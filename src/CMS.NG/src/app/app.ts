@@ -58,7 +58,10 @@ export class App {
       key: 'agent',
       label: '代理用量 Agent',
       icon: 'pi pi-chart-bar',
-      items: [{ label: '代理 Token 用量', icon: 'pi pi-chart-line', route: '/agent-token-report' }],
+      items: [
+        { label: '代理 Token 用量', icon: 'pi pi-chart-line', route: '/agent-token-report' },
+        { label: '模型價格 ModelPrice', icon: 'pi pi-dollar', route: '/model-prices' },
+      ],
     },
   ];
 

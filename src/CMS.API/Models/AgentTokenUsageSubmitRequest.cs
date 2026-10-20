@@ -38,4 +38,7 @@ public class AgentTokenUsageItem
 
     [Range(0, long.MaxValue)]
     public long CacheReadTokens { get; set; }
+
+    public UsageTokens ToUsageTokens()
+        => new(Model, UsageDate!.Value, InputTokens, OutputTokens, CacheWriteTokens, CacheReadTokens);
 }

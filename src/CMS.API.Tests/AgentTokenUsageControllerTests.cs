@@ -80,8 +80,9 @@ public class AgentTokenUsageControllerTests : IDisposable
         Assert.Equal(45000, row.OutputTokens);
         Assert.Equal(380000, row.CacheWriteTokens);
         Assert.Equal(9100000, row.CacheReadTokens);
-        Assert.Null(row.Cost);
-        Assert.Equal(1, row.UnpricedCount);
+        // Seeded opus price (2026-01-01): (120×4 + 45,000×20 + 380,000×8 + 9,100,000×0.2) / 1M
+        Assert.Equal(5.76048m, row.Cost);
+        Assert.Equal(0, row.UnpricedCount);
         Assert.Equal(1, row.SessionCount);
     }
 
@@ -112,6 +113,57 @@ public class AgentTokenUsageControllerTests : IDisposable
         Assert.Equal([(Today, 25L), (yesterday, 10L)], rows.Select(r => (r.UsageDate, r.InputTokens)));
     }
 
+    // ---- Cost on submission (seeded prices effective 2026-01-01) ----
+
+    private static AgentTokenUsageItem Million(DateOnly date, string model)
+        => Item(date, model, input: 1_000_000, output: 1_000_000, cacheWrite: 1_000_000, cacheRead: 1_000_000);
+
+    [Fact]
+    public async Task Submit_BeforeFirstPrice_HasNoCost()
+    {
+        await Submit(Submission(items: [Million(new(2025, 12, 31), "claude-opus-5-5"), Million(new(2026, 1, 1), "claude-opus-5-5")]));
+
+        var rows = await Report();
+
+        // 1M of each kind at opus 4 / 20 / 8 / 0.2
+        Assert.Equal([(new DateOnly(2026, 1, 1), (decimal?)32.2m, 0), (new DateOnly(2025, 12, 31), null, 1)],
+            rows.Select(r => (r.UsageDate, r.Cost, r.UnpricedCount)));
+    }
+
+    [Fact]
+    public async Task Submit_OnEffectiveFromDay_UsesTheNewPrice()
+    {
+        var newPrice = await _client.PostAsJsonAsync("/api/model-prices", new ModelPriceRequest
+        {
+            Model = "claude-opus-5-5", EffectiveFrom = new(2026, 10, 1),
+            InputPrice = 5, OutputPrice = 25, CacheWritePrice = 10, CacheReadPrice = 0.5m,
+        });
+        Assert.Equal(HttpStatusCode.Created, newPrice.StatusCode);
+
+        await Submit(Submission(items: [Million(new(2026, 9, 30), "claude-opus-5-5"), Million(new(2026, 10, 1), "claude-opus-5-5")]));
+
+        Assert.Equal([(new DateOnly(2026, 10, 1), (decimal?)40.5m), (new DateOnly(2026, 9, 30), 32.2m)],
+            (await Report()).Select(r => (r.UsageDate, r.Cost)));
+    }
+
+    [Fact]
+    public async Task Submit_ModelWithNoPrices_HasNoCost_OthersInTheSamePayloadArePriced()
+    {
+        await Submit(Submission(items: [Million(Today, "claude-unknown"), Million(Today, "claude-haiku-5-5")]));
+
+        Assert.Equal([("claude-haiku-5-5", (decimal?)0.81m, 0), ("claude-unknown", null, 1)],
+            (await Report()).Select(r => (r.Model, r.Cost, r.UnpricedCount)));
+    }
+
+    [Fact]
+    public async Task Submit_CostIsRoundedTo6Decimals()
+    {
+        // 1 cache-read token at haiku 0.01 / 1M = 0.00000001 → rounds to 0
+        await Submit(Submission(items: Item(Today, "claude-haiku-5-5", input: 0, output: 0, cacheWrite: 0, cacheRead: 1)));
+
+        Assert.Equal(0m, Assert.Single(await Report()).Cost);
+    }
+
     // ---- Report ----
 
     [Fact]
@@ -139,8 +191,9 @@ public class AgentTokenUsageControllerTests : IDisposable
         Assert.Equal([3L, 30L, 300L, 3000L],
             new[] { combined.InputTokens, combined.OutputTokens, combined.CacheWriteTokens, combined.CacheReadTokens });
         Assert.Equal(2, combined.SessionCount);
-        Assert.Equal(2, combined.UnpricedCount);
-        Assert.Null(combined.Cost);
+        Assert.Equal(0, combined.UnpricedCount);
+        // (3×4 + 30×20 + 300×8 + 3,000×0.2) / 1M over both sessions
+        Assert.Equal(0.003612m, combined.Cost);
         Assert.Equal("helen", rows[0].UserName);
     }
 
