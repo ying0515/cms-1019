@@ -6,7 +6,7 @@ Layout, environment, tooling gotchas and git. Features: `docs/features.md`. Chan
 
 | Path | Contents |
 |------|----------|
-| `database/*.sql` | SQL Server schema scripts per sub-system (`admin`, `auth`, `course`, `promotion`). Source of truth for tables/columns. |
+| `database/*.sql` | SQL Server schema scripts per sub-system (`admin`, `auth`, `course`, `promotion`, `agent`). Source of truth for tables/columns. `agent-seed.sql` seeds starting `ModelPrice` rows (re-runnable). |
 | `spec/code-gen.convention.md` | Backend/frontend code-generation patterns. **Read before adding a feature.** |
 | `spec/feature-spec.template.md` | Template for a per-table build spec; `sample1.spec.md` (Course), `sample2.spec.md` (SkillTrain) are filled-in examples. |
 | `spec/ui-sample-*.png` | Reference screenshots for list / view / add / edit pages. |
@@ -26,6 +26,7 @@ Layout, environment, tooling gotchas and git. Features: `docs/features.md`. Chan
 
 - A running `dotnet run` locks `CMS.API/bin`, so `dotnet test` fails with MSB3027. Stop the API, or build elsewhere: `dotnet test --artifacts-path <temp dir>`.
 - `sqlcmd` needs `-C` (trust the self-signed cert): `sqlcmd -S .\SQLEXPRESS -d CMS -E -C -Q "..."`.
+- Apply a schema or seed script: `sqlcmd -S .\SQLEXPRESS -E -C -b -i database\agent.sql` (scripts start with `USE [CMS]`).
 - No Python on this machine; use PowerShell/Node for scripting.
 
 ## Git
