@@ -19,3 +19,17 @@ cd src\CMS.NG; npx ng test --watch=false --browsers=ChromeHeadless
 - `spec/code-gen.convention.md`: adding a feature (or `/crud`)
 - `docs/features.md`: checking which features/routes exist
 - `docs/setup-notes.md`: env/DB/git, tooling gotchas
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues (`ying0515/cms-1019`, via `gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
