@@ -583,4 +583,4 @@ Existing group **課程管理 Course** → add `課程 Course` (`pi pi-graduatio
 | NG | `package.json` (`qrcode`, `@types/qrcode`), `angular.json` (`allowedCommonJsDependencies`) | Modify |
 | NG | `app.routes.ts`, `app.ts` (+ `app.spec.ts`) | Modify |
 | NG | Partner / CourseGroup / PublishStatus list + detail (查看課程 link) | Modify |
-| Docs | `docs/setup-notes.md`, `src/README.md` | Modify |
+| Docs | `docs/features.md`, `docs/changelog.md`, `src/README.md` | Modify |
