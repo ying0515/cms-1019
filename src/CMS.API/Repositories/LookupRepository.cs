@@ -78,6 +78,20 @@ public class LookupRepository(IDbConnectionFactory db) : ILookupRepository
             """, new { k, take });
     }
 
+    public async Task<IEnumerable<string>> GetAgentTokenProjectsAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<string>(
+            "SELECT DISTINCT Project FROM AgentTokenUsage ORDER BY Project ASC");
+    }
+
+    public async Task<IEnumerable<string>> GetAgentTokenModelsAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<string>(
+            "SELECT DISTINCT Model FROM AgentTokenUsage ORDER BY Model ASC");
+    }
+
     // PromoCodes often contain "_", which is a LIKE wildcard
     private static string EscapeLike(string s)
         => s.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_").Replace("[", @"\[");

@@ -45,4 +45,14 @@ public class LookupsController(ILookupRepository repository) : ControllerBase
     public async Task<ActionResult<IEnumerable<PromotionLookup>>> GetPromotions(
         [FromQuery] string? keyword, [FromQuery] int take = 20)
         => Ok(await repository.GetPromotionsAsync(keyword?.Trim(), Math.Clamp(take, 1, 100)));
+
+    /// <summary>Distinct projects seen in agent token usage (report filter).</summary>
+    [HttpGet("agent-token-projects")]
+    public async Task<ActionResult<IEnumerable<string>>> GetAgentTokenProjects()
+        => Ok(await repository.GetAgentTokenProjectsAsync());
+
+    /// <summary>Distinct models seen in agent token usage (report filter).</summary>
+    [HttpGet("agent-token-models")]
+    public async Task<ActionResult<IEnumerable<string>>> GetAgentTokenModels()
+        => Ok(await repository.GetAgentTokenModelsAsync());
 }

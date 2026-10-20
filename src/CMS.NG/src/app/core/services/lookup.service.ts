@@ -56,4 +56,14 @@ export class LookupService {
     const params = new HttpParams().set('keyword', keyword).set('take', take);
     return this.http.get<PromotionLookup[]>(`${this.baseUrl}/promotions`, { params });
   }
+
+  /** Distinct projects seen in agent token usage, ascending. */
+  getAgentTokenProjects(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/agent-token-projects`);
+  }
+
+  /** Distinct models seen in agent token usage, ascending. */
+  getAgentTokenModels(): Observable<string[]> {
+    return this.http.get<string[]>(`${this.baseUrl}/agent-token-models`);
+  }
 }

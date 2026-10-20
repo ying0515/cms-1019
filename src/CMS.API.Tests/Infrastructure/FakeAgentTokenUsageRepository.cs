@@ -51,6 +51,9 @@ public class FakeAgentTokenUsageRepository : IAgentTokenUsageRepository
             var result = _rows
                 .Where(r => query.UsageDateFrom is null || r.UsageDate >= query.UsageDateFrom)
                 .Where(r => query.UsageDateTo is null || r.UsageDate <= query.UsageDateTo)
+                .Where(r => string.IsNullOrWhiteSpace(query.UserId) || r.UserId == query.UserId.Trim())
+                .Where(r => string.IsNullOrWhiteSpace(query.Project) || r.Project == query.Project.Trim())
+                .Where(r => string.IsNullOrWhiteSpace(query.Model) || r.Model == query.Model.Trim())
                 .GroupBy(r => (r.UserId, r.UsageDate, r.Project, r.Model))
                 .Select(g => new AgentTokenUsageReportRow
                 {

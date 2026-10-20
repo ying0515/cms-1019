@@ -94,6 +94,21 @@ public class AgentTokenUsageRepository(IDbConnectionFactory db) : IAgentTokenUsa
             where.Add("u.UsageDate <= @UsageDateTo");
             p.Add("UsageDateTo", query.UsageDateTo.Value);
         }
+        if (!string.IsNullOrWhiteSpace(query.UserId))
+        {
+            where.Add("u.UserId = @UserId");
+            p.Add("UserId", query.UserId.Trim());
+        }
+        if (!string.IsNullOrWhiteSpace(query.Project))
+        {
+            where.Add("u.Project = @Project");
+            p.Add("Project", query.Project.Trim());
+        }
+        if (!string.IsNullOrWhiteSpace(query.Model))
+        {
+            where.Add("u.Model = @Model");
+            p.Add("Model", query.Model.Trim());
+        }
 
         var sql = ReportSelectSql
             + (where.Count > 0 ? " WHERE " + string.Join(" AND ", where) : "")

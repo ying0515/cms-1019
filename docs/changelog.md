@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-20 — #10: agent token report filters: `POST /api/agent-token-usage/report` takes optional `userId`, `project`, `model`; new lookups `GET /api/lookups/agent-token-projects` and `/agent-token-models` (distinct, ascending); report page drawer adds 使用者 / 專案 / 模型 selects and a 合計 footer row summing every numeric column over all filtered rows (`TOTAL_FIELDS`, so the cost column can join it).
 - 2026-10-20 — #7: agent token usage tracer bullet: `POST /api/agent-token-usage` (X-Api-Key authorization filter, 400 rules, MERGE upsert, Cost NULL, Taipei "today" from an injected `TimeProvider`), `POST /api/agent-token-usage/report`, read-only page `/agent-token-report` under new sidebar group 「代理用量」; MERGE pattern added to `docs/conventions.md`; dev key in `appsettings.Development.json`.
 
 - 2026-10-20 — #1: applied `database/agent.sql` (ModelPrice, AgentTokenUsage) to local `CMS`; added re-runnable `database/agent-seed.sql` with Opus/Sonnet/Haiku 5.5 prices (USD/1M; cache write = 1h rate; Haiku cache read assumed 0.1x input).

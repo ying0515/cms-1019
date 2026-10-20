@@ -14,4 +14,8 @@ public interface ILookupRepository
     Task<IEnumerable<TrainingCenterLookup>> GetTrainingCentersAsync();
     /// <summary>PromoCode contains <paramref name="keyword"/> (all when blank); prefix matches first, then newest.</summary>
     Task<IEnumerable<PromotionLookup>> GetPromotionsAsync(string? keyword, int take);
+    /// <summary>Distinct AgentTokenUsage.Project values, ascending.</summary>
+    Task<IEnumerable<string>> GetAgentTokenProjectsAsync();
+    /// <summary>Distinct AgentTokenUsage.Model values, ascending.</summary>
+    Task<IEnumerable<string>> GetAgentTokenModelsAsync();
 }

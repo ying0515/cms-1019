@@ -130,4 +130,26 @@ describe('LookupService', () => {
 
     expect(result).toEqual(promos);
   });
+
+  it('getAgentTokenProjects() GETs /api/lookups/agent-token-projects', () => {
+    let result: unknown;
+    service.getAgentTokenProjects().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/agent-token-projects`);
+    expect(req.request.method).toBe('GET');
+    req.flush(['cms-1019', 'other-repo']);
+
+    expect(result).toEqual(['cms-1019', 'other-repo']);
+  });
+
+  it('getAgentTokenModels() GETs /api/lookups/agent-token-models', () => {
+    let result: unknown;
+    service.getAgentTokenModels().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/agent-token-models`);
+    expect(req.request.method).toBe('GET');
+    req.flush(['claude-haiku-5-5', 'claude-opus-5-5']);
+
+    expect(result).toEqual(['claude-haiku-5-5', 'claude-opus-5-5']);
+  });
 });
