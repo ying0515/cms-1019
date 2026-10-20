@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { AppRoleService } from '@core/services/app-role.service';
 import { ADMIN_ROLE } from '../testing/app-role.fixtures';
 import { AppRoleDetail } from './app-role-detail';
@@ -22,6 +23,7 @@ describe('AppRoleDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: AppRoleService, useValue: roleService },
@@ -91,5 +93,16 @@ describe('AppRoleDetail', () => {
 
     expect(roleService.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/app-roles']);
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'AppRole',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

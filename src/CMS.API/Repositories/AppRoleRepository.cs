@@ -5,8 +5,10 @@ using Dapper;
 
 namespace CMS.API.Repositories;
 
-public class AppRoleRepository(IDbConnectionFactory db) : IAppRoleRepository
+public class AppRoleRepository(IDbConnectionFactory db, RowAuditWriter audit) : IAppRoleRepository
 {
+    private const string TableName = "AppRole";
+
     private const string SelectSql = """
         SELECT r.pkid, r.RoleId, r.RoleName, r.PermissionLevel, r.Description,
                (SELECT COUNT(*) FROM AppUserRole ur WHERE ur.RoleId = r.RoleId) AS UserCount
@@ -58,19 +60,7 @@ public class AppRoleRepository(IDbConnectionFactory db) : IAppRoleRepository
     public async Task<AppRole?> GetByIdAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        var role = await conn.QuerySingleOrDefaultAsync<AppRole>(SelectSql + " WHERE r.pkid = @pkid", new { pkid });
-        if (role is null) return null;
-
-        // n-n: separate query on same connection
-        role.Users = (await conn.QueryAsync<AppUserLookup>("""
-            SELECT u.UserId, u.UserName, u.IsActive
-            FROM AppUserRole ur
-            INNER JOIN AppUser u ON u.UserId = ur.UserId
-            WHERE ur.RoleId = @RoleId
-            ORDER BY u.UserName ASC
-            """, new { role.RoleId })).ToList();
-
-        return role;
+        return await LoadAsync(conn, null, pkid);
     }
 
     public async Task<bool> RoleIdExistsAsync(string roleId)
@@ -92,6 +82,7 @@ public class AppRoleRepository(IDbConnectionFactory db) : IAppRoleRepository
             """, request, tx);
 
         await SyncUsersAsync(conn, tx, request.RoleId, request.UserIds);
+        await audit.LogInsertAsync(TableName, (await LoadAsync(conn, tx, pkid))!, tx);
         tx.Commit();
         return pkid;
     }
@@ -101,18 +92,18 @@ public class AppRoleRepository(IDbConnectionFactory db) : IAppRoleRepository
         using var conn = await db.CreateOpenConnectionAsync();
         using var tx = conn.BeginTransaction();
 
-        // RoleId is the table PK (referenced by AppUserRole), so it is not updatable.
-        var roleId = await conn.ExecuteScalarAsync<string?>(
-            "SELECT RoleId FROM AppRole WHERE pkid = @Pkid", new { request.Pkid }, tx);
-        if (roleId is null) return false;
+        var before = await LoadAsync(conn, tx, request.Pkid);
+        if (before is null) return false;
 
+        // RoleId is the table PK (referenced by AppUserRole), so it is not updatable.
         await conn.ExecuteAsync("""
             UPDATE AppRole
             SET RoleName = @RoleName, PermissionLevel = @PermissionLevel, Description = @Description
             WHERE pkid = @Pkid
             """, request, tx);
 
-        await SyncUsersAsync(conn, tx, roleId, request.UserIds);
+        await SyncUsersAsync(conn, tx, before.RoleId, request.UserIds);
+        await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, request.Pkid))!, tx);
         tx.Commit();
         return true;
     }
@@ -122,14 +113,31 @@ public class AppRoleRepository(IDbConnectionFactory db) : IAppRoleRepository
         using var conn = await db.CreateOpenConnectionAsync();
         using var tx = conn.BeginTransaction();
 
-        var roleId = await conn.ExecuteScalarAsync<string?>(
-            "SELECT RoleId FROM AppRole WHERE pkid = @pkid", new { pkid }, tx);
-        if (roleId is null) return false;
+        var before = await LoadAsync(conn, tx, pkid);
+        if (before is null) return false;
 
-        await conn.ExecuteAsync("DELETE FROM AppUserRole WHERE RoleId = @roleId", new { roleId }, tx);
+        await conn.ExecuteAsync("DELETE FROM AppUserRole WHERE RoleId = @RoleId", new { before.RoleId }, tx);
         await conn.ExecuteAsync("DELETE FROM AppRole WHERE pkid = @pkid", new { pkid }, tx);
+        await audit.LogDeleteAsync(TableName, before, tx);
         tx.Commit();
         return true;
+    }
+
+    private static async Task<AppRole?> LoadAsync(IDbConnection conn, IDbTransaction? tx, int pkid)
+    {
+        var role = await conn.QuerySingleOrDefaultAsync<AppRole>(SelectSql + " WHERE r.pkid = @pkid", new { pkid }, tx);
+        if (role is null) return null;
+
+        // n-n: separate query on same connection
+        role.Users = (await conn.QueryAsync<AppUserLookup>("""
+            SELECT u.UserId, u.UserName, u.IsActive
+            FROM AppUserRole ur
+            INNER JOIN AppUser u ON u.UserId = ur.UserId
+            WHERE ur.RoleId = @RoleId
+            ORDER BY u.UserName ASC
+            """, new { role.RoleId }, tx)).ToList();
+
+        return role;
     }
 
     // n-n: delete-then-reinsert

@@ -35,6 +35,15 @@ body {
     color: #1e293b;
   }
 
+  // Title + row-audit badge on the left of the toolbar
+  .start {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
   .subtitle {
     font-size: 0.9rem;
     font-weight: 400;

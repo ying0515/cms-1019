@@ -5,14 +5,15 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { AuthService } from '@core/auth/auth.service';
 import { AppUser } from '@core/models/app-user.model';
 import { AppUserService } from '@core/services/app-user.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-app-user-detail',
-  imports: [DatePipe, ButtonModule, TagModule],
+  imports: [RowAuditBadgeComponent, DatePipe, ButtonModule, TagModule],
   templateUrl: './app-user-detail.html',
   styleUrl: './app-user-detail.scss',
 })
@@ -50,11 +51,7 @@ export class AppUserDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({
-            severity: 'error',
-            summary: '載入失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -92,11 +89,7 @@ export class AppUserDetail implements OnInit {
             this.load(item.pkid);
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '重設失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '重設失敗', err),
         }),
     });
   }
@@ -119,11 +112,7 @@ export class AppUserDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '刪除失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

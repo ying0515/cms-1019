@@ -9,15 +9,17 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { TextareaModule } from 'primeng/textarea';
 import { Observable, forkJoin, of } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { AppRole, AppRoleRequest } from '@core/models/app-role.model';
 import { AppUserLookup, LookupOption } from '@core/models/lookup.model';
 import { AppRoleService } from '@core/services/app-role.service';
 import { LookupService } from '@core/services/lookup.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-app-role-form',
   imports: [
+    RowAuditBadgeComponent,
     ReactiveFormsModule,
     ButtonModule,
     InputNumberModule,
@@ -81,7 +83,7 @@ export class AppRoleForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({ severity: 'error', summary: '載入失敗', detail: httpErrorMessage(err) });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -123,7 +125,7 @@ export class AppRoleForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({ severity: 'error', summary: '儲存失敗', detail: httpErrorMessage(err) });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

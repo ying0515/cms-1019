@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { PublishStatusService } from '@core/services/publish-status.service';
 import { DRAFT_STATUS } from '../testing/publish-status.fixtures';
 import { PublishStatusDetail } from './publish-status-detail';
@@ -25,6 +26,7 @@ describe('PublishStatusDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: PublishStatusService, useValue: service },
@@ -115,5 +117,16 @@ describe('PublishStatusDetail', () => {
     fixture.componentInstance.viewCourses();
 
     expect(nav).toHaveBeenCalledWith(['/courses'], { queryParams: { publishStatusPkid: 1 } });
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'PublishStatus',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

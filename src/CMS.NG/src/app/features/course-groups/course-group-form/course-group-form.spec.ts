@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { CourseGroupService } from '@core/services/course-group.service';
 import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { SECURITY_GROUP } from '../testing/course-group.fixtures';
@@ -29,6 +30,7 @@ describe('CourseGroupForm', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         { provide: CourseGroupService, useValue: service },
         {
@@ -171,6 +173,24 @@ describe('CourseGroupForm', () => {
     it('cancel() returns to the detail page', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/course-groups', 2]);
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for the edited record next to the title', async () => {
+      await setup('2');
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('.form-toolbar .start app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('CourseGroup', 2);
+    });
+
+    it('has no badge in add mode', async () => {
+      await setup(null);
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

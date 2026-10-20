@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { CourseService } from '@core/services/course.service';
 import { AZ104, CCNA } from '../testing/course.fixtures';
 import { CourseDetail } from './course-detail';
@@ -22,6 +23,7 @@ describe('CourseDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: CourseService, useValue: service },
@@ -144,5 +146,16 @@ describe('CourseDetail', () => {
 
     expect(service.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/courses']);
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'Course',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

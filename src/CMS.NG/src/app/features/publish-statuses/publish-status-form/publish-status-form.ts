@@ -8,13 +8,21 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { Observable } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { PublishStatusRequest } from '@core/models/publish-status.model';
 import { PublishStatusService } from '@core/services/publish-status.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-publish-status-form',
-  imports: [ReactiveFormsModule, ButtonModule, CheckboxModule, InputNumberModule, InputTextModule],
+  imports: [
+    RowAuditBadgeComponent,
+    ReactiveFormsModule,
+    ButtonModule,
+    CheckboxModule,
+    InputNumberModule,
+    InputTextModule,
+  ],
   templateUrl: './publish-status-form.html',
   styleUrl: './publish-status-form.scss',
 })
@@ -66,7 +74,7 @@ export class PublishStatusForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({ severity: 'error', summary: '載入失敗', detail: httpErrorMessage(err) });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -106,7 +114,7 @@ export class PublishStatusForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({ severity: 'error', summary: '儲存失敗', detail: httpErrorMessage(err) });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

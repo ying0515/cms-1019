@@ -20,6 +20,19 @@ export function parseIsoDate(s: string | null | undefined): Date | null {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * API UTC datetime ('2026-06-04T06:30:00', no zone suffix) → local 'yyyy-MM-dd HH:mm'; '' when invalid.
+ * Appends 'Z' so the browser does not read it as local time.
+ */
+export function formatApiDateTime(s: string | null | undefined): string {
+  if (!s) return '';
+  const d = new Date(/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(s) ? s : `${s}Z`);
+  if (Number.isNaN(d.getTime())) return '';
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${toIsoDate(d)} ${hh}:${mm}`;
+}
+
 /** Adds whole years; Feb 29 falls back to Feb 28 in non-leap years. */
 export function addYears(d: Date, years: number): Date {
   const result = new Date(d.getFullYear() + years, d.getMonth(), d.getDate());

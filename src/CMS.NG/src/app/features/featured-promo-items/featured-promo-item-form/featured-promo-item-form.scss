@@ -12,8 +12,15 @@
 
 .form-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+// History badge sits at the end of the action row
+.form-actions .audit {
+  margin-left: auto;
 }
 
 .suggestion {

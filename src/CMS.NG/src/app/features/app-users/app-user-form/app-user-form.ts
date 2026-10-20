@@ -8,16 +8,24 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Observable, forkJoin, of } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { AuthService } from '@core/auth/auth.service';
 import { AppUser, AppUserRequest } from '@core/models/app-user.model';
 import { AppRoleLookup, LookupOption } from '@core/models/lookup.model';
 import { AppUserService } from '@core/services/app-user.service';
 import { LookupService } from '@core/services/lookup.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-app-user-form',
-  imports: [ReactiveFormsModule, ButtonModule, CheckboxModule, InputTextModule, MultiSelectModule],
+  imports: [
+    RowAuditBadgeComponent,
+    ReactiveFormsModule,
+    ButtonModule,
+    CheckboxModule,
+    InputTextModule,
+    MultiSelectModule,
+  ],
   templateUrl: './app-user-form.html',
   styleUrl: './app-user-form.scss',
 })
@@ -81,11 +89,7 @@ export class AppUserForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '載入失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -121,11 +125,7 @@ export class AppUserForm implements OnInit {
           },
           error: (err) => {
             this.resetting.set(false);
-            this.messages.add({
-              severity: 'error',
-              summary: '重設失敗',
-              detail: httpErrorMessage(err),
-            });
+            showHttpError(this.messages, '重設失敗', err);
           },
         });
       },
@@ -160,11 +160,7 @@ export class AppUserForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

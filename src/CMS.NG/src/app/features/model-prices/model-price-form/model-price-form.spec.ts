@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { ModelPriceService } from '@core/services/model-price.service';
 import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { OPUS } from '../testing/model-price.fixtures';
@@ -38,6 +39,7 @@ describe('ModelPriceForm', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         { provide: ModelPriceService, useValue: service },
         {
@@ -242,6 +244,24 @@ describe('ModelPriceForm', () => {
     it('cancel() returns to the detail page', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/model-prices', 1]);
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for the edited record next to the title', async () => {
+      await setup('1');
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('.form-toolbar .start app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('ModelPrice', 1);
+    });
+
+    it('has no badge in add mode', async () => {
+      await setup(null);
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

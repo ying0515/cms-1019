@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { AppUserService } from '@core/services/app-user.service';
 import { LookupService } from '@core/services/lookup.service';
 import { signInForTest } from '@core/testing/auth';
@@ -42,6 +43,7 @@ describe('AppUserForm', () => {
         provideRouter([]),
         provideHttpClient(),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: AppUserService, useValue: userService },
@@ -282,6 +284,24 @@ describe('AppUserForm', () => {
         jasmine.objectContaining({ severity: 'error', summary: '重設失敗' }),
       );
       expect(c.resetting()).toBeFalse();
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for the edited record next to the title', async () => {
+      await setup('1');
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('.form-toolbar .start app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('AppUser', 1);
+    });
+
+    it('has no badge in add mode', async () => {
+      await setup(null);
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

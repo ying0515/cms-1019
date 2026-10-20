@@ -5,15 +5,23 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ChipModule } from 'primeng/chip';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { Course } from '@core/models/course.model';
 import { CertificationLookup } from '@core/models/lookup.model';
 import { CourseService } from '@core/services/course.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { CourseQrCode } from '../course-qr-code/course-qr-code';
 
 @Component({
   selector: 'app-course-detail',
-  imports: [DecimalPipe, RouterLink, ButtonModule, ChipModule, CourseQrCode],
+  imports: [
+    RowAuditBadgeComponent,
+    DecimalPipe,
+    RouterLink,
+    ButtonModule,
+    ChipModule,
+    CourseQrCode,
+  ],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.scss',
 })
@@ -59,11 +67,7 @@ export class CourseDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({
-            severity: 'error',
-            summary: '載入失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -104,11 +108,7 @@ export class CourseDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '刪除失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

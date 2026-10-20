@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { AppUserService } from '@core/services/app-user.service';
 import { signInForTest } from '@core/testing/auth';
 import { HELEN } from '../testing/app-user.fixtures';
@@ -33,6 +34,7 @@ describe('AppUserDetail', () => {
         provideRouter([]),
         provideHttpClient(),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: AppUserService, useValue: userService },
@@ -139,5 +141,16 @@ describe('AppUserDetail', () => {
 
     expect(userService.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/app-users']);
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'AppUser',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

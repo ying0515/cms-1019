@@ -6,8 +6,10 @@ using Microsoft.Data.SqlClient;
 
 namespace CMS.API.Repositories;
 
-public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
+public class CourseRepository(IDbConnectionFactory db, RowAuditWriter audit) : ICourseRepository
 {
+    private const string TableName = "Course";
+
     private const string SelectSql = """
         SELECT c.pkid, c.Title, c.OfficialTitle, c.CourseId, c.ProdCourseId, c.FriendlyUrl, c.DisplayOrder,
                c.Partner_pkid AS PartnerPkid, c.CourseGroup_pkid AS CourseGroupPkid,
@@ -101,29 +103,7 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
     public async Task<Course?> GetByIdAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        var course = (await QueryCoursesAsync(conn, SelectSql + " WHERE c.pkid = @pkid", new { pkid }))
-            .SingleOrDefault();
-        if (course is null) return null;
-
-        // n-n: separate queries on same connection
-        course.Certifications = (await conn.QueryAsync<CertificationLookup>("""
-            SELECT c.pkid, RTRIM(c.Title) AS Title, c.Partner_pkid AS PartnerPkid, p.Name AS PartnerName
-            FROM CourseInCertification ci
-            INNER JOIN Certification c ON c.pkid = ci.Certification_pkid
-            INNER JOIN Partner p ON p.pkid = c.Partner_pkid
-            WHERE ci.Course_pkid = @pkid
-            ORDER BY p.DisplayOrder ASC, p.pkid ASC, c.Title ASC
-            """, new { pkid })).ToList();
-
-        course.JobCategories = (await conn.QueryAsync<JobCategoryLookup>("""
-            SELECT j.pkid, j.Description
-            FROM CourseJobCategories cj
-            INNER JOIN JobCategory j ON j.pkid = cj.JobCategory_pkid
-            WHERE cj.Course_pkid = @pkid
-            ORDER BY j.pkid ASC
-            """, new { pkid })).ToList();
-
-        return course;
+        return await LoadAsync(conn, null, pkid);
     }
 
     public async Task<int> CreateAsync(CourseRequest request)
@@ -145,6 +125,7 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
                 """, ToParams(request), tx);
 
             await SyncRelationsAsync(conn, tx, pkid, request);
+            await audit.LogInsertAsync(TableName, (await LoadAsync(conn, tx, pkid))!, tx);
             tx.Commit();
             return pkid;
         }
@@ -160,7 +141,10 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
         using var tx = conn.BeginTransaction();
         try
         {
-            var updated = await conn.ExecuteAsync("""
+            var before = await LoadAsync(conn, tx, request.Pkid);
+            if (before is null) return false;
+
+            await conn.ExecuteAsync("""
                 UPDATE Course
                 SET Title = @Title, OfficialTitle = @OfficialTitle, CourseId = @CourseId,
                     ProdCourseId = @ProdCourseId, FriendlyUrl = @FriendlyUrl, DisplayOrder = @DisplayOrder,
@@ -173,9 +157,9 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
                     CanRepeat = @CanRepeat
                 WHERE pkid = @Pkid
                 """, ToParams(request), tx);
-            if (updated == 0) return false;
 
             await SyncRelationsAsync(conn, tx, request.Pkid, request);
+            await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, request.Pkid))!, tx);
             tx.Commit();
             return true;
         }
@@ -188,21 +172,55 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
     public async Task<bool> DeleteAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
+        using var tx = conn.BeginTransaction();
+        var before = await LoadAsync(conn, tx, pkid);
+        if (before is null) return false;
+
         try
         {
             // CourseInCertification / CourseJobCategories rows cascade
-            return await conn.ExecuteAsync("DELETE FROM Course WHERE pkid = @pkid", new { pkid }) > 0;
+            await conn.ExecuteAsync("DELETE FROM Course WHERE pkid = @pkid", new { pkid }, tx);
         }
         catch (SqlException ex) when (ex.Number == ForeignKeyViolation)
         {
             // Referenced by CourseFAQ / CourseRelatedLink / HotCourse
-            var courseId = await conn.ExecuteScalarAsync<string?>(
-                "SELECT CourseId FROM Course WHERE pkid = @pkid", new { pkid });
-            throw new ReferenceConflictException($"課程「{courseId}」已被使用，無法刪除");
+            throw new ReferenceConflictException($"課程「{before.CourseId}」已被使用，無法刪除");
         }
+
+        await audit.LogDeleteAsync(TableName, before, tx);
+        tx.Commit();
+        return true;
     }
 
-    private static Task<IEnumerable<Course>> QueryCoursesAsync(IDbConnection conn, string sql, object? param = null)
+    private static async Task<Course?> LoadAsync(IDbConnection conn, IDbTransaction? tx, int pkid)
+    {
+        var course = (await QueryCoursesAsync(conn, SelectSql + " WHERE c.pkid = @pkid", new { pkid }, tx))
+            .SingleOrDefault();
+        if (course is null) return null;
+
+        // n-n: separate queries on same connection
+        course.Certifications = (await conn.QueryAsync<CertificationLookup>("""
+            SELECT c.pkid, RTRIM(c.Title) AS Title, c.Partner_pkid AS PartnerPkid, p.Name AS PartnerName
+            FROM CourseInCertification ci
+            INNER JOIN Certification c ON c.pkid = ci.Certification_pkid
+            INNER JOIN Partner p ON p.pkid = c.Partner_pkid
+            WHERE ci.Course_pkid = @pkid
+            ORDER BY p.DisplayOrder ASC, p.pkid ASC, c.Title ASC
+            """, new { pkid }, tx)).ToList();
+
+        course.JobCategories = (await conn.QueryAsync<JobCategoryLookup>("""
+            SELECT j.pkid, j.Description
+            FROM CourseJobCategories cj
+            INNER JOIN JobCategory j ON j.pkid = cj.JobCategory_pkid
+            WHERE cj.Course_pkid = @pkid
+            ORDER BY j.pkid ASC
+            """, new { pkid }, tx)).ToList();
+
+        return course;
+    }
+
+    private static Task<IEnumerable<Course>> QueryCoursesAsync(
+        IDbConnection conn, string sql, object? param = null, IDbTransaction? tx = null)
         => conn.QueryAsync<Course, PartnerLookup, CourseGroupLookup, PublishStatusLookup, Course>(
             sql,
             (course, partner, courseGroup, publishStatus) =>
@@ -213,6 +231,7 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
                 return course;
             },
             param,
+            tx,
             splitOn: SplitOn);
 
     // Unwrap DateOnly? so the registered DateOnly type handler binds the parameters

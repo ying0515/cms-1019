@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { PartnerService } from '@core/services/partner.service';
 import { CISCO, MICROSOFT } from '../testing/partner.fixtures';
 import { PartnerDetail } from './partner-detail';
@@ -22,6 +23,7 @@ describe('PartnerDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: PartnerService, useValue: service },
@@ -115,5 +117,16 @@ describe('PartnerDetail', () => {
     fixture.componentInstance.viewCourses();
 
     expect(nav).toHaveBeenCalledWith(['/courses'], { queryParams: { partnerPkid: 1 } });
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'Partner',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

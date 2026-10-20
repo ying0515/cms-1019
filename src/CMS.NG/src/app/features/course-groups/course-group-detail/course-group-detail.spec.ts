@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { CourseGroupService } from '@core/services/course-group.service';
 import { CLOUD_GROUP } from '../testing/course-group.fixtures';
 import { CourseGroupDetail } from './course-group-detail';
@@ -22,6 +23,7 @@ describe('CourseGroupDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: CourseGroupService, useValue: service },
@@ -58,7 +60,7 @@ describe('CourseGroupDetail', () => {
 
   it('shows an error toast for non-404 failures', async () => {
     await setup('1');
-    service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
     const add = spyOn(TestBed.inject(MessageService), 'add');
 
     create();
@@ -66,6 +68,17 @@ describe('CourseGroupDetail', () => {
     expect(add).toHaveBeenCalledWith(
       jasmine.objectContaining({ severity: 'error', summary: '載入失敗' }),
     );
+  });
+
+  it('leaves the toast for a 5xx to the interceptor', async () => {
+    await setup('1');
+    service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+    const add = spyOn(TestBed.inject(MessageService), 'add');
+
+    const fixture = create();
+
+    expect(add).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.loading()).toBeFalse();
   });
 
   for (const bad of ['abc', '0', '32768', '-1', '1.5']) {
@@ -114,5 +127,16 @@ describe('CourseGroupDetail', () => {
     fixture.componentInstance.viewCourses();
 
     expect(nav).toHaveBeenCalledWith(['/courses'], { queryParams: { courseGroupPkid: 1 } });
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'CourseGroup',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

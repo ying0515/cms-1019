@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { PublishStatusService } from '@core/services/publish-status.service';
 import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { DRAFT_STATUS } from '../testing/publish-status.fixtures';
@@ -25,6 +26,7 @@ describe('PublishStatusForm', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         { provide: PublishStatusService, useValue: service },
         { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap(id !== null ? { id } : {}) } } },
@@ -190,6 +192,24 @@ describe('PublishStatusForm', () => {
     it('cancel() returns to the detail page', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/publish-statuses', 1]);
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for the edited record next to the title', async () => {
+      await setup('1');
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('.form-toolbar .start app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('PublishStatus', 1);
+    });
+
+    it('has no badge in add mode', async () => {
+      await setup(null);
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

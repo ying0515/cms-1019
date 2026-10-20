@@ -7,16 +7,23 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { Observable } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { Partner, PartnerRequest } from '@core/models/partner.model';
 import { PartnerService } from '@core/services/partner.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 /** Rejects whitespace-only values (Validators.required accepts them). */
 const notBlank = Validators.pattern(/\S/);
 
 @Component({
   selector: 'app-partner-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputNumberModule, InputTextModule],
+  imports: [
+    RowAuditBadgeComponent,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputNumberModule,
+    InputTextModule,
+  ],
   templateUrl: './partner-form.html',
   styleUrl: './partner-form.scss',
 })
@@ -68,11 +75,7 @@ export class PartnerForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '載入失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -121,11 +124,7 @@ export class PartnerForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

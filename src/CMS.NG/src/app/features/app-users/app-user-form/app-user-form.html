@@ -1,6 +1,11 @@
 <form [formGroup]="form" (ngSubmit)="save()">
   <div class="page-header form-toolbar" data-testid="form-toolbar">
-    <h1 class="title">{{ isEdit ? '編輯使用者' : '新增使用者' }}</h1>
+    <div class="start">
+      <h1 class="title">{{ isEdit ? '編輯使用者' : '新增使用者' }}</h1>
+      @if (isEdit) {
+        <app-row-audit-badge tableName="AppUser" [pkid]="pkid" />
+      }
+    </div>
     <div class="actions">
       @if (canResetPassword) {
         <p-button

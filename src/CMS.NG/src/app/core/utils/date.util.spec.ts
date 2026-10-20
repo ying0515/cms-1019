@@ -1,4 +1,4 @@
-import { addDays, addYears, parseIsoDate, startOfWeek, toIsoDate } from './date.util';
+import { addDays, addYears, formatApiDateTime, parseIsoDate, startOfWeek, toIsoDate } from './date.util';
 
 describe('date.util', () => {
   it('addDays() crosses month and year boundaries', () => {
@@ -49,5 +49,22 @@ describe('date.util', () => {
   it('addYears() maps Feb 29 to Feb 28 in a non-leap year', () => {
     expect(toIsoDate(addYears(new Date(2028, 1, 29), 1))).toBe('2029-02-28');
     expect(toIsoDate(addYears(new Date(2028, 1, 29), 4))).toBe('2032-02-29');
+  });
+
+  describe('formatApiDateTime', () => {
+    it('reads a zone-less API datetime as UTC and formats it in local time', () => {
+      const utc = new Date(Date.UTC(2026, 5, 4, 6, 30));
+      const expected = `${toIsoDate(utc)} ${String(utc.getHours()).padStart(2, '0')}:30`;
+
+      expect(formatApiDateTime('2026-06-04T06:30:00')).toBe(expected);
+      expect(formatApiDateTime('2026-06-04T06:30:00Z')).toBe(expected);
+      expect(formatApiDateTime('2026-06-04T06:30:00.123')).toBe(expected);
+    });
+
+    it('returns an empty string for missing or invalid input', () => {
+      expect(formatApiDateTime(null)).toBe('');
+      expect(formatApiDateTime('')).toBe('');
+      expect(formatApiDateTime('not a date')).toBe('');
+    });
   });
 });

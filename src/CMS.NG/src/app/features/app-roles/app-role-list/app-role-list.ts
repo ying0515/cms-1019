@@ -15,7 +15,7 @@ import { AppRole, AppRoleQuery } from '@core/models/app-role.model';
 import { AppUserLookup, LookupOption } from '@core/models/lookup.model';
 import { AppRoleService } from '@core/services/app-role.service';
 import { LookupService } from '@core/services/lookup.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'app-role-list-filters';
@@ -142,7 +142,7 @@ export class AppRoleList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({ severity: 'error', summary: '查詢失敗', detail: httpErrorMessage(err) });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -193,7 +193,7 @@ export class AppRoleList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({ severity: 'error', summary: '刪除失敗', detail: httpErrorMessage(err) }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 }

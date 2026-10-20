@@ -12,7 +12,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { TagModule } from 'primeng/tag';
 
 import { AuthService } from '@core/auth/auth.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { httpErrorMessage, showHttpError } from '@core/utils/http-error.util';
 import {
   PASSWORD_POLICY_MESSAGE_EN,
   PASSWORD_POLICY_MESSAGE_ZH,
@@ -114,11 +114,7 @@ export class MyProfile {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

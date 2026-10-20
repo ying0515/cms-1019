@@ -4,13 +4,14 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { AppRole } from '@core/models/app-role.model';
 import { AppRoleService } from '@core/services/app-role.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-app-role-detail',
-  imports: [ButtonModule, TagModule],
+  imports: [RowAuditBadgeComponent, ButtonModule, TagModule],
   templateUrl: './app-role-detail.html',
   styleUrl: './app-role-detail.scss',
 })
@@ -42,7 +43,7 @@ export class AppRoleDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({ severity: 'error', summary: '載入失敗', detail: httpErrorMessage(err) });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -75,7 +76,7 @@ export class AppRoleDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({ severity: 'error', summary: '刪除失敗', detail: httpErrorMessage(err) }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

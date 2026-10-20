@@ -65,5 +65,8 @@
       severity="secondary"
       (onClick)="cancel()"
     />
+    @if (isEdit) {
+      <app-row-audit-badge class="audit" tableName="FeaturedPromoItem" [pkid]="draft().pkid" />
+    }
   </div>
 </form>

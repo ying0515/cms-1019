@@ -10,7 +10,7 @@ import { PromotionLookup, TrainingCenterLookup } from '@core/models/lookup.model
 import { FeaturedPromoItemService } from '@core/services/featured-promo-item.service';
 import { LookupService } from '@core/services/lookup.service';
 import { addDays, parseIsoDate, startOfWeek, toIsoDate } from '@core/utils/date.util';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 import {
   FeaturedPromoItemDraft,
@@ -102,11 +102,7 @@ export class FeaturedPromoItemList implements OnInit {
         this.load();
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '載入失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '載入失敗', err),
     });
   }
 
@@ -147,11 +143,7 @@ export class FeaturedPromoItemList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -240,11 +232,7 @@ export class FeaturedPromoItemList implements OnInit {
     op$.subscribe({
       next: () => this.load(),
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '移動失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '移動失敗', err),
     });
   }
 
@@ -269,11 +257,7 @@ export class FeaturedPromoItemList implements OnInit {
         this.load();
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '刪除失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 }

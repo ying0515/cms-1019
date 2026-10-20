@@ -12,7 +12,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { LookupOption } from '@core/models/lookup.model';
 import { PublishStatus, PublishStatusQuery } from '@core/models/publish-status.model';
 import { PublishStatusService } from '@core/services/publish-status.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'publish-status-list-filters';
@@ -119,11 +119,7 @@ export class PublishStatusList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -174,11 +170,7 @@ export class PublishStatusList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '刪除失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 }

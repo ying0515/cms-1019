@@ -10,7 +10,7 @@ import { TooltipModule } from 'primeng/tooltip';
 
 import { Partner, PartnerQuery } from '@core/models/partner.model';
 import { PartnerService } from '@core/services/partner.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'partner-list-filters';
@@ -99,11 +99,7 @@ export class PartnerList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -154,11 +150,7 @@ export class PartnerList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '刪除失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 }

@@ -4,13 +4,14 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { PublishStatus } from '@core/models/publish-status.model';
 import { PublishStatusService } from '@core/services/publish-status.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-publish-status-detail',
-  imports: [ButtonModule, TagModule],
+  imports: [RowAuditBadgeComponent, ButtonModule, TagModule],
   templateUrl: './publish-status-detail.html',
   styleUrl: './publish-status-detail.scss',
 })
@@ -44,11 +45,7 @@ export class PublishStatusDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({
-            severity: 'error',
-            summary: '載入失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -86,11 +83,7 @@ export class PublishStatusDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '刪除失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

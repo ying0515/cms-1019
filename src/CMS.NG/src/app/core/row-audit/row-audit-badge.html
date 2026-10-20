@@ -1,0 +1,71 @@
+<button
+  type="button"
+  class="row-audit-badge"
+  data-testid="row-audit-badge"
+  title="檢視異動紀錄 View change history"
+  (click)="open()"
+>
+  <i class="pi pi-history" aria-hidden="true"></i>
+  <span class="label">異動紀錄 History</span>
+  <span class="latest" data-testid="row-audit-latest">
+    @if (loading()) {
+      <span class="muted">載入中…</span>
+    } @else if (failed()) {
+      <span class="muted">無法載入 Unavailable</span>
+    } @else if (latest(); as l) {
+      <span [class]="actionClass(l.actionType)">{{ actionLabel(l.actionType) }}</span>
+      <span class="who">{{ l.userName }}</span>
+      <span class="sep">·</span>
+      <span class="when">{{ formatTime(l.dateTime) }}</span>
+    } @else {
+      <span class="muted">尚無紀錄 No history</span>
+    }
+  </span>
+</button>
+
+<p-dialog
+  header="異動紀錄 History"
+  [visible]="dialogOpen()"
+  (visibleChange)="dialogOpen.set($event)"
+  [modal]="true"
+  [dismissableMask]="true"
+  [draggable]="false"
+  [resizable]="false"
+  appendTo="body"
+  [style]="{ width: '56rem' }"
+  [breakpoints]="{ '960px': '95vw' }"
+>
+  <div class="row-audit-dialog" data-testid="row-audit-dialog">
+    @if (loading()) {
+      <p class="state"><i class="pi pi-spin pi-spinner"></i> 載入中…</p>
+    } @else if (failed()) {
+      <p class="state">無法載入異動紀錄，請稍後再試。 Could not load history.</p>
+    } @else if (history().length === 0) {
+      <p class="state" data-testid="row-audit-empty">
+        <i class="pi pi-inbox"></i> 尚無異動紀錄 No history yet
+      </p>
+    } @else {
+      <p-table [value]="history()" size="small" [scrollable]="true" scrollHeight="60vh">
+        <ng-template #header>
+          <tr>
+            <th class="col-time">時間 DateTime</th>
+            <th class="col-user">使用者 User</th>
+            <th class="col-action">動作 Action</th>
+            <th>說明 Description</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-row>
+          <tr data-testid="row-audit-row">
+            <td class="col-time">{{ formatTime(row.dateTime) }}</td>
+            <td class="col-user">{{ row.userName }}</td>
+            <td class="col-action">
+              <span [class]="actionClass(row.actionType)">{{ actionLabel(row.actionType) }}</span>
+              <span class="action-en">{{ row.actionType }}</span>
+            </td>
+            <td class="desc">{{ formatDesc(row) }}</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    }
+  </div>
+</p-dialog>

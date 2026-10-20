@@ -20,10 +20,11 @@ import {
   FeaturedPromoItem,
   FeaturedPromoItemRequest,
 } from '@core/models/featured-promo-item.model';
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { PromotionLookup } from '@core/models/lookup.model';
 import { FeaturedPromoItemService } from '@core/services/featured-promo-item.service';
 import { LookupService } from '@core/services/lookup.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 /** Rejects whitespace-only values (Validators.required accepts them). */
 const notBlank = Validators.pattern(/\S/);
@@ -49,7 +50,13 @@ export interface FeaturedPromoItemDraft {
 /** Inline Edit / New form shown in place of a slot row on the weekly schedule. */
 @Component({
   selector: 'app-featured-promo-item-form',
-  imports: [ReactiveFormsModule, AutoCompleteModule, ButtonModule, InputTextModule],
+  imports: [
+    ReactiveFormsModule,
+    AutoCompleteModule,
+    ButtonModule,
+    InputTextModule,
+    RowAuditBadgeComponent,
+  ],
   templateUrl: './featured-promo-item-form.html',
   styleUrl: './featured-promo-item-form.scss',
 })
@@ -140,11 +147,7 @@ export class FeaturedPromoItemForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

@@ -1,6 +1,11 @@
 <form [formGroup]="form" (ngSubmit)="save()">
   <div class="page-header form-toolbar" data-testid="form-toolbar">
-    <h1 class="title">{{ isEdit ? '編輯發布狀態' : '新增發布狀態' }}</h1>
+    <div class="start">
+      <h1 class="title">{{ isEdit ? '編輯發布狀態' : '新增發布狀態' }}</h1>
+      @if (isEdit) {
+        <app-row-audit-badge tableName="PublishStatus" [pkid]="pkid" />
+      }
+    </div>
     <div class="actions">
       <p-button type="button" label="取消" icon="pi pi-times" severity="secondary" (onClick)="cancel()" />
       <p-button type="submit" label="儲存" icon="pi pi-check" [loading]="saving()" [disabled]="loading()" />

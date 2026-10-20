@@ -6,13 +6,14 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { Observable } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { CourseGroup, CourseGroupRequest } from '@core/models/course-group.model';
 import { CourseGroupService } from '@core/services/course-group.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-course-group-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputTextModule],
+  imports: [RowAuditBadgeComponent, ReactiveFormsModule, ButtonModule, InputTextModule],
   templateUrl: './course-group-form.html',
   styleUrl: './course-group-form.scss',
 })
@@ -53,11 +54,7 @@ export class CourseGroupForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '載入失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -95,11 +92,7 @@ export class CourseGroupForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

@@ -1,3 +1,4 @@
+using System.Data;
 using CMS.API.Data;
 using CMS.API.Models;
 using Dapper;
@@ -5,8 +6,10 @@ using Microsoft.Data.SqlClient;
 
 namespace CMS.API.Repositories;
 
-public class PublishStatusRepository(IDbConnectionFactory db) : IPublishStatusRepository
+public class PublishStatusRepository(IDbConnectionFactory db, RowAuditWriter audit) : IPublishStatusRepository
 {
+    private const string TableName = "PublishStatus";
+
     private const string SelectSql = """
         SELECT s.pkid, s.Description, s.IsDraft, s.IsPublished, s.IsDiscontinued
         FROM PublishStatus s
@@ -59,7 +62,7 @@ public class PublishStatusRepository(IDbConnectionFactory db) : IPublishStatusRe
     public async Task<PublishStatus?> GetByIdAsync(byte pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.QuerySingleOrDefaultAsync<PublishStatus>(SelectSql + " WHERE s.pkid = @pkid", new { pkid });
+        return await LoadAsync(conn, null, pkid);
     }
 
     public async Task<bool> ExistsAsync(byte pkid)
@@ -73,36 +76,57 @@ public class PublishStatusRepository(IDbConnectionFactory db) : IPublishStatusRe
     {
         // pkid is not IDENTITY, so it is inserted explicitly
         using var conn = await db.CreateOpenConnectionAsync();
+        using var tx = conn.BeginTransaction();
         await conn.ExecuteAsync("""
             INSERT INTO PublishStatus (pkid, Description, IsDraft, IsPublished, IsDiscontinued)
             VALUES (@Pkid, @Description, @IsDraft, @IsPublished, @IsDiscontinued)
-            """, request);
+            """, request, tx);
+
+        await audit.LogInsertAsync(TableName, (await LoadAsync(conn, tx, request.Pkid))!, tx);
+        tx.Commit();
     }
 
     public async Task<bool> UpdateAsync(PublishStatusRequest request)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.ExecuteAsync("""
+        using var tx = conn.BeginTransaction();
+        var before = await LoadAsync(conn, tx, request.Pkid);
+        if (before is null) return false;
+
+        await conn.ExecuteAsync("""
             UPDATE PublishStatus
             SET Description = @Description, IsDraft = @IsDraft, IsPublished = @IsPublished,
                 IsDiscontinued = @IsDiscontinued
             WHERE pkid = @Pkid
-            """, request) > 0;
+            """, request, tx);
+
+        await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, request.Pkid))!, tx);
+        tx.Commit();
+        return true;
     }
 
     public async Task<bool> DeleteAsync(byte pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
+        using var tx = conn.BeginTransaction();
+        var before = await LoadAsync(conn, tx, pkid);
+        if (before is null) return false;
+
         try
         {
-            return await conn.ExecuteAsync("DELETE FROM PublishStatus WHERE pkid = @pkid", new { pkid }) > 0;
+            await conn.ExecuteAsync("DELETE FROM PublishStatus WHERE pkid = @pkid", new { pkid }, tx);
         }
         catch (SqlException ex) when (ex.Number == ForeignKeyViolation)
         {
             // Referenced by Course / Promotion2
-            var description = await conn.ExecuteScalarAsync<string?>(
-                "SELECT Description FROM PublishStatus WHERE pkid = @pkid", new { pkid });
-            throw new ReferenceConflictException($"發布狀態「{description}」已被使用，無法刪除");
+            throw new ReferenceConflictException($"發布狀態「{before.Description}」已被使用，無法刪除");
         }
+
+        await audit.LogDeleteAsync(TableName, before, tx);
+        tx.Commit();
+        return true;
     }
+
+    private static Task<PublishStatus?> LoadAsync(IDbConnection conn, IDbTransaction? tx, byte pkid)
+        => conn.QuerySingleOrDefaultAsync<PublishStatus>(SelectSql + " WHERE s.pkid = @pkid", new { pkid }, tx);
 }

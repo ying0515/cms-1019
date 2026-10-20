@@ -4,6 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { FeaturedPromoItemService } from '@core/services/featured-promo-item.service';
 import { LookupService } from '@core/services/lookup.service';
 import { MON_SLOT2, PROMOTIONS } from '../testing/featured-promo-item.fixtures';
@@ -48,6 +49,7 @@ describe('FeaturedPromoItemForm', () => {
       imports: [FeaturedPromoItemForm],
       providers: [
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         { provide: FeaturedPromoItemService, useValue: service },
         { provide: LookupService, useValue: lookups },
@@ -264,6 +266,22 @@ describe('FeaturedPromoItemForm', () => {
           topic: '複製的主題',
         }),
       );
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for an existing item', () => {
+      const fixture = create(EDIT_DRAFT);
+
+      expect(fixture.nativeElement.querySelector('.form-actions app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('FeaturedPromoItem', EDIT_DRAFT.pkid);
+    });
+
+    it('has no badge for a new item', () => {
+      const fixture = create(NEW_DRAFT);
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

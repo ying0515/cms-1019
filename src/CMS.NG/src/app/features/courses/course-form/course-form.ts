@@ -19,6 +19,7 @@ import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { Observable, forkJoin, of } from 'rxjs';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { Course, CourseRequest } from '@core/models/course.model';
 import {
   CertificationLookup,
@@ -31,7 +32,7 @@ import {
 import { CourseService } from '@core/services/course.service';
 import { LookupService } from '@core/services/lookup.service';
 import { addYears, parseIsoDate, toIsoDate } from '@core/utils/date.util';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 /** Rejects whitespace-only values (Validators.required accepts them). */
 const notBlank = Validators.pattern(/\S/);
@@ -49,6 +50,7 @@ function scheduleRange(group: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'app-course-form',
   imports: [
+    RowAuditBadgeComponent,
     ReactiveFormsModule,
     RouterLink,
     ButtonModule,
@@ -186,11 +188,7 @@ export class CourseForm implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '載入失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '載入失敗', err);
       },
     });
   }
@@ -294,11 +292,7 @@ export class CourseForm implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '儲存失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '儲存失敗', err);
       },
     });
   }

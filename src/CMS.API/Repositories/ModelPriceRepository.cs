@@ -6,8 +6,10 @@ using Microsoft.Data.SqlClient;
 
 namespace CMS.API.Repositories;
 
-public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceRepository
+public class ModelPriceRepository(IDbConnectionFactory db, RowAuditWriter audit) : IModelPriceRepository
 {
+    private const string TableName = "ModelPrice";
+
     private const string SelectSql = """
         SELECT mp.pkid, mp.Model, mp.EffectiveFrom, mp.InputPrice, mp.OutputPrice, mp.CacheWritePrice, mp.CacheReadPrice
         FROM ModelPrice mp
@@ -60,7 +62,7 @@ public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceReposito
     public async Task<ModelPrice?> GetByIdAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.QuerySingleOrDefaultAsync<ModelPrice>(SelectSql + " WHERE mp.pkid = @pkid", new { pkid });
+        return await LoadAsync(conn, null, pkid);
     }
 
     public async Task<int> CreateAsync(ModelPriceRequest request, CostFunction cost)
@@ -75,6 +77,7 @@ public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceReposito
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """, ToParams(request), tx);
             await RecomputeCostsAsync(conn, tx, [request.Model], cost);
+            await audit.LogInsertAsync(TableName, (await LoadAsync(conn, tx, pkid))!, tx);
             tx.Commit();
             return pkid;
         }
@@ -90,9 +93,9 @@ public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceReposito
         using var tx = conn.BeginTransaction();
         try
         {
-            var oldModel = await conn.QuerySingleOrDefaultAsync<string>(
-                "SELECT Model FROM ModelPrice WITH (UPDLOCK) WHERE pkid = @Pkid", new { request.Pkid }, tx);
-            if (oldModel is null) return false;
+            var before = await conn.QuerySingleOrDefaultAsync<ModelPrice>(
+                SelectSql + " WITH (UPDLOCK) WHERE mp.pkid = @Pkid", new { request.Pkid }, tx);
+            if (before is null) return false;
 
             await conn.ExecuteAsync("""
                 UPDATE ModelPrice
@@ -100,7 +103,8 @@ public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceReposito
                     CacheWritePrice = @CacheWritePrice, CacheReadPrice = @CacheReadPrice
                 WHERE pkid = @Pkid
                 """, ToParams(request), tx);
-            await RecomputeCostsAsync(conn, tx, [oldModel, request.Model], cost);
+            await RecomputeCostsAsync(conn, tx, [before.Model, request.Model], cost);
+            await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, request.Pkid))!, tx);
             tx.Commit();
             return true;
         }
@@ -114,14 +118,19 @@ public class ModelPriceRepository(IDbConnectionFactory db) : IModelPriceReposito
     {
         using var conn = await db.CreateOpenConnectionAsync();
         using var tx = conn.BeginTransaction();
-        var model = await conn.QuerySingleOrDefaultAsync<string>(
-            "DELETE FROM ModelPrice OUTPUT deleted.Model WHERE pkid = @pkid", new { pkid }, tx);
-        if (model is null) return false;
+        var before = await conn.QuerySingleOrDefaultAsync<ModelPrice>(
+            SelectSql + " WITH (UPDLOCK) WHERE mp.pkid = @pkid", new { pkid }, tx);
+        if (before is null) return false;
 
-        await RecomputeCostsAsync(conn, tx, [model], cost);
+        await conn.ExecuteAsync("DELETE FROM ModelPrice WHERE pkid = @pkid", new { pkid }, tx);
+        await RecomputeCostsAsync(conn, tx, [before.Model], cost);
+        await audit.LogDeleteAsync(TableName, before, tx);
         tx.Commit();
         return true;
     }
+
+    private static Task<ModelPrice?> LoadAsync(IDbConnection conn, IDbTransaction? tx, int pkid)
+        => conn.QuerySingleOrDefaultAsync<ModelPrice>(SelectSql + " WHERE mp.pkid = @pkid", new { pkid }, tx);
 
     /// <summary>
     /// Prices of the given models. With <paramref name="holdLock"/> the rows (and the gaps between them) stay

@@ -15,7 +15,7 @@ import { AppUser, AppUserQuery } from '@core/models/app-user.model';
 import { AppRoleLookup, LookupOption } from '@core/models/lookup.model';
 import { AppUserService } from '@core/services/app-user.service';
 import { LookupService } from '@core/services/lookup.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'app-user-list-filters';
@@ -136,11 +136,7 @@ export class AppUserList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -191,11 +187,7 @@ export class AppUserList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '刪除失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 }

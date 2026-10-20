@@ -1,0 +1,126 @@
+:host {
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.row-audit-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #f8fafc;
+  color: #475569;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 400;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    border-color 0.15s;
+
+  &:hover {
+    background: #eef2ff;
+    border-color: #a5b4fc;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #6366f1;
+    outline-offset: 2px;
+  }
+
+  .pi-history {
+    color: #6366f1;
+  }
+
+  .label {
+    font-weight: 600;
+    color: #334155;
+    white-space: nowrap;
+  }
+
+  .latest {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+    padding-left: 8px;
+    border-left: 1px solid #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .who {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .sep,
+  .muted {
+    color: #94a3b8;
+  }
+}
+
+.action {
+  display: inline-block;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.action-insert {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.action-update {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.action-delete {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+// The dialog is appended to <body>, but Angular still scopes these rules to this component's template.
+.row-audit-dialog {
+  .state {
+    margin: 24px 0;
+    text-align: center;
+    color: #64748b;
+  }
+
+  .col-time {
+    white-space: nowrap;
+    width: 9.5rem;
+  }
+
+  .col-user {
+    white-space: nowrap;
+  }
+
+  .col-action {
+    white-space: nowrap;
+    width: 7.5rem;
+  }
+
+  .action-en {
+    margin-left: 6px;
+    font-size: 0.75rem;
+    color: #94a3b8;
+  }
+
+  .desc {
+    word-break: break-word;
+  }
+}

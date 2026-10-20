@@ -4,6 +4,7 @@ import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub } from '@core/testing/row-audit';
 import { FeaturedPromoItemService } from '@core/services/featured-promo-item.service';
 import { LookupService } from '@core/services/lookup.service';
 import {
@@ -54,6 +55,7 @@ describe('FeaturedPromoItemList', () => {
       imports: [FeaturedPromoItemList],
       providers: [
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: FeaturedPromoItemService, useValue: service },

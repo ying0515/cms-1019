@@ -4,13 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { ModelPrice } from '@core/models/model-price.model';
 import { ModelPriceService } from '@core/services/model-price.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-model-price-detail',
-  imports: [DecimalPipe, ButtonModule],
+  imports: [RowAuditBadgeComponent, DecimalPipe, ButtonModule],
   templateUrl: './model-price-detail.html',
   styleUrl: './model-price-detail.scss',
 })
@@ -44,11 +45,7 @@ export class ModelPriceDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({
-            severity: 'error',
-            summary: '載入失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -88,11 +85,7 @@ export class ModelPriceDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '刪除失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

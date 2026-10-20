@@ -1,4 +1,5 @@
 using CMS.API.Data;
+using CMS.API.Middleware;
 using CMS.API.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -64,7 +65,10 @@ builder.Services.AddScoped<IFeaturedPromoItemRepository, FeaturedPromoItemReposi
 builder.Services.AddScoped<IAgentTokenUsageRepository, AgentTokenUsageRepository>();
 builder.Services.AddScoped<IModelPriceRepository, ModelPriceRepository>();
 builder.Services.AddScoped<ILookupRepository, LookupRepository>();
+builder.Services.AddScoped<IRowAuditRepository, RowAuditRepository>();
 builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<RowAuditWriter>();
 
 var app = builder.Build();
 
@@ -76,6 +80,8 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors(CorsPolicy);
+// After CORS so the 500 still carries CORS headers; before authentication, whose key lookup reads the DB.
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 // Every controller needs a valid Bearer token; [AllowAnonymous] opts out (AuthController, API-key ingest).

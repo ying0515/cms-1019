@@ -1,4 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { MessageService } from 'primeng/api';
+
+/** 5xx: the API's generic "unexpected error". `authInterceptor` already toasts these. */
+export function isServerError(err: unknown): err is HttpErrorResponse {
+  return err instanceof HttpErrorResponse && err.status >= 500;
+}
+
+/**
+ * Page-level error toast: `summary` says what failed (載入失敗, 儲存失敗, …), the detail comes from the API.
+ * Skips 5xx, which `authInterceptor` has already shown, so the user never gets two toasts for one failure.
+ */
+export function showHttpError(messages: MessageService, summary: string, err: unknown): void {
+  if (isServerError(err)) return;
+  messages.add({ severity: 'error', summary, detail: httpErrorMessage(err) });
+}
 
 /** Extracts a user-facing message from an API error response. */
 export function httpErrorMessage(err: unknown, fallback = '發生錯誤，請稍後再試'): string {

@@ -3,13 +3,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 
+import { RowAuditBadgeComponent } from '@core/row-audit/row-audit-badge';
 import { CourseGroup } from '@core/models/course-group.model';
 import { CourseGroupService } from '@core/services/course-group.service';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 
 @Component({
   selector: 'app-course-group-detail',
-  imports: [ButtonModule],
+  imports: [RowAuditBadgeComponent, ButtonModule],
   templateUrl: './course-group-detail.html',
   styleUrl: './course-group-detail.scss',
 })
@@ -43,11 +44,7 @@ export class CourseGroupDetail implements OnInit {
         this.loading.set(false);
         this.notFound.set(true);
         if (err?.status !== 404) {
-          this.messages.add({
-            severity: 'error',
-            summary: '載入失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '載入失敗', err);
         }
       },
     });
@@ -85,11 +82,7 @@ export class CourseGroupDetail implements OnInit {
             this.back();
           },
           error: (err) =>
-            this.messages.add({
-              severity: 'error',
-              summary: '刪除失敗',
-              detail: httpErrorMessage(err),
-            }),
+            showHttpError(this.messages, '刪除失敗', err),
         }),
     });
   }

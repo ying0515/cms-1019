@@ -24,7 +24,7 @@ import {
 import { CourseService } from '@core/services/course.service';
 import { LookupService } from '@core/services/lookup.service';
 import { parseIsoDate, toIsoDate } from '@core/utils/date.util';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'course-list-filters';
@@ -290,11 +290,7 @@ export class CourseList implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }
@@ -345,11 +341,7 @@ export class CourseList implements OnInit {
         this.search(false);
       },
       error: (err) =>
-        this.messages.add({
-          severity: 'error',
-          summary: '刪除失敗',
-          detail: httpErrorMessage(err),
-        }),
+        showHttpError(this.messages, '刪除失敗', err),
     });
   }
 
@@ -436,11 +428,7 @@ export class CourseList implements OnInit {
           this.messages.add({ severity: 'success', summary: '已更新', detail: item.title }),
         error: (err) => {
           this.patchItem(item.pkid, field, previous);
-          this.messages.add({
-            severity: 'error',
-            summary: '更新失敗',
-            detail: httpErrorMessage(err),
-          });
+          showHttpError(this.messages, '更新失敗', err);
         },
       });
   }

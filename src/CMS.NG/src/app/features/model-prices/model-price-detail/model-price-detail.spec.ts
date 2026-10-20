@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { ModelPriceService } from '@core/services/model-price.service';
 import { HAIKU, OPUS } from '../testing/model-price.fixtures';
 import { ModelPriceDetail } from './model-price-detail';
@@ -22,6 +23,7 @@ describe('ModelPriceDetail', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         ConfirmationService,
         { provide: ModelPriceService, useValue: service },
@@ -100,5 +102,16 @@ describe('ModelPriceDetail', () => {
 
     expect(service.delete).toHaveBeenCalledOnceWith(1);
     expect(nav).toHaveBeenCalledWith(['/model-prices']);
+  });
+
+  it('shows the row-audit badge for this record next to the title', async () => {
+    await setup('1');
+    const fixture = create();
+
+    expect(fixture.nativeElement.querySelector('.page-header .start app-row-audit-badge')).toBeTruthy();
+    expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith(
+      'ModelPrice',
+      fixture.componentInstance.item()!.pkid,
+    );
   });
 });

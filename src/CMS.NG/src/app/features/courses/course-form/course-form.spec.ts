@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
+import { provideRowAuditStub, rowAuditStub } from '@core/testing/row-audit';
 import { CourseService } from '@core/services/course.service';
 import { LookupService } from '@core/services/lookup.service';
 import { expectPinnedToolbar } from '@core/testing/form-toolbar';
@@ -48,6 +49,7 @@ describe('CourseForm', () => {
       providers: [
         provideRouter([]),
         provideNoopAnimations(),
+        provideRowAuditStub(),
         MessageService,
         { provide: CourseService, useValue: service },
         { provide: LookupService, useValue: lookups },
@@ -286,11 +288,20 @@ describe('CourseForm', () => {
     });
 
     it('shows an error toast when loading fails', async () => {
-      service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 403 })));
       const add = spyOn(TestBed.inject(MessageService), 'add');
       const c = create().componentInstance;
 
       expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ summary: '載入失敗' }));
+      expect(c.loading()).toBeFalse();
+    });
+
+    it('leaves the toast for a 5xx to the interceptor but still stops loading', async () => {
+      service.getById.and.returnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+      const add = spyOn(TestBed.inject(MessageService), 'add');
+      const c = create().componentInstance;
+
+      expect(add).not.toHaveBeenCalled();
       expect(c.loading()).toBeFalse();
     });
 
@@ -302,6 +313,24 @@ describe('CourseForm', () => {
       create().componentInstance.cancel();
 
       expect(router.navigate).toHaveBeenCalledWith(['/courses', 1]);
+    });
+  });
+
+  describe('row-audit badge', () => {
+    it('shows the badge for the edited record next to the title', async () => {
+      await setup('1');
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('.form-toolbar .start app-row-audit-badge')).toBeTruthy();
+      expect(rowAuditStub().getHistory).toHaveBeenCalledOnceWith('Course', 1);
+    });
+
+    it('has no badge in add mode', async () => {
+      await setup(null);
+      const fixture = create();
+
+      expect(fixture.nativeElement.querySelector('app-row-audit-badge')).toBeNull();
+      expect(rowAuditStub().getHistory).not.toHaveBeenCalled();
     });
   });
 });

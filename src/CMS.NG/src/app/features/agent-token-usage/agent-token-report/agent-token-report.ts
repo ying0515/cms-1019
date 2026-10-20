@@ -17,7 +17,7 @@ import {
 import { AgentTokenUsageService } from '@core/services/agent-token-usage.service';
 import { LookupService } from '@core/services/lookup.service';
 import { toIsoDate } from '@core/utils/date.util';
-import { httpErrorMessage } from '@core/utils/http-error.util';
+import { showHttpError } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
 export const FILTERS_KEY = 'agent-token-report-filters';
@@ -195,11 +195,7 @@ export class AgentTokenReport implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.messages.add({
-          severity: 'error',
-          summary: '查詢失敗',
-          detail: httpErrorMessage(err),
-        });
+        showHttpError(this.messages, '查詢失敗', err);
       },
     });
   }

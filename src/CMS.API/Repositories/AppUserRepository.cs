@@ -6,8 +6,10 @@ using Microsoft.Data.SqlClient;
 
 namespace CMS.API.Repositories;
 
-public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
+public class AppUserRepository(IDbConnectionFactory db, RowAuditWriter audit) : IAppUserRepository
 {
+    private const string TableName = "AppUser";
+
     private const int ForeignKeyViolation = 547;
 
     // PasswordHash is never selected.
@@ -57,19 +59,7 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
     public async Task<AppUser?> GetByIdAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        var user = await conn.QuerySingleOrDefaultAsync<AppUser>(SelectSql + " WHERE u.pkid = @pkid", new { pkid });
-        if (user is null) return null;
-
-        // n-n: separate query on same connection
-        user.Roles = (await conn.QueryAsync<AppRoleLookup>("""
-            SELECT r.RoleId, r.RoleName
-            FROM AppUserRole ur
-            INNER JOIN AppRole r ON r.RoleId = ur.RoleId
-            WHERE ur.UserId = @UserId
-            ORDER BY r.RoleId ASC
-            """, new { user.UserId })).ToList();
-
-        return user;
+        return await LoadAsync(conn, null, pkid);
     }
 
     public async Task<bool> UserIdExistsAsync(string userId)
@@ -105,6 +95,7 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
                 """, new { request.UserId, request.UserName, request.IsActive, PasswordHash = passwordHash }, tx);
 
             await SyncRolesAsync(conn, tx, request.UserId, request.RoleIds);
+            await audit.LogInsertAsync(TableName, (await LoadAsync(conn, tx, pkid))!, tx);
             tx.Commit();
             return pkid;
         }
@@ -120,11 +111,10 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
         using var tx = conn.BeginTransaction();
         try
         {
-            // UserId is the table PK (referenced by AppUserRole), so it is not updatable.
-            var userId = await conn.ExecuteScalarAsync<string?>(
-                "SELECT UserId FROM AppUser WHERE pkid = @Pkid", new { request.Pkid }, tx);
-            if (userId is null) return false;
+            var before = await LoadAsync(conn, tx, request.Pkid);
+            if (before is null) return false;
 
+            // UserId is the table PK (referenced by AppUserRole), so it is not updatable.
             // PasswordHash is only changed by SetPasswordAsync.
             await conn.ExecuteAsync("""
                 UPDATE AppUser
@@ -132,7 +122,8 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
                 WHERE pkid = @Pkid
                 """, new { request.UserName, request.IsActive, request.Pkid }, tx);
 
-            await SyncRolesAsync(conn, tx, userId, request.RoleIds);
+            await SyncRolesAsync(conn, tx, before.UserId, request.RoleIds);
+            await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, request.Pkid))!, tx);
             tx.Commit();
             return true;
         }
@@ -142,36 +133,68 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
         }
     }
 
-    public async Task<bool> UpdateUserNameAsync(string userId, string userName)
-    {
-        using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.ExecuteAsync(
-            "UPDATE AppUser SET UserName = @userName WHERE UserId = @userId", new { userId, userName }) > 0;
-    }
+    public Task<bool> UpdateUserNameAsync(string userId, string userName)
+        => UpdateByUserIdAsync(userId,
+            "UPDATE AppUser SET UserName = @userName WHERE pkid = @pkid", new { userName });
 
-    public async Task<bool> SetPasswordAsync(string userId, string passwordHash, DateTime updatedUtc)
-    {
-        using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.ExecuteAsync("""
+    /// <summary>The audit row lists PasswordUpdatedTime; the hash itself is never loaded.</summary>
+    public Task<bool> SetPasswordAsync(string userId, string passwordHash, DateTime updatedUtc)
+        => UpdateByUserIdAsync(userId, """
             UPDATE AppUser
             SET PasswordHash = @passwordHash, PasswordUpdatedTime = @updatedUtc
-            WHERE UserId = @userId
-            """, new { userId, passwordHash, updatedUtc }) > 0;
-    }
+            WHERE pkid = @pkid
+            """, new { passwordHash, updatedUtc });
 
     public async Task<bool> DeleteAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
         using var tx = conn.BeginTransaction();
 
-        var userId = await conn.ExecuteScalarAsync<string?>(
-            "SELECT UserId FROM AppUser WHERE pkid = @pkid", new { pkid }, tx);
-        if (userId is null) return false;
+        var before = await LoadAsync(conn, tx, pkid);
+        if (before is null) return false;
 
-        await conn.ExecuteAsync("DELETE FROM AppUserRole WHERE UserId = @userId", new { userId }, tx);
+        await conn.ExecuteAsync("DELETE FROM AppUserRole WHERE UserId = @UserId", new { before.UserId }, tx);
         await conn.ExecuteAsync("DELETE FROM AppUser WHERE pkid = @pkid", new { pkid }, tx);
+        await audit.LogDeleteAsync(TableName, before, tx);
         tx.Commit();
         return true;
+    }
+
+    /// <summary>Single-row UPDATE located by UserId; <paramref name="sql"/> gets @pkid plus <paramref name="values"/>.</summary>
+    private async Task<bool> UpdateByUserIdAsync(string userId, string sql, object values)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        using var tx = conn.BeginTransaction();
+
+        var pkid = await conn.ExecuteScalarAsync<int?>(
+            "SELECT pkid FROM AppUser WHERE UserId = @userId", new { userId }, tx);
+        if (pkid is null) return false;
+        var before = (await LoadAsync(conn, tx, pkid.Value))!;
+
+        var p = new DynamicParameters(values);
+        p.Add("pkid", pkid.Value);
+        await conn.ExecuteAsync(sql, p, tx);
+
+        await audit.LogUpdateAsync(TableName, before, (await LoadAsync(conn, tx, pkid.Value))!, tx);
+        tx.Commit();
+        return true;
+    }
+
+    private static async Task<AppUser?> LoadAsync(IDbConnection conn, IDbTransaction? tx, int pkid)
+    {
+        var user = await conn.QuerySingleOrDefaultAsync<AppUser>(SelectSql + " WHERE u.pkid = @pkid", new { pkid }, tx);
+        if (user is null) return null;
+
+        // n-n: separate query on same connection
+        user.Roles = (await conn.QueryAsync<AppRoleLookup>("""
+            SELECT r.RoleId, r.RoleName
+            FROM AppUserRole ur
+            INNER JOIN AppRole r ON r.RoleId = ur.RoleId
+            WHERE ur.UserId = @UserId
+            ORDER BY r.RoleId ASC
+            """, new { user.UserId }, tx)).ToList();
+
+        return user;
     }
 
     // n-n: delete-then-reinsert
