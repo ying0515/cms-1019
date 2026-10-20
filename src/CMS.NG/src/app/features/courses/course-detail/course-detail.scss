@@ -19,3 +19,21 @@
   gap: 6px;
   white-space: normal;
 }
+
+.basic-info {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  > .view-grid {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .basic-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

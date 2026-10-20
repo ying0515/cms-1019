@@ -9,10 +9,11 @@ import { Course } from '@core/models/course.model';
 import { CertificationLookup } from '@core/models/lookup.model';
 import { CourseService } from '@core/services/course.service';
 import { httpErrorMessage } from '@core/utils/http-error.util';
+import { CourseQrCode } from '../course-qr-code/course-qr-code';
 
 @Component({
   selector: 'app-course-detail',
-  imports: [DecimalPipe, RouterLink, ButtonModule, ChipModule],
+  imports: [DecimalPipe, RouterLink, ButtonModule, ChipModule, CourseQrCode],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.scss',
 })

@@ -204,7 +204,7 @@ GET by pkid loads both lists with separate queries on the same connection.
 | `PUT` | `/api/courses` | Update (pkid in body) → 204 / 404 / 400 |
 | `DELETE` | `/api/courses/{id:int}` | Delete → 204 / 404 / **409** if referenced |
 
-Not generated (from `sample1.spec.md`, out of scope for now): copy action, QR code, print PDF,
+Not generated (from `sample1.spec.md`, out of scope for now): copy action, print PDF,
 edit-mode sub-panels (CourseRelatedLink / CourseRecomm), ClassSection link (table not in schema).
 
 ---

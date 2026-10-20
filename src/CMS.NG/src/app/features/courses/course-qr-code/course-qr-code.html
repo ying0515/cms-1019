@@ -1,0 +1,14 @@
+<figure class="qr-code">
+  <canvas #canvas role="img" [attr.aria-label]="'QR Code：' + title()"></canvas>
+  <figcaption>
+    <a class="qr-url" [href]="url()" target="_blank" rel="noopener">{{ url() }}</a>
+  </figcaption>
+  <p-button
+    label="下載 QR Code"
+    icon="pi pi-download"
+    severity="secondary"
+    [outlined]="true"
+    size="small"
+    (onClick)="download()"
+  />
+</figure>

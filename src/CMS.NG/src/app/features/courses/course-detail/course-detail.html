@@ -22,36 +22,39 @@
 } @else if (item(); as c) {
   <section class="panel">
     <h2>基本資料</h2>
-    <dl class="view-grid">
-      <dt>主代碼</dt>
-      <dd>{{ c.pkid }}</dd>
-      <dt>課程名稱</dt>
-      <dd class="title-value">{{ c.title }}</dd>
-      <dt>官方課程名稱</dt>
-      <dd class="official-title">{{ c.officialTitle ?? '—' }}</dd>
-      <dt>簡介代碼</dt>
-      <dd class="course-id">{{ c.courseId }}</dd>
-      <dt>科目代碼</dt>
-      <dd class="prod-course-id">{{ c.prodCourseId }}</dd>
-      <dt>友善網址</dt>
-      <dd class="friendly-url">{{ c.friendlyUrl }}</dd>
-      <dt>顯示順序</dt>
-      <dd>{{ c.displayOrder }}</dd>
-      <dt>原廠</dt>
-      <dd class="partner">
-        <a [routerLink]="['/partners', c.partnerPkid]" class="link">{{ c.partner?.name }}</a>
-      </dd>
-      <dt>課程群組</dt>
-      <dd class="course-group">
-        @if (c.courseGroup) {
-          <a [routerLink]="['/course-groups', c.courseGroupPkid]" class="link">{{
-            c.courseGroup.description
-          }}</a>
-        } @else {
-          —
-        }
-      </dd>
-    </dl>
+    <div class="basic-info">
+      <dl class="view-grid">
+        <dt>主代碼</dt>
+        <dd>{{ c.pkid }}</dd>
+        <dt>課程名稱</dt>
+        <dd class="title-value">{{ c.title }}</dd>
+        <dt>官方課程名稱</dt>
+        <dd class="official-title">{{ c.officialTitle ?? '—' }}</dd>
+        <dt>簡介代碼</dt>
+        <dd class="course-id">{{ c.courseId }}</dd>
+        <dt>科目代碼</dt>
+        <dd class="prod-course-id">{{ c.prodCourseId }}</dd>
+        <dt>友善網址</dt>
+        <dd class="friendly-url">{{ c.friendlyUrl }}</dd>
+        <dt>顯示順序</dt>
+        <dd>{{ c.displayOrder }}</dd>
+        <dt>原廠</dt>
+        <dd class="partner">
+          <a [routerLink]="['/partners', c.partnerPkid]" class="link">{{ c.partner?.name }}</a>
+        </dd>
+        <dt>課程群組</dt>
+        <dd class="course-group">
+          @if (c.courseGroup) {
+            <a [routerLink]="['/course-groups', c.courseGroupPkid]" class="link">{{
+              c.courseGroup.description
+            }}</a>
+          } @else {
+            —
+          }
+        </dd>
+      </dl>
+      <app-course-qr-code [pkid]="c.pkid" [courseId]="c.courseId" />
+    </div>
   </section>
 
   <section class="panel">

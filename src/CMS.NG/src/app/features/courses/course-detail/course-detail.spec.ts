@@ -83,6 +83,19 @@ describe('CourseDetail', () => {
     expect(el.querySelector('.content-outline')?.textContent).toContain('第一章\n第二章');
   });
 
+  it('shows the QR code for the course inside the 基本資料 panel', async () => {
+    await setup('2');
+    service.getById.and.returnValue(of(CCNA));
+    const el: HTMLElement = create().nativeElement;
+
+    const panel = el.querySelector('app-course-qr-code')?.closest('section');
+    expect(panel?.querySelector('h2')?.textContent).toBe('基本資料');
+    expect(panel?.querySelector('.qr-url')?.getAttribute('href')).toBe(
+      'https://www.uuu.com.tw/Course/Show/2/CCNA',
+    );
+    expect(panel?.querySelector('canvas')?.getAttribute('aria-label')).toBe('QR Code：CCNA');
+  });
+
   it('shows not-found on 404 without an error toast', async () => {
     await setup('99');
     service.getById.and.returnValue(
