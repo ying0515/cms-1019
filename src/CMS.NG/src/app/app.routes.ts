@@ -162,5 +162,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/courses/course-form/course-form').then((m) => m.CourseForm),
   },
+  {
+    path: 'featured-promo-items',
+    title: '上稿作業 FeaturedPromoItem',
+    loadComponent: () =>
+      import('./features/featured-promo-items/featured-promo-item-list/featured-promo-item-list').then(
+        (m) => m.FeaturedPromoItemList,
+      ),
+  },
   { path: '**', redirectTo: 'app-roles' },
 ];

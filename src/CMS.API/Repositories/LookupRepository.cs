@@ -58,4 +58,27 @@ public class LookupRepository(IDbConnectionFactory db) : ILookupRepository
         return await conn.QueryAsync<JobCategoryLookup>(
             "SELECT pkid, Description FROM JobCategory ORDER BY pkid ASC");
     }
+
+    public async Task<IEnumerable<TrainingCenterLookup>> GetTrainingCentersAsync()
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QueryAsync<TrainingCenterLookup>(
+            "SELECT pkid, Name FROM TrainingCenter ORDER BY DisplayOrder ASC, pkid ASC");
+    }
+
+    public async Task<IEnumerable<PromotionLookup>> GetPromotionsAsync(string? keyword, int take)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        var k = string.IsNullOrEmpty(keyword) ? null : EscapeLike(keyword);
+        return await conn.QueryAsync<PromotionLookup>("""
+            SELECT TOP (@take) pkid, PromoCode, Topic, Description
+            FROM Promotion2
+            WHERE @k IS NULL OR PromoCode LIKE '%' + @k + '%' ESCAPE '\'
+            ORDER BY CASE WHEN PromoCode LIKE @k + '%' ESCAPE '\' THEN 0 ELSE 1 END, pkid DESC
+            """, new { k, take });
+    }
+
+    // PromoCodes often contain "_", which is a LIKE wildcard
+    private static string EscapeLike(string s)
+        => s.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_").Replace("[", @"\[");
 }

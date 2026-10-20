@@ -102,4 +102,32 @@ describe('LookupService', () => {
 
     expect(result).toEqual(roles);
   });
+
+  it('getTrainingCenters() GETs /api/lookups/training-centers', () => {
+    const centers = [{ pkid: 1, name: '台北' }];
+    let result: unknown;
+    service.getTrainingCenters().subscribe((r) => (result = r));
+
+    const req = http.expectOne(`${environment.apiUrl}/api/lookups/training-centers`);
+    expect(req.request.method).toBe('GET');
+    req.flush(centers);
+
+    expect(result).toEqual(centers);
+  });
+
+  it('getPromotions() GETs /api/lookups/promotions with keyword and take', () => {
+    const promos = [{ pkid: 3404, promoCode: '251211_GoogleAI', topic: 't', description: 'd' }];
+    let result: unknown;
+    service.getPromotions('2512_G').subscribe((r) => (result = r));
+
+    const req = http.expectOne(
+      (r) => r.url === `${environment.apiUrl}/api/lookups/promotions`,
+    );
+    expect(req.request.method).toBe('GET');
+    expect(req.request.params.get('keyword')).toBe('2512_G');
+    expect(req.request.params.get('take')).toBe('20');
+    req.flush(promos);
+
+    expect(result).toEqual(promos);
+  });
 });

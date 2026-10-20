@@ -27,6 +27,14 @@ export class App {
 
   protected readonly navGroups: NavGroup[] = [
     {
+      key: 'home',
+      label: '首頁 Home',
+      icon: 'pi pi-home',
+      items: [
+        { label: '上稿作業 FeaturedPromoItem', icon: 'pi pi-megaphone', route: '/featured-promo-items' },
+      ],
+    },
+    {
       key: 'admin',
       label: '系統管理 Admin',
       icon: 'pi pi-shield',
@@ -48,7 +56,11 @@ export class App {
     },
   ];
 
-  protected readonly expanded = signal<Record<string, boolean>>({ admin: true, course: true });
+  protected readonly expanded = signal<Record<string, boolean>>({
+    home: true,
+    admin: true,
+    course: true,
+  });
 
   toggleGroup(key: string): void {
     this.expanded.update((s) => ({ ...s, [key]: !s[key] }));

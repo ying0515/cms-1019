@@ -35,4 +35,14 @@ public class LookupsController(ILookupRepository repository) : ControllerBase
     [HttpGet("job-categories")]
     public async Task<ActionResult<IEnumerable<JobCategoryLookup>>> GetJobCategories()
         => Ok(await repository.GetJobCategoriesAsync());
+
+    [HttpGet("training-centers")]
+    public async Task<ActionResult<IEnumerable<TrainingCenterLookup>>> GetTrainingCenters()
+        => Ok(await repository.GetTrainingCentersAsync());
+
+    /// <summary>PromoCode autocomplete: up to <paramref name="take"/> matches (1–100).</summary>
+    [HttpGet("promotions")]
+    public async Task<ActionResult<IEnumerable<PromotionLookup>>> GetPromotions(
+        [FromQuery] string? keyword, [FromQuery] int take = 20)
+        => Ok(await repository.GetPromotionsAsync(keyword?.Trim(), Math.Clamp(take, 1, 100)));
 }

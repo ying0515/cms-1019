@@ -41,3 +41,16 @@ export interface LookupOption<T = number | string> {
   pkid: T;
   label: string;
 }
+
+export interface TrainingCenterLookup {
+  pkid: number;
+  name: string;
+}
+
+/** Promotion2 slim row; topic / description prefill a FeaturedPromoItem. */
+export interface PromotionLookup {
+  pkid: number;
+  promoCode: string;
+  topic: string;
+  description: string;
+}

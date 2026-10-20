@@ -17,13 +17,24 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('renders 上稿作業 FeaturedPromoItem under 首頁 Home as the first group', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelector('.nav-group')?.textContent).toContain('首頁 Home');
+    const link = el.querySelectorAll('.nav-items')[0].querySelector('a');
+    expect(link?.textContent).toContain('上稿作業 FeaturedPromoItem');
+    expect(link?.getAttribute('href')).toBe('/featured-promo-items');
+  });
+
   it('renders 使用者 AppUser then 角色 AppRole under 系統管理 Admin', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
 
-    expect(el.querySelector('.nav-group')?.textContent).toContain('系統管理 Admin');
-    const links = el.querySelectorAll('.nav-items')[0].querySelectorAll('a');
+    expect(el.querySelectorAll('.nav-group')[1].textContent).toContain('系統管理 Admin');
+    const links = el.querySelectorAll('.nav-items')[1].querySelectorAll('a');
     expect(links[0].textContent).toContain('使用者 AppUser');
     expect(links[0].getAttribute('href')).toBe('/app-users');
     expect(links[1].textContent).toContain('角色 AppRole');
@@ -36,7 +47,7 @@ describe('App', () => {
     const el: HTMLElement = fixture.nativeElement;
 
     const groups = Array.from(el.querySelectorAll('.nav-group')).map((g) => g.textContent);
-    expect(groups[1]).toContain('課程管理 Course');
+    expect(groups[2]).toContain('課程管理 Course');
     const link = el.querySelector('.nav-items a[href="/partners"]');
     expect(link?.textContent).toContain('合作廠商 Partner');
     const groupLink = el.querySelector('.nav-items a[href="/course-groups"]');
@@ -48,7 +59,7 @@ describe('App', () => {
     fixture.detectChanges();
     const el: HTMLElement = fixture.nativeElement;
 
-    const courseItems = el.querySelectorAll('.nav-items')[1];
+    const courseItems = el.querySelectorAll('.nav-items')[2];
     const first = courseItems.querySelector('a');
     expect(first?.getAttribute('href')).toBe('/courses');
     expect(first?.textContent).toContain('課程 Course');
@@ -64,6 +75,6 @@ describe('App', () => {
     fixture.detectChanges();
 
     expect(el.querySelectorAll('.nav-items').length).toBe(before - 1);
-    expect(el.querySelector('.nav-items a[href="/app-roles"]')).toBeNull();
+    expect(el.querySelector('.nav-items a[href="/featured-promo-items"]')).toBeNull();
   });
 });

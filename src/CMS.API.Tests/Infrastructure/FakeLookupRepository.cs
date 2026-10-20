@@ -5,9 +5,26 @@ namespace CMS.API.Tests.Infrastructure;
 
 /// <summary>ILookupRepository backed by the other fakes, so lookup endpoints reflect their state.</summary>
 public class FakeLookupRepository(FakeAppRoleRepository appRoles, FakePublishStatusRepository publishStatuses,
-    FakePartnerRepository partners, FakeCourseGroupRepository courseGroups, FakeCourseRepository courses)
+    FakePartnerRepository partners, FakeCourseGroupRepository courseGroups, FakeCourseRepository courses,
+    FakeFeaturedPromoItemRepository featuredPromoItems)
     : ILookupRepository
 {
+    public Task<IEnumerable<TrainingCenterLookup>> GetTrainingCentersAsync()
+        => Task.FromResult<IEnumerable<TrainingCenterLookup>>(featuredPromoItems.TrainingCenters
+            .OrderBy(t => t.DisplayOrder)
+            .ThenBy(t => t.Pkid)
+            .Select(t => new TrainingCenterLookup { Pkid = t.Pkid, Name = t.Name })
+            .ToList());
+
+    // Mirrors LIKE '%k%' (literal, case-insensitive), prefix matches first, then newest pkid
+    public Task<IEnumerable<PromotionLookup>> GetPromotionsAsync(string? keyword, int take)
+        => Task.FromResult<IEnumerable<PromotionLookup>>(featuredPromoItems.Promotions
+            .Where(p => string.IsNullOrEmpty(keyword) || p.PromoCode.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(p => !string.IsNullOrEmpty(keyword) && p.PromoCode.StartsWith(keyword, StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .ThenByDescending(p => p.Pkid)
+            .Take(take)
+            .ToList());
+
     public Task<IEnumerable<AppUserLookup>> GetAppUsersAsync()
         => Task.FromResult<IEnumerable<AppUserLookup>>(appRoles.Users.Values.OrderBy(u => u.UserName).ToList());
 

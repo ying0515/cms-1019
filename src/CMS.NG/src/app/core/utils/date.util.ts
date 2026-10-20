@@ -26,3 +26,13 @@ export function addYears(d: Date, years: number): Date {
   if (result.getMonth() !== d.getMonth()) result.setDate(0);
   return result;
 }
+
+/** Adds whole days (negative to subtract). */
+export function addDays(d: Date, days: number): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + days);
+}
+
+/** Monday (local midnight) of the week containing `d`. */
+export function startOfWeek(d: Date): Date {
+  return addDays(d, -((d.getDay() + 6) % 7));
+}

@@ -16,6 +16,7 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     public FakeCourseRepository Courses { get; }
     public FakeAppUserRepository AppUsers { get; }
     public FakeSysConfigRepository SysConfig { get; } = new();
+    public FakeFeaturedPromoItemRepository FeaturedPromoItems { get; } = new();
 
     public CmsApiFactory()
     {
@@ -42,9 +43,11 @@ public class CmsApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<ICourseGroupRepository>(CourseGroups);
             services.RemoveAll<ICourseRepository>();
             services.AddSingleton<ICourseRepository>(Courses);
+            services.RemoveAll<IFeaturedPromoItemRepository>();
+            services.AddSingleton<IFeaturedPromoItemRepository>(FeaturedPromoItems);
             services.RemoveAll<ILookupRepository>();
-            services.AddSingleton<ILookupRepository>(
-                new FakeLookupRepository(AppRoles, PublishStatuses, Partners, CourseGroups, Courses));
+            services.AddSingleton<ILookupRepository>(new FakeLookupRepository(
+                AppRoles, PublishStatuses, Partners, CourseGroups, Courses, FeaturedPromoItems));
         });
     }
 }

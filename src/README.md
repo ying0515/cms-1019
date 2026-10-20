@@ -135,3 +135,22 @@ The list keeps its filters, sort and page in sessionStorage (`course-group-list-
 Frontend routes: `/courses` (list), `/courses/new`, `/courses/:id` (view), `/courses/:id/edit`.
 The list keeps its filters, sort and page in sessionStorage (`course-list-filters`, `course-list-sort`, `course-list-page`);
 `?partnerPkid=` / `?courseGroupPkid=` / `?publishStatusPkid=` (查看課程 buttons on those pages) replace the saved filters.
+
+### FeaturedPromoItem (`首頁 Home › 上稿作業 FeaturedPromoItem`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET    | `/api/featured-promo-items` | All items with `trainingCenter` / `promotion` (PromoCode) nav objects, ordered by ScheduleOn, center, Slot |
+| POST   | `/api/featured-promo-items/query` | Filters: `trainingCenterPkid`, `weekOf` (any date → that week's Monday–Sunday) |
+| GET    | `/api/featured-promo-items/{pkid}` | Single item |
+| POST   | `/api/featured-promo-items` | Create; Slot 1–3; `409` if the date / center / slot is taken; `400` if the TrainingCenter / Promotion2 does not exist |
+| PUT    | `/api/featured-promo-items` | Update (pkid in body); same `409` / `400` |
+| DELETE | `/api/featured-promo-items/{pkid}` | Delete |
+| POST   | `/api/featured-promo-items/{pkid}/move-down` | "+": Slot n → n+1, swapping with the item there; `400` from slot 3 |
+| POST   | `/api/featured-promo-items/{pkid}/move-up` | "−": Slot n → n−1, swapping; `400` from slot 1 |
+| GET    | `/api/lookups/training-centers` | `{ pkid, name }`, ordered by DisplayOrder |
+| GET    | `/api/lookups/promotions?keyword=&take=20` | PromoCode autocomplete `{ pkid, promoCode, topic, description }`; literal contains-match, prefix matches first, then newest |
+
+Frontend route: `/featured-promo-items` — one weekly page: a tab per TrainingCenter, a Monday–Sunday week navigator, and slots 1–3 per day.
+編輯 / 貼上 open an inline form in the row (picking a PromoCode copies its Topic / Description); 複製 keeps a row's values for 貼上 on an empty slot.
+The tab and week are kept in sessionStorage (`featured-promo-item-list-filters`).
