@@ -54,12 +54,19 @@ export class App {
         { label: '課程群組 CourseGroup', icon: 'pi pi-tags', route: '/course-groups' },
       ],
     },
+    {
+      key: 'agent',
+      label: '代理用量 Agent',
+      icon: 'pi pi-chart-bar',
+      items: [{ label: '代理 Token 用量', icon: 'pi pi-chart-line', route: '/agent-token-report' }],
+    },
   ];
 
   protected readonly expanded = signal<Record<string, boolean>>({
     home: true,
     admin: true,
     course: true,
+    agent: true,
   });
 
   toggleGroup(key: string): void {

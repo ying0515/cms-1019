@@ -1,0 +1,120 @@
+<div class="page-header">
+  <h1 class="title">
+    代理 Token 用量 <span class="subtitle">Claude Code 依使用者、日期、專案與模型彙總</span>
+  </h1>
+  <div class="actions">
+    <p-button
+      label="搜尋條件"
+      icon="pi pi-filter"
+      severity="secondary"
+      [badge]="activeFilterCount() ? '' + activeFilterCount() : undefined"
+      badgeSeverity="success"
+      (onClick)="drawerVisible = true"
+    />
+  </div>
+</div>
+
+<div class="table-card">
+  <p-table
+    [value]="items()"
+    [loading]="loading()"
+    [paginator]="true"
+    paginatorPosition="top"
+    [rows]="rows"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first}–{last} 筆，共 {totalRecords} 筆"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onSort)="onSort($event)"
+    (onPage)="onPage($event)"
+    [tableStyle]="{ 'min-width': '70rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="usageDate" style="width: 8rem">
+          日期 <p-sortIcon field="usageDate" />
+        </th>
+        <th pSortableColumn="userName">使用者 <p-sortIcon field="userName" /></th>
+        <th pSortableColumn="project">專案 <p-sortIcon field="project" /></th>
+        <th pSortableColumn="model">模型 <p-sortIcon field="model" /></th>
+        <th pSortableColumn="totalInputTokens" class="text-right">
+          輸入 Token 合計 <p-sortIcon field="totalInputTokens" />
+        </th>
+        <th pSortableColumn="outputTokens" class="text-right">
+          輸出 Token <p-sortIcon field="outputTokens" />
+        </th>
+        <th pSortableColumn="cacheWriteTokens" class="text-right">
+          快取寫入 Token <p-sortIcon field="cacheWriteTokens" />
+        </th>
+        <th pSortableColumn="cacheReadTokens" class="text-right">
+          快取讀取 Token <p-sortIcon field="cacheReadTokens" />
+        </th>
+        <th pSortableColumn="sessionCount" class="text-right" style="width: 8rem">
+          工作階段數 <p-sortIcon field="sessionCount" />
+        </th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-item>
+      <tr>
+        <td>{{ item.usageDate }}</td>
+        <td [title]="item.userId">{{ item.userName }}</td>
+        <td>{{ item.project }}</td>
+        <td>{{ item.model }}</td>
+        <td class="text-right">{{ item.totalInputTokens | number }}</td>
+        <td class="text-right">{{ item.outputTokens | number }}</td>
+        <td class="text-right">{{ item.cacheWriteTokens | number }}</td>
+        <td class="text-right">{{ item.cacheReadTokens | number }}</td>
+        <td class="text-right">{{ item.sessionCount | number }}</td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="9" class="text-center text-muted empty">查無資料</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-drawer [(visible)]="drawerVisible" position="right" header="搜尋條件" styleClass="filter-drawer">
+  <form (ngSubmit)="search()">
+    <div class="field">
+      <label for="f-dateFrom">日期</label>
+      <div class="range">
+        <p-datepicker
+          inputId="f-dateFrom"
+          name="usageDateFrom"
+          [(ngModel)]="filters.usageDateFrom"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="起"
+          appendTo="body"
+        />
+        <span>～</span>
+        <p-datepicker
+          inputId="f-dateTo"
+          name="usageDateTo"
+          [(ngModel)]="filters.usageDateTo"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="迄"
+          appendTo="body"
+        />
+      </div>
+    </div>
+
+    <div class="drawer-actions">
+      <p-button
+        type="button"
+        label="清除"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="clearFilters()"
+      />
+      <p-button type="submit" label="查詢" icon="pi pi-search" />
+    </div>
+  </form>
+</p-drawer>

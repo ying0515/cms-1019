@@ -2,6 +2,8 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-20 — #7: agent token usage tracer bullet: `POST /api/agent-token-usage` (X-Api-Key authorization filter, 400 rules, MERGE upsert, Cost NULL, Taipei "today" from an injected `TimeProvider`), `POST /api/agent-token-usage/report`, read-only page `/agent-token-report` under new sidebar group 「代理用量」; MERGE pattern added to `docs/conventions.md`; dev key in `appsettings.Development.json`.
+
 - 2026-10-20 — #1: applied `database/agent.sql` (ModelPrice, AgentTokenUsage) to local `CMS`; added re-runnable `database/agent-seed.sql` with Opus/Sonnet/Haiku 5.5 prices (USD/1M; cache write = 1h rate; Haiku cache read assumed 0.1x input).
 - 2026-10-20 — Agent token usage PRD published as GitHub issue #6 (parent of #1–#5); cost calculation moved from SQL to a shared C# calculator so it can be tested at the HTTP seam (specs and issues #2/#3 updated).
 - 2026-10-20 — Designed agent token usage report: specs `spec/agent/AgentTokenUsage.md`, `spec/agent/ModelPrice.md`; schema `database/agent.sql` (ModelPrice, AgentTokenUsage; not yet applied); build tracked in GitHub issues #1–#5.

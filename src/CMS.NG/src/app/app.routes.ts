@@ -170,5 +170,13 @@ export const routes: Routes = [
         (m) => m.FeaturedPromoItemList,
       ),
   },
+  {
+    path: 'agent-token-report',
+    title: '代理 Token 用量',
+    loadComponent: () =>
+      import('./features/agent-token-usage/agent-token-report/agent-token-report').then(
+        (m) => m.AgentTokenReport,
+      ),
+  },
   { path: '**', redirectTo: 'app-roles' },
 ];

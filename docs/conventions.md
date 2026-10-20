@@ -9,6 +9,9 @@ Project rules for API and Angular code. Scaffolding patterns per table: `spec/co
 - `RTRIM()` nchar columns; `date`/`time` → `DateOnly`/`TimeOnly`. n-n: delete-then-reinsert in one transaction.
 - FK errors (SQL 547): delete blocked → `ReferenceConflictException` → 409; bad FK on write → `InvalidReferenceException` → 400.
 - Backend-only columns (e.g. `AppUser.PasswordHash`): never in `{T}Request`, response models or SELECTs.
+- Upsert on a natural key (idempotent resubmits): one `MERGE {T} WITH (HOLDLOCK) AS t USING (SELECT @Key1 AS Key1, ...) AS s ON t.Key1 = s.Key1 AND ... WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT ...;` per row, all rows in one transaction (`conn.ExecuteAsync(sql, rows, tx)`). `HOLDLOCK` stops two concurrent callers from both inserting. Set absolute values (never `+=`) and leave rows missing from the payload untouched. Reject duplicate keys within one payload (400) before calling the repository. Example: `AgentTokenUsageRepository.UpsertAsync`.
+- Per-action API key: an `IAuthorizationFilter` applied with a `TypeFilterAttribute` (`[RequireAgentApiKey]`), so 401 comes before `[ApiController]` model-validation 400; compare with `CryptographicOperations.FixedTimeEquals`. Tests set the key with `builder.UseSetting` in `CmsApiFactory`.
+- "Now" comes from an injected `TimeProvider` (registered as `TimeProvider.System`); tests swap in `FixedTimeProvider` (`CmsApiFactory.Clock`).
 
 ## Frontend (`src/CMS.NG`)
 

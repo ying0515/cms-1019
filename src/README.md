@@ -154,3 +154,13 @@ The list keeps its filters, sort and page in sessionStorage (`course-list-filter
 Frontend route: `/featured-promo-items` — one weekly page: a tab per TrainingCenter, a Monday–Sunday week navigator, and slots 1–3 per day.
 編輯 / 貼上 open an inline form in the row (picking a PromoCode copies its Topic / Description); 複製 keeps a row's values for 貼上 on an empty slot.
 The tab and week are kept in sessionStorage (`featured-promo-item-list-filters`).
+
+### AgentTokenUsage (`代理用量 Agent › 代理 Token 用量`)
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST   | `/api/agent-token-usage` | Ingest a session's absolute totals (`sessionId`, `userId`, `project`, `items[]` of `usageDate`, `model`, four token counts). Requires header `X-Api-Key` = `AgentTokenReport:ApiKey` (`401` if missing/wrong, checked before validation). `400` (nothing written) for an empty/too-long field, unknown or inactive user, no items, a negative count, a date after today in Taipei (UTC+8), or a repeated date + model. `204` on success; MERGE upsert on (SessionId, UsageDate, Model); rows not in the payload are untouched. Cost is stored NULL for now |
+| POST   | `/api/agent-token-usage/report` | Filters: `usageDateFrom/To` (inclusive). Rows added up by user (with `userName`), date, project, model: token sums, `cost`, `unpricedCount`, `sessionCount`; newest date first |
+
+Dev API key: `dev-agent-token-key` in `CMS.API/appsettings.Development.json`.
+Frontend route: `/agent-token-report` (read-only). The date range defaults to the current month; filters, sort and page are kept in sessionStorage (`agent-token-report-filters`, `agent-token-report-sort`, `agent-token-report-page`).

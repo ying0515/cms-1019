@@ -65,6 +65,17 @@ describe('App', () => {
     expect(first?.textContent).toContain('課程 Course');
   });
 
+  it('renders 代理用量 Agent > 代理 Token 用量 as the last group', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    const groups = el.querySelectorAll('.nav-group');
+    expect(groups[groups.length - 1].textContent).toContain('代理用量 Agent');
+    const link = el.querySelector('.nav-items a[href="/agent-token-report"]');
+    expect(link?.textContent).toContain('代理 Token 用量');
+  });
+
   it('collapses a nav group when toggled', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
