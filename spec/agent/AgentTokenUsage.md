@@ -205,7 +205,8 @@ Input: the main transcript `<session>.jsonl` plus every `<session>/subagents/age
    - 2xx → delete the file
    - 400 → move to `rejected/`, log the response body
    - 401, 5xx, network error → keep for the next run
-5. If every send succeeded, set `state.lastSuccessAt` to the time the run **started**.
+5. If every send succeeded, set `state.lastSuccessAt` to the time the run **started**. A 400 counts as handled here (the payload is final and sits in `rejected/`); only a kept file (401, 5xx, network error) holds the state back, otherwise catch-up would rebuild and resend a rejected session on every run.
+6. Log one `run done: sent N, rejected N, kept N` line.
 
 ### Installer (`node tools/token-report/install.mjs`)
 
@@ -219,7 +220,7 @@ Input: the main transcript `<session>.jsonl` plus every `<session>/subagents/age
 ## Tests
 
 - **API** (`CMS.API.Tests`): every 400 rule, 401 (missing / wrong key), 204 + idempotent re-submit, rows absent from the payload untouched, cost with effective dates (before first price → NULL; price boundary day), Taipei "today" with a pinned clock.
-- **Node** (`node --test "tools/token-report/test/*.test.mjs"`): fixtures for per-block duplicate lines, `<synthetic>`, a session crossing Taipei midnight, subagent files, mixed models, a malformed line, project-name parsing.
+- **Node** (`node --test "tools/token-report/test/*.test.mjs"`): fixtures for per-block duplicate lines, `<synthetic>`, a session crossing Taipei midnight, subagent files, mixed models, a malformed line, project-name parsing; outbox (API down then up, 400 → `rejected/` without blocking others, 401/5xx kept, newer file replaces older), state (run start time; partial failure doesn't advance it), catch-up (session with no hook run, subagent-only change, >7 days and pre-last-success ignored, cwd from the transcript), log cap.
 - **Angular**: report filters default to the current month, query built from the filters, totals row sums filtered rows, 「未定價」 rendering.
 
 ---
