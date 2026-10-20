@@ -86,6 +86,32 @@
         <td class="text-right">{{ item.sessionCount | number }}</td>
       </tr>
     </ng-template>
+    <ng-template #footer>
+      @if (items().length) {
+        <tr class="totals-row">
+          <td colspan="4">合計</td>
+          <td class="text-right">{{ totals().totalInputTokens | number }}</td>
+          <td class="text-right">{{ totals().outputTokens | number }}</td>
+          <td class="text-right">{{ totals().cacheWriteTokens | number }}</td>
+          <td class="text-right">{{ totals().cacheReadTokens | number }}</td>
+          <td class="text-right cost">
+            @if (!totalsPricing().anyPriced) {
+              <span class="text-muted unpriced">未定價</span>
+            } @else {
+              @if (totalsPricing().anyUnpriced) {
+                <i
+                  class="pi pi-exclamation-triangle partial-warning"
+                  pTooltip="部分用量未定價"
+                  aria-label="部分用量未定價"
+                ></i>
+              }
+              {{ totals().cost | number: '1.4-4' }}
+            }
+          </td>
+          <td class="text-right">{{ totals().sessionCount | number }}</td>
+        </tr>
+      }
+    </ng-template>
     <ng-template #emptymessage>
       <tr>
         <td colspan="10" class="text-center text-muted empty">查無資料</td>
@@ -121,6 +147,54 @@
           appendTo="body"
         />
       </div>
+    </div>
+
+    <div class="field">
+      <label for="f-user">使用者</label>
+      <p-select
+        inputId="f-user"
+        name="userId"
+        [(ngModel)]="filters.userId"
+        [options]="userOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        [filter]="userOptions.length >= 10"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-project">專案</label>
+      <p-select
+        inputId="f-project"
+        name="project"
+        [(ngModel)]="filters.project"
+        [options]="projectOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        [filter]="projectOptions.length >= 10"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-model">模型</label>
+      <p-select
+        inputId="f-model"
+        name="model"
+        [(ngModel)]="filters.model"
+        [options]="modelOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        [filter]="true"
+        placeholder="全部"
+        appendTo="body"
+      />
     </div>
 
     <div class="drawer-actions">

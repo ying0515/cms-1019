@@ -6,9 +6,17 @@ namespace CMS.API.Tests.Infrastructure;
 /// <summary>ILookupRepository backed by the other fakes, so lookup endpoints reflect their state.</summary>
 public class FakeLookupRepository(FakeAppRoleRepository appRoles, FakePublishStatusRepository publishStatuses,
     FakePartnerRepository partners, FakeCourseGroupRepository courseGroups, FakeCourseRepository courses,
-    FakeFeaturedPromoItemRepository featuredPromoItems)
+    FakeFeaturedPromoItemRepository featuredPromoItems, FakeAgentTokenUsageRepository agentTokenUsage)
     : ILookupRepository
 {
+    public Task<IEnumerable<string>> GetAgentTokenProjectsAsync()
+        => Task.FromResult<IEnumerable<string>>(agentTokenUsage.Rows
+            .Select(r => r.Project).Distinct().Order(StringComparer.Ordinal).ToList());
+
+    public Task<IEnumerable<string>> GetAgentTokenModelsAsync()
+        => Task.FromResult<IEnumerable<string>>(agentTokenUsage.Rows
+            .Select(r => r.Model).Distinct().Order(StringComparer.Ordinal).ToList());
+
     public Task<IEnumerable<TrainingCenterLookup>> GetTrainingCentersAsync()
         => Task.FromResult<IEnumerable<TrainingCenterLookup>>(featuredPromoItems.TrainingCenters
             .OrderBy(t => t.DisplayOrder)

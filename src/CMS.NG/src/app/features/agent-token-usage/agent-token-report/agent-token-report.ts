@@ -1,18 +1,21 @@
 import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MessageService, SortEvent } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DrawerModule } from 'primeng/drawer';
+import { SelectModule } from 'primeng/select';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
+import { Observable, catchError, of } from 'rxjs';
 
 import {
   AgentTokenUsageReportQuery,
   AgentTokenUsageReportRow,
 } from '@core/models/agent-token-usage.model';
 import { AgentTokenUsageService } from '@core/services/agent-token-usage.service';
+import { LookupService } from '@core/services/lookup.service';
 import { toIsoDate } from '@core/utils/date.util';
 import { httpErrorMessage } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
@@ -25,6 +28,9 @@ export const PAGE_KEY = 'agent-token-report-page';
 export interface AgentTokenReportFilters {
   usageDateFrom: string | null;
   usageDateTo: string | null;
+  userId: string | null;
+  project: string | null;
+  model: string | null;
 }
 
 /** A report row plus tokens in = input + cache write + cache read (a field, so it sorts). */
@@ -32,13 +38,42 @@ export interface AgentTokenReportViewRow extends AgentTokenUsageReportRow {
   totalInputTokens: number;
 }
 
-/** First day of the current month → today (local dates). */
-function currentMonth(): AgentTokenReportFilters {
+/** String-valued p-select option. */
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+/** Numeric columns the 合計 row adds up; a new numeric column only needs adding here. */
+export const TOTAL_FIELDS = [
+  'totalInputTokens',
+  'outputTokens',
+  'cacheWriteTokens',
+  'cacheReadTokens',
+  'cost',
+  'sessionCount',
+] as const;
+export type TotalField = (typeof TOTAL_FIELDS)[number];
+
+/** First day of the current month → today (local dates); everyone, every project and model. */
+function defaultFilters(): AgentTokenReportFilters {
   const today = new Date();
   return {
     usageDateFrom: toIsoDate(new Date(today.getFullYear(), today.getMonth(), 1)),
     usageDateTo: toIsoDate(today),
+    userId: null,
+    project: null,
+    model: null,
   };
+}
+
+/** A failed lookup leaves its dropdown empty instead of blocking the report. */
+function orEmpty<T>(source: Observable<T[]>): Observable<T[]> {
+  return source.pipe(catchError(() => of([] as T[])));
+}
+
+function toOptions(values: string[]): SelectOption[] {
+  return values.map((v) => ({ value: v, label: v }));
 }
 
 @Component({
@@ -49,6 +84,7 @@ function currentMonth(): AgentTokenReportFilters {
     ButtonModule,
     DatePickerModule,
     DrawerModule,
+    SelectModule,
     TableModule,
     TooltipModule,
   ],
@@ -57,13 +93,18 @@ function currentMonth(): AgentTokenReportFilters {
 })
 export class AgentTokenReport implements OnInit {
   private readonly service = inject(AgentTokenUsageService);
+  private readonly lookups = inject(LookupService);
   private readonly messages = inject(MessageService);
 
   readonly items = signal<AgentTokenReportViewRow[]>([]);
   readonly loading = signal(false);
   drawerVisible = false;
 
-  filters: AgentTokenReportFilters = currentMonth();
+  filters: AgentTokenReportFilters = defaultFilters();
+
+  userOptions: SelectOption[] = [];
+  projectOptions: SelectOption[] = [];
+  modelOptions: SelectOption[] = [];
 
   sortField = 'usageDate';
   sortOrder = -1;
@@ -73,6 +114,21 @@ export class AgentTokenReport implements OnInit {
 
   /** Number of filters applied by the last search (not the unsubmitted drawer edits). */
   readonly activeFilterCount = signal(0);
+
+  /** 合計 over every filtered row (all pages, not just the visible one). */
+  readonly totals = computed(() => {
+    const sums = Object.fromEntries(TOTAL_FIELDS.map((f) => [f, 0])) as Record<TotalField, number>;
+    for (const row of this.items()) {
+      for (const f of TOTAL_FIELDS) sums[f] += row[f] ?? 0;
+    }
+    return sums;
+  });
+
+  /** Whether the 合計 cost covers any / every usage row (drives 未定價 and the partial warning). */
+  readonly totalsPricing = computed(() => ({
+    anyPriced: this.items().some((r) => r.cost !== null),
+    anyUnpriced: this.items().some((r) => r.unpricedCount > 0),
+  }));
 
   ngOnInit(): void {
     const sort = loadSession<{ sortField: string; sortOrder: number }>(SORT_KEY);
@@ -86,8 +142,23 @@ export class AgentTokenReport implements OnInit {
       this.rows = page.rows;
     }
 
-    const saved = loadSession<AgentTokenReportFilters>(FILTERS_KEY);
-    if (saved) this.filters = { ...currentMonth(), ...saved };
+    // The report doesn't depend on the dropdown options, so it doesn't wait for them
+    orEmpty(this.lookups.getAppUsers()).subscribe(
+      (users) =>
+        (this.userOptions = users.map((u) => ({
+          value: u.userId,
+          label: `${u.userId} ${u.userName}`,
+        }))),
+    );
+    orEmpty(this.lookups.getAgentTokenProjects()).subscribe(
+      (projects) => (this.projectOptions = toOptions(projects)),
+    );
+    orEmpty(this.lookups.getAgentTokenModels()).subscribe(
+      (models) => (this.modelOptions = toOptions(models)),
+    );
+
+    const saved = loadSession<Partial<AgentTokenReportFilters>>(FILTERS_KEY);
+    if (saved) this.filters = { ...defaultFilters(), ...saved };
     this.search(false);
   }
 
@@ -98,9 +169,13 @@ export class AgentTokenReport implements OnInit {
     }
     saveSession(FILTERS_KEY, this.filters);
 
+    const f = this.filters;
     const query: AgentTokenUsageReportQuery = {
-      usageDateFrom: this.filters.usageDateFrom || null,
-      usageDateTo: this.filters.usageDateTo || null,
+      usageDateFrom: f.usageDateFrom || null,
+      usageDateTo: f.usageDateTo || null,
+      userId: f.userId || null,
+      project: f.project || null,
+      model: f.model || null,
     };
     this.activeFilterCount.set(
       Object.values(query).filter((v) => v !== null && v !== undefined && v !== '').length,
@@ -129,9 +204,9 @@ export class AgentTokenReport implements OnInit {
     });
   }
 
-  /** Back to the default range (current month). */
+  /** Back to the default (current month, no user / project / model). */
   clearFilters(): void {
-    this.filters = currentMonth();
+    this.filters = defaultFilters();
     this.search();
   }
 

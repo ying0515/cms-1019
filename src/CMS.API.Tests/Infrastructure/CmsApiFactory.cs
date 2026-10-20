@@ -65,7 +65,7 @@ public class CmsApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<TimeProvider>(Clock);
             services.RemoveAll<ILookupRepository>();
             services.AddSingleton<ILookupRepository>(new FakeLookupRepository(
-                AppRoles, PublishStatuses, Partners, CourseGroups, Courses, FeaturedPromoItems));
+                AppRoles, PublishStatuses, Partners, CourseGroups, Courses, FeaturedPromoItems, AgentTokenUsage));
         });
     }
 }

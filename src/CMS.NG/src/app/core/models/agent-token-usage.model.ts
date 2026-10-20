@@ -16,8 +16,11 @@ export interface AgentTokenUsageReportRow {
   sessionCount: number;
 }
 
-/** Search DTO — POST /api/agent-token-usage/report (dates inclusive, 'yyyy-MM-dd') */
+/** Search DTO — POST /api/agent-token-usage/report (dates inclusive, 'yyyy-MM-dd'; null = all) */
 export interface AgentTokenUsageReportQuery {
   usageDateFrom?: string | null;
   usageDateTo?: string | null;
+  userId?: string | null;
+  project?: string | null;
+  model?: string | null;
 }
