@@ -66,13 +66,61 @@
       </tr>
     </ng-template>
     <ng-template #body let-item>
-      <tr>
-        <td>{{ item.pkid }}</td>
-        <td class="text-center">{{ item.displayOrder }}</td>
-        <td>{{ item.courseId }}</td>
-        <td>{{ item.prodCourseId }}</td>
-        <td>
-          <a [routerLink]="['/courses', item.pkid]" class="link">{{ item.title }}</a>
+      <tr
+        (dblclick)="onCellDblClick($event, item)"
+        (focusout)="onEditorFocusOut($event)"
+        (keydown.escape)="cancelEdit()"
+      >
+        <td class="pkid">{{ item.pkid }}</td>
+        <td
+          class="text-center display-order"
+          data-field="displayOrder"
+          [class.cell-editing]="isEditing(item, 'displayOrder')"
+        >
+          @if (isEditing(item, 'displayOrder')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [useGrouping]="false"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.displayOrder }}
+          }
+        </td>
+        <td
+          class="course-id"
+          data-field="courseId"
+          [class.cell-editing]="isEditing(item, 'courseId')"
+        >
+          @if (isEditing(item, 'courseId')) {
+            <input pInputText [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.courseId }}
+          }
+        </td>
+        <td
+          class="prod-course-id"
+          data-field="prodCourseId"
+          [class.cell-editing]="isEditing(item, 'prodCourseId')"
+        >
+          @if (isEditing(item, 'prodCourseId')) {
+            <input pInputText [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.prodCourseId }}
+          }
+        </td>
+        <!-- No link on editable cells: the first click of a double-click would navigate (use 檢視) -->
+        <td class="title" data-field="title" [class.cell-editing]="isEditing(item, 'title')">
+          @if (isEditing(item, 'title')) {
+            <input pInputText [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.title }}
+          }
         </td>
         <td class="partner">
           <a [routerLink]="['/partners', item.partnerPkid]" class="link">{{
@@ -88,18 +136,112 @@
             <span class="text-muted">—</span>
           }
         </td>
-        <td class="publish-status">
-          <a [routerLink]="['/publish-statuses', item.publishStatusPkid]" class="link">{{
-            item.publishStatus?.description
-          }}</a>
+        <td
+          class="publish-status"
+          data-field="publishStatusPkid"
+          [class.cell-editing]="isEditing(item, 'publishStatusPkid')"
+        >
+          @if (isEditing(item, 'publishStatusPkid')) {
+            <p-select
+              [(ngModel)]="editValue"
+              [options]="publishStatusOptions"
+              optionLabel="label"
+              optionValue="pkid"
+              appendTo="body"
+              (onShow)="onOverlayShow()"
+              (onHide)="onOverlayHide()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.publishStatus?.description }}
+          }
         </td>
-        <td class="nowrap">{{ item.scheduleOn }}</td>
-        <td class="nowrap">{{ item.scheduleOff }}</td>
-        <td class="text-right">{{ item.hour }}</td>
-        <td class="text-right list-price">{{ item.listPrice | number }}</td>
-        <td class="text-right learning-credit">{{ item.learningCredit | number: '1.1-1' }}</td>
-        <td class="text-center">
-          @if (item.canRepeat) {
+        <td
+          class="nowrap schedule-on"
+          data-field="scheduleOn"
+          [class.cell-editing]="isEditing(item, 'scheduleOn')"
+        >
+          @if (isEditing(item, 'scheduleOn')) {
+            <ng-container *ngTemplateOutlet="dateEditor" />
+          } @else {
+            {{ item.scheduleOn }}
+          }
+        </td>
+        <td
+          class="nowrap schedule-off"
+          data-field="scheduleOff"
+          [class.cell-editing]="isEditing(item, 'scheduleOff')"
+        >
+          @if (isEditing(item, 'scheduleOff')) {
+            <ng-container *ngTemplateOutlet="dateEditor" />
+          } @else {
+            {{ item.scheduleOff }}
+          }
+        </td>
+        <td
+          class="text-right hour"
+          data-field="hour"
+          [class.cell-editing]="isEditing(item, 'hour')"
+        >
+          @if (isEditing(item, 'hour')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [useGrouping]="false"
+              [min]="0"
+              [max]="32767"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.hour }}
+          }
+        </td>
+        <td
+          class="text-right list-price"
+          data-field="listPrice"
+          [class.cell-editing]="isEditing(item, 'listPrice')"
+        >
+          @if (isEditing(item, 'listPrice')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [min]="0"
+              [max]="999999999"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.listPrice | number }}
+          }
+        </td>
+        <td
+          class="text-right learning-credit"
+          data-field="learningCredit"
+          [class.cell-editing]="isEditing(item, 'learningCredit')"
+        >
+          @if (isEditing(item, 'learningCredit')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [min]="0"
+              [max]="99999999.9"
+              [minFractionDigits]="1"
+              [maxFractionDigits]="1"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.learningCredit | number: '1.1-1' }}
+          }
+        </td>
+        <td
+          class="text-center can-repeat-cell"
+          data-field="canRepeat"
+          [class.cell-editing]="isEditing(item, 'canRepeat')"
+        >
+          @if (isEditing(item, 'canRepeat')) {
+            <p-checkbox [(ngModel)]="editValue" [binary]="true" ariaLabel="允許重聽" />
+          } @else if (item.canRepeat) {
             <i class="pi pi-check can-repeat" aria-label="是"></i>
           } @else {
             <span class="text-muted" aria-label="否">—</span>
@@ -145,6 +287,25 @@
     </ng-template>
   </p-table>
 </div>
+
+<ng-template #dateEditor>
+  <p-datepicker
+    [(ngModel)]="editValue"
+    dataType="string"
+    dateFormat="yy-mm-dd"
+    appendTo="body"
+    (onShow)="onOverlayShow()"
+    (onClose)="onOverlayHide()"
+    (keydown.enter)="commitEdit()"
+  />
+  <ng-container *ngTemplateOutlet="cellError" />
+</ng-template>
+
+<ng-template #cellError>
+  @if (editError(); as error) {
+    <small class="cell-error" role="alert">{{ error }}</small>
+  }
+</ng-template>
 
 <p-drawer [(visible)]="drawerVisible" position="right" header="搜尋條件" styleClass="filter-drawer">
   <form (ngSubmit)="search()">

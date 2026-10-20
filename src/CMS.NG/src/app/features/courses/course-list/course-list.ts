@@ -1,18 +1,20 @@
-import { DecimalPipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { DecimalPipe, NgTemplateOutlet } from '@angular/common';
+import { Component, ElementRef, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService, SortEvent } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { DatePickerModule } from 'primeng/datepicker';
 import { DrawerModule } from 'primeng/drawer';
+import { InputNumberModule } from 'primeng/inputnumber';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 
-import { Course, CourseQuery } from '@core/models/course.model';
+import { Course, CourseQuery, CourseRequest } from '@core/models/course.model';
 import {
   CourseGroupLookup,
   LookupOption,
@@ -21,6 +23,7 @@ import {
 } from '@core/models/lookup.model';
 import { CourseService } from '@core/services/course.service';
 import { LookupService } from '@core/services/lookup.service';
+import { parseIsoDate, toIsoDate } from '@core/utils/date.util';
 import { httpErrorMessage } from '@core/utils/http-error.util';
 import { loadSession, saveSession } from '@core/utils/session-state.util';
 
@@ -56,15 +59,99 @@ const EMPTY_FILTERS: CourseListFilters = {
 /** Incoming cross-entity query params (from Partner / CourseGroup / PublishStatus pages). */
 const FK_PARAMS = ['partnerPkid', 'courseGroupPkid', 'publishStatusPkid'] as const;
 
+/**
+ * List columns editable in place (double-click). 主代碼, 原廠 and 課程群組 stay read-only.
+ * Dates are 'yyyy-MM-dd' strings (p-datepicker dataType="string").
+ */
+export type EditableField =
+  | 'displayOrder'
+  | 'courseId'
+  | 'prodCourseId'
+  | 'title'
+  | 'publishStatusPkid'
+  | 'scheduleOn'
+  | 'scheduleOff'
+  | 'hour'
+  | 'listPrice'
+  | 'learningCredit'
+  | 'canRepeat';
+
+const TEXT_FIELDS: Partial<Record<EditableField, { label: string; max: number }>> = {
+  courseId: { label: '簡介代碼', max: 50 },
+  prodCourseId: { label: '科目代碼', max: 50 },
+  title: { label: '課程名稱', max: 200 },
+};
+
+/** Non-negative numbers; limits match the DB columns (smallint / decimal(9,0) / decimal(9,1)). */
+const NUMBER_FIELDS: Partial<
+  Record<EditableField, { label: string; max: number; integer: boolean }>
+> = {
+  hour: { label: '時數', max: 32767, integer: true },
+  listPrice: { label: '定價', max: 999999999, integer: true },
+  learningCredit: { label: '點數', max: 99999999.9, integer: false },
+};
+
+/** Validates one inline-edited value against the rest of the row; returns an error message or null. */
+export function validateCourseField(
+  field: EditableField,
+  value: unknown,
+  row: Course,
+): string | null {
+  const text = TEXT_FIELDS[field];
+  if (text) {
+    if (typeof value !== 'string' || !value.trim()) return `請輸入${text.label}`;
+    return value.trim().length > text.max ? `最多 ${text.max} 字` : null;
+  }
+  const num = NUMBER_FIELDS[field];
+  if (num) {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
+      return `請輸入${num.label}（0 以上）`;
+    if (num.integer && !Number.isInteger(value)) return `${num.label}須為整數`;
+    return value > num.max ? `${num.label}不可大於 ${num.max}` : null;
+  }
+  switch (field) {
+    case 'displayOrder':
+      return typeof value === 'number' && Number.isInteger(value) ? null : '請輸入顯示順序';
+    case 'publishStatusPkid':
+      return value == null ? '請選擇上架狀態' : null;
+    case 'scheduleOn':
+    case 'scheduleOff': {
+      const label = field === 'scheduleOn' ? '上架日期' : '下架日期';
+      if (value == null || value === '') return `請選擇${label}`;
+      const d = typeof value === 'string' ? parseIsoDate(value) : null;
+      // Rejects rolled-over dates such as 2026-02-30
+      if (!d || toIsoDate(d) !== value) return `${label}格式不正確`;
+      const on = field === 'scheduleOn' ? value : row.scheduleOn;
+      const off = field === 'scheduleOff' ? value : row.scheduleOff;
+      return on > off ? '上架日期不可晚於下架日期' : null;
+    }
+    default:
+      return null;
+  }
+}
+
+/** Response → write DTO. List rows have empty n-n, so pass a GET-by-pkid result. */
+function toRequest(c: Course): CourseRequest {
+  const { partner, courseGroup, publishStatus, certifications, jobCategories, ...fields } = c;
+  return {
+    ...fields,
+    certificationPkids: certifications.map((x) => x.pkid),
+    jobCategoryPkids: jobCategories.map((x) => x.pkid),
+  };
+}
+
 @Component({
   selector: 'app-course-list',
   imports: [
     DecimalPipe,
     FormsModule,
+    NgTemplateOutlet,
     RouterLink,
     ButtonModule,
+    CheckboxModule,
     DatePickerModule,
     DrawerModule,
+    InputNumberModule,
     InputTextModule,
     SelectModule,
     TableModule,
@@ -80,6 +167,7 @@ export class CourseList implements OnInit {
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   readonly items = signal<Course[]>([]);
   readonly loading = signal(false);
@@ -103,6 +191,13 @@ export class CourseList implements OnInit {
 
   /** Number of filters applied by the last search (not the unsubmitted drawer edits). */
   readonly activeFilterCount = signal(0);
+
+  /** Cell in inline-edit mode, its pending value and validation error. */
+  readonly editing = signal<{ pkid: number; field: EditableField } | null>(null);
+  readonly editError = signal<string | null>(null);
+  editValue: unknown = null;
+  /** A select / datepicker overlay (appended to body) is open, so focus leaving the cell isn't a blur. */
+  private overlayOpen = false;
 
   get partnerOptions(): LookupOption<number>[] {
     return this.partners.map((p) => ({ pkid: p.pkid, label: p.name }));
@@ -256,6 +351,120 @@ export class CourseList implements OnInit {
           detail: httpErrorMessage(err),
         }),
     });
+  }
+
+  // Inline edit
+
+  isEditing(item: Course, field: EditableField): boolean {
+    const e = this.editing();
+    return e?.pkid === item.pkid && e.field === field;
+  }
+
+  /** Double-click on a `td[data-field]` opens its editor; cells without it are read-only. */
+  onCellDblClick(event: MouseEvent, item: Course): void {
+    const cell = (event.target as HTMLElement).closest<HTMLElement>('td[data-field]');
+    if (cell) this.startEdit(item, cell.dataset['field'] as EditableField);
+  }
+
+  startEdit(item: Course, field: EditableField): void {
+    if (this.isEditing(item, field)) return;
+    // An invalid pending edit keeps its cell open
+    if (!this.commitEdit()) return;
+    this.editing.set({ pkid: item.pkid, field });
+    this.editValue = item[field];
+    this.editError.set(null);
+    this.overlayOpen = false;
+    setTimeout(() => this.focusEditor());
+  }
+
+  cancelEdit(): void {
+    this.editing.set(null);
+    this.editError.set(null);
+    this.overlayOpen = false;
+  }
+
+  /** Blur: focus left the editing cell, and not into its overlay. */
+  onEditorFocusOut(event: FocusEvent): void {
+    const cell = this.editingCell();
+    if (!cell || this.overlayOpen || !cell.contains(event.target as Node)) return;
+    if (cell.contains(event.relatedTarget as Node | null)) return;
+    this.commitEdit();
+  }
+
+  onOverlayShow(): void {
+    this.overlayOpen = true;
+  }
+
+  /** Focus may have left the cell while the overlay was open (e.g. a date picked with the mouse). */
+  onOverlayHide(): void {
+    this.overlayOpen = false;
+    setTimeout(() => {
+      const cell = this.editingCell();
+      if (cell && !cell.contains(document.activeElement)) this.commitEdit();
+    });
+  }
+
+  /** Validates and saves the pending edit; returns false (cell stays open) when invalid. */
+  commitEdit(): boolean {
+    const e = this.editing();
+    if (!e) return true;
+    const item = this.items().find((c) => c.pkid === e.pkid);
+    if (!item) {
+      this.cancelEdit();
+      return true;
+    }
+    const value = typeof this.editValue === 'string' ? this.editValue.trim() : this.editValue;
+    const error = validateCourseField(e.field, value, item);
+    if (error) {
+      this.editError.set(error);
+      return false;
+    }
+    this.cancelEdit();
+    if (value !== item[e.field]) this.saveField(item, e.field, value);
+    return true;
+  }
+
+  /** Optimistic update, then PUT the fresh full record (keeps n-n); reverts the cell on failure. */
+  private saveField(item: Course, field: EditableField, value: unknown): void {
+    const previous = item[field];
+    this.patchItem(item.pkid, field, value);
+    this.service
+      .getById(item.pkid)
+      .pipe(switchMap((current) => this.service.update(toRequest({ ...current, [field]: value }))))
+      .subscribe({
+        next: () =>
+          this.messages.add({ severity: 'success', summary: '已更新', detail: item.title }),
+        error: (err) => {
+          this.patchItem(item.pkid, field, previous);
+          this.messages.add({
+            severity: 'error',
+            summary: '更新失敗',
+            detail: httpErrorMessage(err),
+          });
+        },
+      });
+  }
+
+  private patchItem(pkid: number, field: EditableField, value: unknown): void {
+    this.items.update((list) =>
+      list.map((c) => {
+        if (c.pkid !== pkid) return c;
+        const patched: Course = { ...c, [field]: value };
+        if (field === 'publishStatusPkid')
+          patched.publishStatus = this.publishStatuses.find((s) => s.pkid === value) ?? null;
+        return patched;
+      }),
+    );
+  }
+
+  private editingCell(): HTMLElement | null {
+    return this.host.nativeElement.querySelector<HTMLElement>('td.cell-editing');
+  }
+
+  private focusEditor(): void {
+    this.editingCell()
+      ?.querySelector<HTMLElement>('[role="combobox"], input:not([type="hidden"])')
+      ?.focus();
   }
 }
 

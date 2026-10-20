@@ -57,3 +57,32 @@
 :host ::ng-deep .range .p-datepicker input {
   width: 100%;
 }
+
+// Inline edit (double-click a cell)
+td[data-field] {
+  cursor: cell;
+
+  &:hover:not(.cell-editing) {
+    background: var(--p-surface-50);
+  }
+}
+
+td.cell-editing {
+  min-width: 9rem;
+}
+
+.cell-error {
+  display: block;
+  margin-top: 4px;
+  color: var(--p-red-500);
+  white-space: normal;
+}
+
+:host ::ng-deep td.cell-editing {
+  .p-inputtext,
+  .p-inputnumber,
+  .p-select,
+  .p-datepicker {
+    width: 100%;
+  }
+}
