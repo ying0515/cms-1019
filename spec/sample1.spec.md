@@ -400,7 +400,7 @@ The list table displays partner name, course group description, and publish stat
 
 ### Detail — Inline QR Code
 
-Auto-generated on course load inside the 基本資料 card. See `spec/course/Course.md` for canvas compositing details.
+Auto-generated on course load inside the 基本資料 card. See `spec/course/Course.md` → *Detail — QR Code* for canvas compositing details.
 
 ### Detail — 列印PDF
 

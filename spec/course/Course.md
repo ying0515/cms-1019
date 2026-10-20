@@ -435,6 +435,27 @@ Columns (in this order, all sortable):
 - Card 相關認證 / 職務類別: chips (or 「無」).
 - Toolbar: 返回, 刪除, 編輯.
 
+### Detail — QR Code
+
+Component `features/courses/course-qr-code/` (`<app-course-qr-code [pkid] [courseId]>`), placed in
+the 基本資料 card to the right of the field grid (stacked below it at ≤ 768px). Generated
+client-side on load with the `qrcode` npm package (listed in `angular.json`
+`allowedCommonJsDependencies`); no API involved.
+
+| Item | Value |
+|------|-------|
+| Encoded URL | `https://www.uuu.com.tw/Course/Show/{pkid}/{CourseId}` — exported `courseQrUrl()`; CourseId trimmed (nchar padding) and `encodeURIComponent`-ed |
+| Title | CourseId (trimmed), drawn above the code; bold sans-serif 22px, shrunk to fit width (min 9px) |
+| Error correction | `M` |
+| Canvas layout | 6px per module, 4-module white quiet zone, 44px title band on top; white background, black modules. Size = `(modules + 8) × 6` wide, `+ 44` high (e.g. 246×290 for a 33-module code) |
+| Below canvas | URL as a link (new tab), then button 下載 QR Code (`pi pi-download`, secondary, outlined, small) |
+| Download | `canvas.toBlob('image/png')` → object URL → `<a download>` click → revoke. File name `{CourseId}-QRCode.png`; `\ / : * ? " < > \|` and whitespace → `_`; falls back to pkid if CourseId is blank |
+| Accessibility | canvas `role="img"`, `aria-label="QR Code：{CourseId}"` |
+
+The canvas (title + code) is drawn module-by-module from `QRCode.create()` in an
+`afterRenderEffect`, so the on-screen image and the downloaded PNG are identical and redraw when
+the inputs change.
+
 ### Form
 
 Panels: 基本資料, 上架設定, 課程內容, 關聯.
@@ -507,6 +528,11 @@ Existing group **課程管理 Course** → add `課程 Course` (`pi pi-graduatio
 - `core/utils/date.util.spec.ts`
 - `course.service.spec.ts`; `lookup.service.spec.ts` (new methods)
 - `course-list.spec.ts`, `course-detail.spec.ts`, `course-form.spec.ts`
+- `course-qr-code.spec.ts`: `courseQrUrl()` (trim + encoding); module matrix equals
+  `QRCode.create(expectedUrl)` and matches the canvas pixels; title = CourseId drawn in the title
+  band; download yields a PNG blob (signature + same size as canvas) named `{CourseId}-QRCode.png`;
+  file-name sanitising; button triggers download. `course-detail.spec.ts`: QR code sits in the
+  基本資料 panel with the record's URL.
 - Partner / CourseGroup / PublishStatus list + detail specs updated for the 查看課程 link.
 
 ---
@@ -524,6 +550,8 @@ Existing group **課程管理 Course** → add `課程 Course` (`pi pi-graduatio
 | NG | `core/models/course.model.ts`, `core/services/course.service.ts` (+ spec), `core/utils/date.util.ts` (+ spec) | Create |
 | NG | `core/models/lookup.model.ts`, `core/services/lookup.service.ts` (+ spec) | Modify |
 | NG | `features/courses/course-{list,detail,form}/*` (+ specs), `features/courses/testing/course.fixtures.ts` | Create |
+| NG | `features/courses/course-qr-code/*` (+ spec) | Create |
+| NG | `package.json` (`qrcode`, `@types/qrcode`), `angular.json` (`allowedCommonJsDependencies`) | Modify |
 | NG | `app.routes.ts`, `app.ts` (+ `app.spec.ts`) | Modify |
 | NG | Partner / CourseGroup / PublishStatus list + detail (查看課程 link) | Modify |
 | Docs | `docs/setup-notes.md`, `src/README.md` | Modify |
