@@ -67,6 +67,23 @@ describe('CourseForm', () => {
     return fixture;
   }
 
+  /** The Save/Cancel toolbar is pinned (sticky, top 0, stacked above fields) and holds both buttons. */
+  function expectPinnedToolbar(el: HTMLElement) {
+    const toolbar = el.querySelector<HTMLElement>('[data-testid="form-toolbar"]')!;
+    expect(toolbar).toBeTruthy();
+    expect(toolbar.parentElement!.tagName).toBe('FORM');
+
+    const style = getComputedStyle(toolbar);
+    expect(style.position).toBe('sticky');
+    expect(style.top).toBe('0px');
+    expect(Number(style.zIndex)).toBeGreaterThan(0);
+
+    const labels = Array.from(toolbar.querySelectorAll('button'), (b) => b.textContent!.trim());
+    expect(labels).toContain('取消');
+    expect(labels).toContain('儲存');
+    expect(toolbar.querySelector('button[type="submit"]')).toBeTruthy();
+  }
+
   /** Fills every required field with valid values. */
   function fillValid(form: CourseForm['form']) {
     form.patchValue({
@@ -230,6 +247,10 @@ describe('CourseForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
 
@@ -287,6 +308,10 @@ describe('CourseForm', () => {
 
       expect(add).toHaveBeenCalledWith(jasmine.objectContaining({ summary: '載入失敗' }));
       expect(c.loading()).toBeFalse();
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

@@ -482,6 +482,8 @@ the inputs change.
 
 Panels: 基本資料, 上架設定, 課程內容, 關聯.
 
+Toolbar (title + 取消 / 儲存, same in New and Edit): `.page-header.form-toolbar` is `position: sticky; top: 0; z-index: 10` with a light shadow, so it stays pinned at the top of the content column while the form body scrolls (the page scrolls at document level; no top app bar, sidebar is a separate column).
+
 | Field | Widget | Rules |
 |-------|--------|-------|
 | pkid | read-only input (edit only) | |

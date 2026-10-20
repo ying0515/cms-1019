@@ -1,7 +1,11 @@
-.sticky {
+// Save/Cancel toolbar stays pinned while the form body scrolls. The page scrolls at the
+// document level and there is no top app bar, so top: 0 pins it within the content column
+// (beside the sidebar). z-index keeps it above positioned PrimeNG field wrappers.
+.form-toolbar {
   position: sticky;
   top: 0;
   z-index: 10;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 .grid {
