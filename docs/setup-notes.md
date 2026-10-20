@@ -36,7 +36,7 @@ Reference context for CLAUDE.md: layout, environment, tooling gotchas, git, feat
 
 ## Pending
 
-- `spec/feature-spec.template.md` references `spec/dapper.md` and `spec/inline-edit.md`, which **do not exist yet** (`core/utils/date.util.ts` now exists) — create them when the first feature needs them.
+- `spec/feature-spec.template.md` references `spec/dapper.md`, which **does not exist yet** (`core/utils/date.util.ts` and `spec/inline-edit.md` now exist) — create it when the first feature needs it.
 
 ## Implemented features
 
@@ -53,6 +53,10 @@ Reference context for CLAUDE.md: layout, environment, tooling gotchas, git, feat
 ## Change log
 
 Newest first, one dated line per meaningful change.
+
+- 2026-10-20 — Documented Course list inline edit in spec: `spec/course/Course.md` (new *List — Inline Edit* section: editor + validation per column, read-only columns, GET-then-PUT save; list column notes and frontend tests updated), `spec/sample1.spec.md` (new *List — Inline Cell Edit* summary), new `spec/inline-edit.md` (reusable double-click / blur-save pattern, overlay focus handling).
+
+- 2026-10-20 — Course list: inline cell editing (double-click to edit, blur saves) for every column except 主代碼 / 原廠 / 課程群組; editors match the column (text, number, date picker, 上架狀態 select, 允許重聽 checkbox); inline validation (required, ≥ 0 / integer / max, valid dates, 上架日期 ≤ 下架日期) keeps the cell open; save = GET by pkid + PUT so n-n relations aren't wiped; failure reverts + toast. 課程名稱 / 上架狀態 list cells lost their links (double-click conflict; 檢視 still opens detail). New pattern doc `spec/inline-edit.md`; spec `spec/course/Course.md` updated; tests in `course-list.spec.ts`.
 
 - 2026-10-20 — Documented the Course QR code in `spec/course/Course.md` (new *Detail — QR Code* section: URL, title, canvas layout, download naming; tests and files tables updated).
 - 2026-10-20 — Added `database/refresh-promo-dates.sql`: dev-data helper that shifts all `FeaturedPromoItem.ScheduleOn` dates so the newest is ~30 days from today (keeps relative spacing), so the weekly schedule page has rows to show.

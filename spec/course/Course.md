@@ -408,10 +408,10 @@ Columns (in this order, all sortable):
 | 顯示順序 | `displayOrder` | centered |
 | 簡介代碼 | `courseId` | |
 | 科目代碼 | `prodCourseId` | |
-| 課程名稱 | `title` | link to detail |
+| 課程名稱 | `title` | plain text (inline-editable; 檢視 button opens detail) |
 | 原廠 | `partner.name` | link `/partners/{partnerPkid}` |
 | 課程群組 | `courseGroup.description` | link `/course-groups/{courseGroupPkid}`; `—` when null |
-| 上架狀態 | `publishStatus.description` | link `/publish-statuses/{publishStatusPkid}` |
+| 上架狀態 | `publishStatus.description` | plain text in list (inline-editable); linked in detail |
 | 上架日期 | `scheduleOn` | `yyyy-MM-dd` |
 | 下架日期 | `scheduleOff` | `yyyy-MM-dd` |
 | 時數 | `hour` | right-aligned |
@@ -428,6 +428,28 @@ Columns (in this order, all sortable):
 - Lookups loaded with `forkJoin`; saved filters restored after they load.
 - Query params `partnerPkid`, `courseGroupPkid`, `publishStatusPkid` (from Partner / CourseGroup /
   PublishStatus pages) override saved filters: filters reset to empty + that FK.
+
+### List — Inline Edit
+
+Pattern: `spec/inline-edit.md`. Double-click a cell to edit; blur saves.
+
+| Column | Editor | Validation |
+|--------|--------|------------|
+| 顯示順序 | `p-inputnumber` (integer) | required integer |
+| 簡介代碼 / 科目代碼 | `pInputText` | required (not blank), ≤ 50 |
+| 課程名稱 | `pInputText` | required (not blank), ≤ 200 |
+| 上架狀態 | `p-select` (`publishStatusOptions`) | required |
+| 上架日期 / 下架日期 | `p-datepicker` (`dataType="string"`) | required, valid `yyyy-MM-dd`, 上架日期 ≤ 下架日期 |
+| 時數 | `p-inputnumber` | integer 0–32767 |
+| 定價 | `p-inputnumber` | integer 0–999999999 |
+| 點數 | `p-inputnumber` (1 decimal) | 0–99999999.9 |
+| 允許重聽 | `p-checkbox` (binary) | — |
+
+- Read-only: 主代碼, 原廠, 課程群組 (no `data-field`).
+- Save = `GET /api/courses/{pkid}` then `PUT /api/courses` with that record + the edited field.
+  List rows have empty n-n, and PUT re-syncs n-n, so PUTting the row would wipe them.
+- Text values are trimmed; unchanged value → no request. Success toast 已更新; failure reverts the
+  cell and toasts 更新失敗.
 
 ### Detail
 
@@ -528,6 +550,11 @@ Existing group **課程管理 Course** → add `課程 Course` (`pi pi-graduatio
 - `core/utils/date.util.spec.ts`
 - `course.service.spec.ts`; `lookup.service.spec.ts` (new methods)
 - `course-list.spec.ts`, `course-detail.spec.ts`, `course-form.spec.ts`
+- `course-list.spec.ts` inline edit: double-click (not click) opens the editor; 主代碼 / 原廠 /
+  課程群組 read-only; editor type per column; blur → GET + PUT with n-n kept; unchanged → no PUT;
+  focus inside cell / overlay doesn't commit; real datepicker / select overlay pick then blur
+  saves; Escape cancels; validation (required, ≥ 0, integer,
+  valid dates, 上架日期 ≤ 下架日期) keeps the cell open; failed GET / PUT reverts + error toast.
 - `course-qr-code.spec.ts`: `courseQrUrl()` (trim + encoding); module matrix equals
   `QRCode.create(expectedUrl)` and matches the canvas pixels; title = CourseId drawn in the title
   band; download yields a PNG blob (signature + same size as canvas) named `{CourseId}-QRCode.png`;
