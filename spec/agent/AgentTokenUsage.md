@@ -219,7 +219,7 @@ Input: the main transcript `<session>.jsonl` plus every `<session>/subagents/age
 ## Tests
 
 - **API** (`CMS.API.Tests`): every 400 rule, 401 (missing / wrong key), 204 + idempotent re-submit, rows absent from the payload untouched, cost with effective dates (before first price → NULL; price boundary day), Taipei "today" with a pinned clock.
-- **Node** (`node --test tools/token-report`): fixtures for per-block duplicate lines, `<synthetic>`, a session crossing Taipei midnight, subagent files, mixed models, a malformed line, project-name parsing.
+- **Node** (`node --test "tools/token-report/test/*.test.mjs"`): fixtures for per-block duplicate lines, `<synthetic>`, a session crossing Taipei midnight, subagent files, mixed models, a malformed line, project-name parsing.
 - **Angular**: report filters default to the current month, query built from the filters, totals row sums filtered rows, 「未定價」 rendering.
 
 ---
