@@ -31,7 +31,14 @@ Layout, environment, tooling gotchas and git. Features: `docs/features.md`. Chan
 
 ## Token report client (`tools/token-report/`)
 
-Node.js (v24 on this machine), no npm dependencies. A user-level Claude Code `SessionEnd` hook (`hook.mjs`) starts a detached `worker.mjs`, which reads the session transcript (`~/.claude/projects/<dir>/<session>.jsonl` + `<session>/subagents/*.jsonl`), sums usage by Taipei date + model, and POSTs once to `{apiUrl}/api/agent-token-usage`. Result (or error) goes to one line in `~/.claude/token-report/worker.log`. No retries/outbox yet (#11): a send while the API is down is lost.
+Node.js (v24 on this machine), no npm dependencies. A user-level Claude Code `SessionEnd` hook (`hook.mjs`) starts a detached `worker.mjs`, which reads the session transcript (`~/.claude/projects/<dir>/<session>.jsonl` + `<session>/subagents/*.jsonl`), sums usage by Taipei date + model, and queues it in the outbox. Each run then sends every pending outbox file to `{apiUrl}/api/agent-token-usage` (10 s timeout each). Files in `~/.claude/token-report/`:
+
+- `outbox/<session>.json`: pending payload, one per session (a newer one replaces the older). 2xx → deleted; 400 → moved to `outbox/rejected/` and the response body logged; 401 / 5xx / network error → kept and resent on the next run (i.e. the next time any session ends).
+- `state.json` `{ lastSuccessAt }`: start time of the last run that left nothing to retry (a 400 does not hold it back).
+- Catch-up: each run also queues every `~/.claude/projects/*/*.jsonl` session whose main or `subagents/*.jsonl` log changed in the last 7 days and after `lastSuccessAt`, so sessions whose hook never ran (crash, kill, closed terminal) still get sent. `cwd` (→ project) comes from the transcript's first line with a `cwd`. Resending is harmless: the API stores absolute totals.
+- `worker.log`: one line per send / error plus `run done: sent N, rejected N, kept N` per run; cut back to the newest ~512 KB when it passes 1 MB.
+- `node tools\token-report\worker.mjs` with no argument runs only catch-up + resend (handy after the API was down for a while).
+- Test-only env vars: `TOKEN_REPORT_LOG_MAX_BYTES` (log cap), `TOKEN_REPORT_SEND_TIMEOUT_MS` (per-request timeout; hook tests use it so the detached worker finishes before the test ends).
 
 Tests (process-level: real child processes, temp HOME/USERPROFILE, fake HTTP server; never touch the real `~/.claude`):
 
@@ -62,8 +69,16 @@ node tools\token-report\install.mjs --api-url http://localhost:5000 --api-key de
 3. From `C:\dev\cms`: `node tools\token-report\install.mjs` → URL `http://localhost:5000`, key `dev-agent-token-key`, that user ID.
 4. Check `~/.claude/settings.json`: `SessionStart` (herdr) and other keys unchanged, new `SessionEnd` entry; `settings.json.bak` exists.
 5. Start a new `claude` session in any repo, send one prompt, exit (`/exit`).
-6. `Get-Content ~\.claude\token-report\worker.log -Tail 1` → `<session> <project> sent N item(s) -> 204`.
+6. `Get-Content ~\.claude\token-report\worker.log -Tail 2` → `<session> <project> sent N item(s) -> 204` and `run done: sent 1, rejected 0, kept 0` (possibly more sent: catch-up of sessions from the last 7 days on the first run).
 7. `sqlcmd ... -Q "SELECT * FROM AgentTokenUsage WHERE SessionId='<session>'"` shows rows, and `/agent-token-report` (`npm start`, :4200) lists them for today.
+
+Outbox / retry (#11):
+
+8. Stop the API (Ctrl+C in the `dotnet run` window).
+9. Start a `claude` session (session 1), send one prompt, `/exit`. `worker.log` → `send failed: fetch failed` and `run done: … kept 1`; `~\.claude\token-report\outbox\` holds `<session 1>.json`.
+10. Start the API again.
+11. Start another session (session 2), send one prompt, `/exit`. `worker.log` → both sessions `-> 204`, `run done: sent 2, rejected 0, kept 0` (or more, see step 6); `outbox\` is empty (only `rejected\` may remain).
+12. `/agent-token-report` (or the `sqlcmd` query) shows both sessions.
 
 ## Git
 

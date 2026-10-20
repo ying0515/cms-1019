@@ -120,7 +120,7 @@ test('without a config file the worker logs and sends nothing', async (t) => {
   assert.match(readWorkerLog(home), /no config/);
 });
 
-test('a rejected send is logged with its status (single attempt, no retry yet)', async (t) => {
+test('a rejected send is logged with its status (one attempt per run; see outbox.test.mjs)', async (t) => {
   const home = tempDir(t);
   const api = await startFakeApi(t, { status: 400 });
   writeConfig(home, { apiUrl: api.url, apiKey: 'k', userId: 'ying' });
