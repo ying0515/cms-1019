@@ -1,5 +1,8 @@
 using CMS.API.Data;
 using CMS.API.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +12,37 @@ DapperConfig.RegisterTypeHandlers();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Swagger UI "Authorize" button: paste the accessToken from POST /api/auth/login
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }] = [],
+    });
+});
+
+// JWT bearer: signing key = SysConfig appConfig symmetricSecurityKey (same key AuthController signs with),
+// read per request by SysConfigSigningKeyManager. No issuer / audience in our tokens.
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateIssuerSigningKey = true,
+            ValidAlgorithms = [SecurityAlgorithms.HmacSha256],
+        };
+    });
+builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IServiceScopeFactory>((options, scopes) => options.ConfigurationManager = new SysConfigSigningKeyManager(scopes));
+builder.Services.AddAuthorization();
 
 builder.Services.AddCors(options =>
 {
@@ -43,8 +76,10 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors(CorsPolicy);
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
+// Every controller needs a valid Bearer token; [AllowAnonymous] opts out (AuthController, API-key ingest).
+app.MapControllers().RequireAuthorization();
 
 app.Run();
 

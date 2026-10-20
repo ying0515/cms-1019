@@ -1,16 +1,107 @@
+import { provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { AUTH_PROFILE_KEY } from '@core/auth/auth.service';
+import { signInForTest } from '@core/testing/auth';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
+    sessionStorage.clear();
+    signInForTest(['Admin'], '海倫');
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), provideNoopAnimations(), MessageService, ConfirmationService],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideNoopAnimations(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
   });
+
+  afterEach(() => sessionStorage.clear());
+
+  function groupLabels(el: HTMLElement): string[] {
+    return Array.from(el.querySelectorAll('.nav-group')).map((g) => g.textContent?.trim() ?? '');
+  }
+
+  // ---- Auth ----
+
+  it('shows 系統管理 Admin when the token roles include Admin', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(groupLabels(fixture.nativeElement)).toContain('系統管理 Admin');
+  });
+
+  it('hides 系統管理 Admin and its links for users without the Admin role', () => {
+    signInForTest(['User']);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(groupLabels(el)).not.toContain('系統管理 Admin');
+    expect(el.querySelector('a[href="/app-users"]')).toBeNull();
+    expect(groupLabels(el)).toContain('課程管理 Course');
+  });
+
+  it('shows 系統管理 Admin when Admin is one of several roles', () => {
+    signInForTest(['User', 'Admin']);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect(groupLabels(fixture.nativeElement)).toContain('系統管理 Admin');
+  });
+
+  it('shows the signed-in UserName in the header', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelector('[data-testid="current-user"]')?.textContent).toContain('海倫');
+  });
+
+  it('has a 我的資料 link to /my-profile in the header', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const link = (fixture.nativeElement as HTMLElement).querySelector(
+      '.topbar [data-testid="my-profile-link"]',
+    );
+
+    expect(link?.textContent).toContain('我的資料');
+    expect(link?.getAttribute('href')).toBe('/my-profile');
+  });
+
+  it('登出 clears sessionStorage and goes to /login', () => {
+    const navigate = spyOn(TestBed.inject(Router), 'navigate').and.resolveTo(true);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    (el.querySelector('[data-testid="logout"] button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(sessionStorage.getItem(AUTH_PROFILE_KEY)).toBeNull();
+    expect(sessionStorage.length).toBe(0);
+    expect(navigate).toHaveBeenCalledWith(['/login'], { queryParams: {} });
+    expect(el.querySelector('.sidebar')).toBeNull();
+  });
+
+  it('renders no shell (sidebar / header) when signed out', () => {
+    sessionStorage.clear();
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelector('.sidebar')).toBeNull();
+    expect(el.querySelector('.topbar')).toBeNull();
+  });
+
+  // ---- Sidebar ----
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);

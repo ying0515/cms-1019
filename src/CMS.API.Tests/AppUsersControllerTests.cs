@@ -161,15 +161,18 @@ public class AppUsersControllerTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
+    // appConfig keeps symmetricSecurityKey: without it the JWT is rejected (401) before the controller runs.
+    private void SetAppConfigWithoutDefaultPassword(string extraProperties = "")
+        => _factory.SysConfig.Values["appConfig"] =
+            $$"""{ "siteName": "CMS", "symmetricSecurityKey": "{{FakeSysConfigRepository.SigningKey}}"{{extraProperties}} }""";
+
     [Theory]
-    [InlineData(null)]
-    [InlineData("not json")]
-    [InlineData("""{ "siteName": "CMS" }""")]
-    [InlineData("""{ "defaultPassword": "" }""")]
-    public async Task Create_DefaultPasswordNotConfigured_Returns500_AndDoesNotCreate(string? appConfig)
+    [InlineData("")]
+    [InlineData(""", "defaultPassword": "" """)]
+    [InlineData(""", "defaultPassword": null """)]
+    public async Task Create_DefaultPasswordNotConfigured_Returns500_AndDoesNotCreate(string extraProperties)
     {
-        if (appConfig is null) _factory.SysConfig.Values.Remove("appConfig");
-        else _factory.SysConfig.Values["appConfig"] = appConfig;
+        SetAppConfigWithoutDefaultPassword(extraProperties);
 
         var response = await _client.PostAsJsonAsync(BaseUrl, new AppUserRequest { UserId = "bob", UserName = "Bob" });
 
@@ -213,36 +216,7 @@ public class AppUsersControllerTests : IDisposable
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
-    // ---- Reset password ----
-
-    [Fact]
-    public async Task ResetPassword_Existing_Returns204_AndSetsDefaultHash()
-    {
-        var response = await _client.PostAsync($"{BaseUrl}/1/reset-password", null);
-
-        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.Equal(PasswordHasher.Sha256Hex(FakeSysConfigRepository.DefaultPassword), _factory.AppUsers.PasswordHashOf(1));
-        Assert.NotNull((await _client.GetFromJsonAsync<AppUser>($"{BaseUrl}/1"))!.PasswordUpdatedTime);
-    }
-
-    [Fact]
-    public async Task ResetPassword_Missing_Returns404()
-    {
-        var response = await _client.PostAsync($"{BaseUrl}/99/reset-password", null);
-
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-    }
-
-    [Fact]
-    public async Task ResetPassword_NotConfigured_Returns500_AndKeepsHash()
-    {
-        _factory.SysConfig.Values.Remove("appConfig");
-
-        var response = await _client.PostAsync($"{BaseUrl}/1/reset-password", null);
-
-        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
-        Assert.Equal("seed-hash", _factory.AppUsers.PasswordHashOf(1));
-    }
+    // Password reset moved to POST /api/auth/reset-password (Admin only): see AuthResetPasswordTests.
 
     // ---- Delete ----
 

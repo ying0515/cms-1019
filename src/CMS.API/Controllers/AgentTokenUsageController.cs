@@ -2,6 +2,7 @@ using CMS.API.Data;
 using CMS.API.Filters;
 using CMS.API.Models;
 using CMS.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.API.Controllers;
@@ -15,6 +16,7 @@ public class AgentTokenUsageController(IAgentTokenUsageRepository repository, Ti
 
     /// <summary>Saves a session's absolute totals; resubmitting overwrites, rows not in the payload are untouched.</summary>
     [HttpPost]
+    [AllowAnonymous] // no JWT: the token-report client authenticates with X-Api-Key only
     [RequireAgentApiKey]
     public async Task<IActionResult> Submit([FromBody] AgentTokenUsageSubmitRequest request)
     {

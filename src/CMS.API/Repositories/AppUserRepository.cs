@@ -79,6 +79,19 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
             "SELECT COUNT(*) FROM AppUser WHERE UserId = @userId", new { userId }) > 0;
     }
 
+    public async Task<AppUserCredential?> GetCredentialAsync(string userId)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        var user = await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
+            "SELECT UserId, UserName, IsActive, PasswordHash FROM AppUser WHERE UserId = @userId", new { userId });
+        // SQL `=` ignores case and trailing spaces under the default collation; login needs an exact match.
+        if (user is null || !string.Equals(user.UserId, userId, StringComparison.Ordinal)) return null;
+
+        user.RoleIds = (await conn.QueryAsync<string>(
+            "SELECT RoleId FROM AppUserRole WHERE UserId = @UserId ORDER BY RoleId", new { user.UserId })).ToList();
+        return user;
+    }
+
     public async Task<int> CreateAsync(AppUserRequest request, string passwordHash)
     {
         using var conn = await db.CreateOpenConnectionAsync();
@@ -112,7 +125,7 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
                 "SELECT UserId FROM AppUser WHERE pkid = @Pkid", new { request.Pkid }, tx);
             if (userId is null) return false;
 
-            // PasswordHash is only changed by ResetPasswordAsync.
+            // PasswordHash is only changed by SetPasswordAsync.
             await conn.ExecuteAsync("""
                 UPDATE AppUser
                 SET UserName = @UserName, IsActive = @IsActive
@@ -129,14 +142,21 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
         }
     }
 
-    public async Task<bool> ResetPasswordAsync(int pkid, string passwordHash)
+    public async Task<bool> UpdateUserNameAsync(string userId, string userName)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.ExecuteAsync(
+            "UPDATE AppUser SET UserName = @userName WHERE UserId = @userId", new { userId, userName }) > 0;
+    }
+
+    public async Task<bool> SetPasswordAsync(string userId, string passwordHash, DateTime updatedUtc)
     {
         using var conn = await db.CreateOpenConnectionAsync();
         return await conn.ExecuteAsync("""
             UPDATE AppUser
-            SET PasswordHash = @passwordHash, PasswordUpdatedTime = GETUTCDATE()
-            WHERE pkid = @pkid
-            """, new { pkid, passwordHash }) > 0;
+            SET PasswordHash = @passwordHash, PasswordUpdatedTime = @updatedUtc
+            WHERE UserId = @userId
+            """, new { userId, passwordHash, updatedUtc }) > 0;
     }
 
     public async Task<bool> DeleteAsync(int pkid)

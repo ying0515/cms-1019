@@ -17,13 +17,16 @@
         [outlined]="true"
         (onClick)="viewRoles()"
       />
-      <p-button
-        label="重設密碼"
-        icon="pi pi-key"
-        severity="warn"
-        [outlined]="true"
-        (onClick)="confirmResetPassword()"
-      />
+      @if (canResetPassword) {
+        <p-button
+          label="重設密碼"
+          icon="pi pi-key"
+          severity="warn"
+          [outlined]="true"
+          (onClick)="confirmResetPassword()"
+          data-testid="reset-password"
+        />
+      }
       <p-button label="編輯" icon="pi pi-pencil" (onClick)="edit()" />
     }
   </div>

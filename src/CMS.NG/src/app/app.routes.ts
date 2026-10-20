@@ -1,7 +1,14 @@
 import { Routes } from '@angular/router';
+import { authGuard } from '@core/auth/auth.guard';
 
-export const routes: Routes = [
+/** Every app page; all behind authGuard (see `routes` at the bottom). */
+const appRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'app-roles' },
+  {
+    path: 'my-profile',
+    title: '我的資料',
+    loadComponent: () => import('./features/my-profile/my-profile').then((m) => m.MyProfile),
+  },
   {
     path: 'app-users',
     title: '使用者 AppUser',
@@ -211,4 +218,13 @@ export const routes: Routes = [
       ),
   },
   { path: '**', redirectTo: 'app-roles' },
+];
+
+export const routes: Routes = [
+  {
+    path: 'login',
+    title: '登入',
+    loadComponent: () => import('./features/login/login').then((m) => m.Login),
+  },
+  { path: '', canActivateChild: [authGuard], children: appRoutes },
 ];

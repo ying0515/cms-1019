@@ -5,6 +5,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 
+import { AuthService } from '@core/auth/auth.service';
 import { AppUser } from '@core/models/app-user.model';
 import { AppUserService } from '@core/services/app-user.service';
 import { httpErrorMessage } from '@core/utils/http-error.util';
@@ -21,7 +22,10 @@ export class AppUserDetail implements OnInit {
   private readonly service = inject(AppUserService);
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
+  private readonly auth = inject(AuthService);
 
+  /** 重設密碼 is Admin only (the API answers 403 to anyone else). */
+  readonly canResetPassword = this.auth.hasRole('Admin');
   readonly item = signal<AppUser | null>(null);
   readonly loading = signal(true);
   readonly notFound = signal(false);
@@ -82,7 +86,7 @@ export class AppUserDetail implements OnInit {
       acceptButtonProps: { severity: 'warn' },
       rejectButtonProps: { severity: 'secondary', outlined: true },
       accept: () =>
-        this.service.resetPassword(item.pkid).subscribe({
+        this.service.resetPassword(item.userId).subscribe({
           next: () => {
             this.messages.add({ severity: 'success', summary: '已重設密碼', detail: item.userId });
             this.load(item.pkid);

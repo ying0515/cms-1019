@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
@@ -6,13 +6,18 @@ import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 import { AppUserService } from '@core/services/app-user.service';
+import { signInForTest } from '@core/testing/auth';
 import { HELEN } from '../testing/app-user.fixtures';
 import { AppUserDetail } from './app-user-detail';
 
 describe('AppUserDetail', () => {
   let userService: jasmine.SpyObj<AppUserService>;
 
-  async function setup(id: string | null) {
+  afterEach(() => sessionStorage.clear());
+
+  async function setup(id: string | null, roles: string[] = ['Admin']) {
+    sessionStorage.clear();
+    signInForTest(roles);
     userService = jasmine.createSpyObj<AppUserService>('AppUserService', [
       'getById',
       'delete',
@@ -26,6 +31,7 @@ describe('AppUserDetail', () => {
       imports: [AppUserDetail],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         provideNoopAnimations(),
         MessageService,
         ConfirmationService,
@@ -110,8 +116,17 @@ describe('AppUserDetail', () => {
 
     fixture.componentInstance.confirmResetPassword();
 
-    expect(userService.resetPassword).toHaveBeenCalledOnceWith(1);
+    expect(userService.resetPassword).toHaveBeenCalledOnceWith('helen'); // UserId only
     expect(userService.getById).toHaveBeenCalledOnceWith(1);
+  });
+
+  it('shows 重設密碼 only to Admins', async () => {
+    await setup('1', ['Admin']);
+    expect(create().nativeElement.querySelector('[data-testid="reset-password"]')).not.toBeNull();
+
+    TestBed.resetTestingModule();
+    await setup('1', ['User']);
+    expect(create().nativeElement.querySelector('[data-testid="reset-password"]')).toBeNull();
   });
 
   it('confirmDelete() deletes and returns to the list', async () => {

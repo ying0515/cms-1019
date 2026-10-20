@@ -1,3 +1,5 @@
+using System.Net.Http.Headers;
+using CMS.API.Data;
 using CMS.API.Repositories;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -33,6 +35,18 @@ public class CmsApiFactory : WebApplicationFactory<Program>
         // Usage reads prices; price writes re-price usage
         AgentTokenUsage = new FakeAgentTokenUsageRepository(() => ModelPrices!.Items);
         ModelPrices = new FakeModelPriceRepository(AgentTokenUsage);
+    }
+
+    /// <summary>Valid HS256 token signed with the fake SysConfig key, issued now (real time: JwtBearer checks expiry against the real clock).</summary>
+    public static string TokenFor(string userId = "helen", string userName = "helen", params string[] roleIds)
+        => AccessTokenBuilder.Build(userId, userName, roleIds.Length > 0 ? roleIds : ["Admin"],
+            FakeSysConfigRepository.SigningKey, DateTimeOffset.UtcNow);
+
+    /// <summary>Every client is signed in as helen (Admin); auth tests clear or replace the header.</summary>
+    protected override void ConfigureClient(HttpClient client)
+    {
+        base.ConfigureClient(client);
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", TokenFor());
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

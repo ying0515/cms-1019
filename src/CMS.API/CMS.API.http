@@ -13,3 +13,31 @@ GET {{host}}/api/app-roles/1
 
 ###
 GET {{host}}/api/lookups/app-users
+
+###
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "userId": "admin@example.com", "password": "<password>" }
+
+###
+PUT {{host}}/api/auth/profile
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{ "userName": "New Name" }
+
+###
+POST {{host}}/api/auth/change-password
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{ "currentPassword": "<current>", "newPassword": "<new>", "confirmPassword": "<new>" }
+
+###
+# Admin only
+POST {{host}}/api/auth/reset-password
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{ "userId": "<target userId>" }

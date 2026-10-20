@@ -100,13 +100,13 @@ describe('AppUserService', () => {
     expect(done).toBeTrue();
   });
 
-  it('resetPassword() POSTs with no body to /api/app-users/{pkid}/reset-password', () => {
+  it('resetPassword() POSTs only { userId } to /api/auth/reset-password', () => {
     let done = false;
-    service.resetPassword(3).subscribe(() => (done = true));
+    service.resetPassword('miles').subscribe(() => (done = true));
 
-    const req = http.expectOne(`${baseUrl}/3/reset-password`);
+    const req = http.expectOne(`${environment.apiUrl}/api/auth/reset-password`);
     expect(req.request.method).toBe('POST');
-    expect(req.request.body).toBeNull();
+    expect(req.request.body).toEqual({ userId: 'miles' });
     req.flush(null, { status: 204, statusText: 'No Content' });
 
     expect(done).toBeTrue();

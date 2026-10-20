@@ -1,0 +1,137 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">我的資料</h1>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="取消"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button type="submit" label="儲存" icon="pi pi-check" [loading]="saving()" />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>帳號資料</h2>
+
+    <dl class="view-grid">
+      <dt>使用者帳號</dt>
+      <dd data-testid="profile-user-id">{{ auth.profile()?.userId }}</dd>
+      <dt>角色</dt>
+      <dd class="roles" data-testid="profile-roles">
+        @for (role of auth.roles(); track role) {
+          <p-tag [value]="role" severity="info" />
+        } @empty {
+          <span class="text-muted">—</span>
+        }
+      </dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>可修改</h2>
+    <div class="field">
+      <label for="userName" class="required">使用者名稱</label>
+      <input
+        pInputText
+        id="userName"
+        formControlName="userName"
+        maxlength="200"
+        [class.ng-dirty]="isInvalid()"
+      />
+      @if (isInvalid()) {
+        <small class="error">
+          {{ form.controls.userName.hasError('maxlength') ? '最多 200 字' : '請輸入使用者名稱' }}
+        </small>
+      }
+    </div>
+    <small class="hint">
+      <i class="pi pi-info-circle"></i> 帳號與角色由系統管理員設定，無法在此修改
+    </small>
+  </section>
+</form>
+
+<form
+  class="panel"
+  [formGroup]="passwordForm"
+  (ngSubmit)="changePassword()"
+  data-testid="password-form"
+  autocomplete="off"
+>
+  <h2>變更密碼</h2>
+
+  <div class="field">
+    <label for="currentPassword" class="required">目前密碼</label>
+    <input
+      pInputText
+      id="currentPassword"
+      type="password"
+      formControlName="currentPassword"
+      autocomplete="current-password"
+      [class.ng-dirty]="isPasswordInvalid('currentPassword')"
+    />
+    @if (isPasswordInvalid('currentPassword')) {
+      <small class="error">請輸入目前密碼</small>
+    }
+  </div>
+
+  <div class="field">
+    <label for="newPassword" class="required">新密碼</label>
+    <input
+      pInputText
+      id="newPassword"
+      type="password"
+      formControlName="newPassword"
+      autocomplete="new-password"
+      [class.ng-dirty]="isPasswordInvalid('newPassword')"
+    />
+    @if (
+      isPasswordInvalid('newPassword') && passwordForm.controls.newPassword.hasError('required')
+    ) {
+      <small class="error">請輸入新密碼</small>
+    }
+    <!-- Always shown as a hint; turns into the error when the rule fails -->
+    <small
+      class="policy"
+      data-testid="password-policy"
+      [class.error]="
+        isPasswordInvalid('newPassword') &&
+        passwordForm.controls.newPassword.hasError('passwordPolicy')
+      "
+    >
+      <span>{{ policyZh }}</span>
+      <span>{{ policyEn }}</span>
+    </small>
+  </div>
+
+  <div class="field">
+    <label for="confirmPassword" class="required">確認新密碼</label>
+    <input
+      pInputText
+      id="confirmPassword"
+      type="password"
+      formControlName="confirmPassword"
+      autocomplete="new-password"
+      [class.ng-dirty]="isPasswordInvalid('confirmPassword') || showMismatch()"
+    />
+    @if (isPasswordInvalid('confirmPassword')) {
+      <small class="error">請再次輸入新密碼</small>
+    } @else if (showMismatch()) {
+      <small class="error" data-testid="password-mismatch">新密碼與確認密碼不一致</small>
+    }
+  </div>
+
+  @if (passwordError(); as message) {
+    <div class="form-error" role="alert" data-testid="password-error">{{ message }}</div>
+  }
+
+  <p-button
+    type="submit"
+    label="變更密碼"
+    icon="pi pi-key"
+    [loading]="changingPassword()"
+    data-testid="change-password"
+  />
+</form>

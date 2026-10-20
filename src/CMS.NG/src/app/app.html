@@ -1,3 +1,4 @@
+@if (auth.isLoggedIn()) {
 <div class="layout" [class.collapsed]="collapsed()">
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -8,7 +9,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (group of navGroups; track group.key) {
+      @for (group of visibleNavGroups(); track group.key) {
         <button type="button" class="nav-group" (click)="toggleGroup(group.key)" [attr.aria-expanded]="!!expanded()[group.key]">
           <i [class]="group.icon"></i>
           <span class="nav-label">{{ group.label }}</span>
@@ -30,10 +31,40 @@
     </nav>
   </aside>
 
-  <main class="content">
-    <router-outlet />
-  </main>
+  <div class="main">
+    <header class="topbar">
+      <span class="user" data-testid="current-user">
+        <i class="pi pi-user"></i>
+        {{ auth.profile()?.userName }}
+      </span>
+      <a
+        routerLink="/my-profile"
+        routerLinkActive="active"
+        class="topbar-link"
+        data-testid="my-profile-link"
+      >
+        <i class="pi pi-id-card"></i> 我的資料
+      </a>
+      <p-button
+        label="登出"
+        icon="pi pi-sign-out"
+        severity="secondary"
+        size="small"
+        [text]="true"
+        (onClick)="logout()"
+        data-testid="logout"
+      />
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
 </div>
+} @else {
+  <!-- /login: no shell -->
+  <router-outlet />
+}
 
 <p-toast position="top-right" />
 <p-confirmdialog />

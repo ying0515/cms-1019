@@ -2,6 +2,19 @@
   <div class="page-header form-toolbar" data-testid="form-toolbar">
     <h1 class="title">{{ isEdit ? '編輯使用者' : '新增使用者' }}</h1>
     <div class="actions">
+      @if (canResetPassword) {
+        <p-button
+          type="button"
+          label="重設為預設密碼"
+          icon="pi pi-key"
+          severity="warn"
+          [outlined]="true"
+          [loading]="resetting()"
+          [disabled]="loading()"
+          (onClick)="confirmResetPassword()"
+          data-testid="reset-password"
+        />
+      }
       <p-button
         type="button"
         label="取消"

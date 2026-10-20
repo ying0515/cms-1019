@@ -1,12 +1,13 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
 import { AppUserService } from '@core/services/app-user.service';
 import { LookupService } from '@core/services/lookup.service';
+import { signInForTest } from '@core/testing/auth';
 import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { APP_ROLES, HELEN } from '../testing/app-user.fixtures';
 import { AppUserForm } from './app-user-form';
@@ -16,12 +17,19 @@ describe('AppUserForm', () => {
   let lookupService: jasmine.SpyObj<LookupService>;
   let router: Router;
 
-  async function setup(id: string | null) {
+  afterEach(() => sessionStorage.clear());
+
+  /** `roles`: the signed-in user's roles (the reset button is Admin only). */
+  async function setup(id: string | null, roles: string[] = ['Admin']) {
+    sessionStorage.clear();
+    signInForTest(roles);
     userService = jasmine.createSpyObj<AppUserService>('AppUserService', [
       'getById',
       'create',
       'update',
+      'resetPassword',
     ]);
+    userService.resetPassword.and.returnValue(of(void 0));
     lookupService = jasmine.createSpyObj<LookupService>('LookupService', ['getAppRoles']);
     userService.getById.and.returnValue(of(HELEN));
     userService.create.and.returnValue(of({ ...HELEN, pkid: 7, userId: 'amy' }));
@@ -32,8 +40,10 @@ describe('AppUserForm', () => {
       imports: [AppUserForm],
       providers: [
         provideRouter([]),
+        provideHttpClient(),
         provideNoopAnimations(),
         MessageService,
+        ConfirmationService,
         { provide: AppUserService, useValue: userService },
         { provide: LookupService, useValue: lookupService },
         {
@@ -188,6 +198,90 @@ describe('AppUserForm', () => {
     it('cancel() returns to the detail page', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/app-users', 1]);
+    });
+  });
+
+  describe('重設為預設密碼', () => {
+    const resetButton = (el: HTMLElement) => el.querySelector('[data-testid="reset-password"]');
+
+    function stubConfirm(accept: boolean): jasmine.Spy {
+      const confirmation = TestBed.inject(ConfirmationService);
+      return spyOn(confirmation, 'confirm').and.callFake((c: Confirmation) => {
+        if (accept) c.accept?.();
+        return confirmation;
+      });
+    }
+
+    it('shows the button in the edit toolbar for Admins', async () => {
+      await setup('1', ['Admin']);
+      const el: HTMLElement = create().nativeElement;
+
+      const button = resetButton(el);
+      expect(button?.textContent).toContain('重設為預設密碼');
+      expect(el.querySelector('[data-testid="form-toolbar"]')?.contains(button)).toBeTrue();
+    });
+
+    it('shows the button when Admin is one of several roles', async () => {
+      await setup('1', ['User', 'Admin']);
+
+      expect(resetButton(create().nativeElement)).not.toBeNull();
+    });
+
+    it('hides the button for users without the Admin role', async () => {
+      await setup('1', ['User']);
+      const fixture = create();
+
+      expect(resetButton(fixture.nativeElement)).toBeNull();
+      expect(fixture.componentInstance.canResetPassword).toBeFalse();
+    });
+
+    it('hides the button in add mode, even for Admins', async () => {
+      await setup(null, ['Admin']);
+
+      expect(resetButton(create().nativeElement)).toBeNull();
+    });
+
+    it('asks for confirmation naming the user, then sends only the UserId', async () => {
+      await setup('1', ['Admin']);
+      const fixture = create();
+      const confirm = stubConfirm(true);
+      const add = spyOn(TestBed.inject(MessageService), 'add');
+
+      (resetButton(fixture.nativeElement)!.querySelector('button') as HTMLButtonElement).click();
+
+      expect(confirm.calls.mostRecent().args[0].message).toContain('<b>helen</b>');
+      expect(userService.resetPassword).toHaveBeenCalledOnceWith('helen');
+      expect(userService.update).not.toHaveBeenCalled(); // does not submit the form
+      expect(add).toHaveBeenCalledWith(
+        jasmine.objectContaining({ severity: 'success', summary: '已重設密碼' }),
+      );
+    });
+
+    it('does nothing when the confirmation is dismissed', async () => {
+      await setup('1', ['Admin']);
+      const c = create().componentInstance;
+      stubConfirm(false);
+
+      c.confirmResetPassword();
+
+      expect(userService.resetPassword).not.toHaveBeenCalled();
+    });
+
+    it('shows an error toast when the API refuses (e.g. 403)', async () => {
+      await setup('1', ['Admin']);
+      userService.resetPassword.and.returnValue(
+        throwError(() => new HttpErrorResponse({ status: 403 })),
+      );
+      const c = create().componentInstance;
+      stubConfirm(true);
+      const add = spyOn(TestBed.inject(MessageService), 'add');
+
+      c.confirmResetPassword();
+
+      expect(add).toHaveBeenCalledWith(
+        jasmine.objectContaining({ severity: 'error', summary: '重設失敗' }),
+      );
+      expect(c.resetting()).toBeFalse();
     });
   });
 });

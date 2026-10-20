@@ -5,7 +5,7 @@
 
 `AppUser` holds back-office login accounts. Each user has a unique `UserId` (the table PK, referenced by `AppUserRole`), a display name, an active flag and a password hash. Roles are assigned n-n through `AppUserRole`. `pkid` is an `int IDENTITY` surrogate used for routing (same pattern as `AppRole`).
 
-**`PasswordHash` is backend-only**: it never appears in any request, response or Angular model. It is set on create from the system default password and only changed by the dedicated reset-password endpoint.
+**`PasswordHash` is backend-only**: it never appears in any request, response or Angular model. It is set on create from the system default password and changed only by the Admin-only `POST /api/auth/reset-password` (to the default) and the user's own `POST /api/auth/change-password` (both on `AuthController`).
 
 | Item | Detail |
 |------|--------|
@@ -115,7 +115,7 @@ Deleting a user deletes its `AppUserRole` rows first (same transaction), so dele
 | `POST` | `/api/app-users` | Create — **409** if UserId exists; **500** if default password not configured; sets PasswordHash + PasswordUpdatedTime |
 | `PUT` | `/api/app-users` | Update (pkid from body); UserId and PasswordHash are not changed |
 | `DELETE` | `/api/app-users/{id:int}` | Delete (removes AppUserRole rows first) |
-| `POST` | `/api/app-users/{id:int}/reset-password` | **No body.** Resets PasswordHash to SHA-256 of the current default password, sets PasswordUpdatedTime; 204 / 404 / 500 if not configured |
+| `POST` | `/api/auth/reset-password` (on `AuthController`) | **Admin only** (`[Authorize(Roles = "Admin")]`, else 403). Body `{ userId }`. Resets PasswordHash to SHA-256 of the current default password, sets PasswordUpdatedTime; 204 (no body) / 400 / 404 / 500 if not configured. Replaces the former `/api/app-users/{id}/reset-password`. |
 
 ---
 
@@ -124,7 +124,7 @@ Deleting a user deletes its `AppUserRole` rows first (same transaction), so dele
 - Default password source: `SELECT configValue FROM SysConfig WHERE configKey = 'appConfig'`; value is JSON, read string property `defaultPassword`.
 - Hash: `SHA256(UTF-8 bytes)` → lowercase hex (64 chars) → `PasswordHash`.
 - Missing row / invalid JSON / missing or empty `defaultPassword` → controller returns 500 `{ message: "系統設定 appConfig 未設定 defaultPassword" }`; nothing is written.
-- `PasswordUpdatedTime = GETUTCDATE()` on create and on reset-password (UTC, so the UI appends `'Z'`).
+- `PasswordUpdatedTime` = UTC now on create (`GETUTCDATE()`) and on reset / change password (injected `TimeProvider`) (UTC, so the UI appends `'Z'`).
 - New `ISysConfigRepository.GetValueAsync(configKey)` (Dapper) + static `PasswordHasher.Sha256Hex` in `Data/`. The controller resolves the hash and passes it to `CreateAsync(request, passwordHash)` / `ResetPasswordAsync(pkid, passwordHash)`.
 
 ---
@@ -274,12 +274,13 @@ Existing group **系統管理 Admin** → `使用者 AppUser` (`pi pi-user`, `/a
 ### Backend (`CMS.API.Tests`)
 
 - `Infrastructure/FakeAppUserRepository.cs` (seed helen / jenny / miles, exposes stored hashes), `FakeSysConfigRepository.cs` (settable `appConfig`), register both in `CmsApiFactory`; `FakeLookupRepository` gains `GetAppRolesAsync`.
-- `AppUsersControllerTests.cs`: GetAll sorted; query by keyword / IsActive / RoleId; get found (with roles, no `passwordHash` property in JSON) / 404; create 201 + hash = SHA-256(defaultPassword) + PasswordUpdatedTime set / duplicate 409 / missing UserName 400 / `passwordHash` in body ignored / appConfig missing 500; update 204 keeps hash / 404 / 400; reset-password 204 changes hash / 404; delete 204 / 404; `GET /api/lookups/app-roles`.
+- `AppUsersControllerTests.cs`: GetAll sorted; query by keyword / IsActive / RoleId; get found (with roles, no `passwordHash` property in JSON) / 404; create 201 + hash = SHA-256(defaultPassword) + PasswordUpdatedTime set / duplicate 409 / missing UserName 400 / `passwordHash` in body ignored / appConfig missing 500; update 204 keeps hash / 404 / 400; delete 204 / 404; `GET /api/lookups/app-roles`.
+- `AuthResetPasswordTests.cs`: Admin reset → hash = SHA-256(SysConfig defaultPassword, read at call time) + PasswordUpdatedTime = clock, empty 204 body; non-Admin 403 (also before body validation); no token 401; unknown user 404; defaultPassword missing 500; old `/api/app-users/{id}/reset-password` gone.
 - `PasswordHasherTests.cs`: known SHA-256 vector.
 
 ### Frontend
 
-- `app-user.service.spec.ts` (incl. resetPassword), `lookup.service.spec.ts` (getAppRoles)
+- `app-user.service.spec.ts` (resetPassword posts only `{ userId }` to `/api/auth/reset-password`); `app-user-form.spec.ts` / `app-user-detail.spec.ts`: reset button only for Admins (form: edit mode only), confirm first, `lookup.service.spec.ts` (getAppRoles)
 - `app-user-list.spec.ts`, `app-user-detail.spec.ts`, `app-user-form.spec.ts`; `app-role-list.spec.ts` gains `?userId=` case
 
 ---

@@ -1,0 +1,33 @@
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.policy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: #64748b;
+  font-size: 0.8rem;
+
+  &.error {
+    color: #ef4444;
+  }
+}
+
+.form-error {
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.9rem;
+}
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+}

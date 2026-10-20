@@ -1,4 +1,3 @@
-using System.Text.Json;
 using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Repositories;
@@ -10,9 +9,6 @@ namespace CMS.API.Controllers;
 [Route("api/app-users")]
 public class AppUsersController(IAppUserRepository repository, ISysConfigRepository sysConfig) : ControllerBase
 {
-    private const string AppConfigKey = "appConfig";
-    private const string DefaultPasswordMissing = "系統設定 appConfig 未設定 defaultPassword";
-
     [HttpGet]
     public async Task<ActionResult<IEnumerable<AppUser>>> GetAll()
         => Ok(await repository.GetAllAsync());
@@ -36,8 +32,9 @@ public class AppUsersController(IAppUserRepository repository, ISysConfigReposit
         if (await repository.UserIdExistsAsync(request.UserId))
             return Conflict(new { message = $"使用者帳號「{request.UserId}」已存在" });
 
-        var passwordHash = await GetDefaultPasswordHashAsync();
-        if (passwordHash is null) return DefaultPasswordError();
+        var passwordHash = await DefaultPassword.ReadHashAsync(sysConfig);
+        if (passwordHash is null)
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = DefaultPassword.MissingMessage });
 
         try
         {
@@ -66,18 +63,7 @@ public class AppUsersController(IAppUserRepository repository, ISysConfigReposit
         }
     }
 
-    /// <summary>Resets PasswordHash to the current default password. Takes no body.</summary>
-    [HttpPost("{id:int}/reset-password")]
-    public async Task<IActionResult> ResetPassword(int id)
-    {
-        if (await repository.GetByIdAsync(id) is null) return NotFound();
-
-        var passwordHash = await GetDefaultPasswordHashAsync();
-        if (passwordHash is null) return DefaultPasswordError();
-
-        var reset = await repository.ResetPasswordAsync(id, passwordHash);
-        return reset ? NoContent() : NotFound();
-    }
+    // Password reset lives in AuthController (POST /api/auth/reset-password, Admin only).
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
@@ -85,28 +71,4 @@ public class AppUsersController(IAppUserRepository repository, ISysConfigReposit
         var deleted = await repository.DeleteAsync(id);
         return deleted ? NoContent() : NotFound();
     }
-
-    /// <summary>SHA-256 of SysConfig[appConfig].defaultPassword, or null if it is not configured.</summary>
-    private async Task<string?> GetDefaultPasswordHashAsync()
-    {
-        var json = await sysConfig.GetValueAsync(AppConfigKey);
-        if (string.IsNullOrWhiteSpace(json)) return null;
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.ValueKind == JsonValueKind.Object
-                && doc.RootElement.TryGetProperty("defaultPassword", out var value)
-                && value.ValueKind == JsonValueKind.String
-                && value.GetString() is { Length: > 0 } password)
-                return PasswordHasher.Sha256Hex(password);
-        }
-        catch (JsonException)
-        {
-            // Malformed appConfig is treated as "not configured".
-        }
-        return null;
-    }
-
-    private ObjectResult DefaultPasswordError()
-        => StatusCode(StatusCodes.Status500InternalServerError, new { message = DefaultPasswordMissing });
 }

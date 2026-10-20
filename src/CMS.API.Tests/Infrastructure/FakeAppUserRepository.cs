@@ -1,3 +1,4 @@
+using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Repositories;
 
@@ -100,6 +101,28 @@ public class FakeAppUserRepository : IAppUserRepository
             return Task.FromResult(_users.Any(u => string.Equals(u.UserId, userId, StringComparison.OrdinalIgnoreCase)));
     }
 
+    public Task<AppUserCredential?> GetCredentialAsync(string userId)
+    {
+        lock (_lock)
+        {
+            var r = _users.FirstOrDefault(u => string.Equals(u.UserId, userId, StringComparison.Ordinal));
+            return Task.FromResult(r is null ? null : new AppUserCredential
+            {
+                UserId = r.UserId,
+                UserName = r.UserName,
+                IsActive = r.IsActive,
+                PasswordHash = r.PasswordHash,
+                RoleIds = r.RoleIds.Order().ToList(),
+            });
+        }
+    }
+
+    /// <summary>Sets the stored hash to SHA-256 of <paramref name="password"/> (test setup for login).</summary>
+    public void SetPassword(string userId, string password)
+    {
+        lock (_lock) _users.Single(u => u.UserId == userId).PasswordHash = PasswordHasher.Sha256Hex(password);
+    }
+
     public Task<int> CreateAsync(AppUserRequest request, string passwordHash)
     {
         lock (_lock)
@@ -134,14 +157,25 @@ public class FakeAppUserRepository : IAppUserRepository
         }
     }
 
-    public Task<bool> ResetPasswordAsync(int pkid, string passwordHash)
+    public Task<bool> UpdateUserNameAsync(string userId, string userName)
     {
         lock (_lock)
         {
-            var existing = _users.FirstOrDefault(x => x.Pkid == pkid);
+            var existing = _users.FirstOrDefault(u => string.Equals(u.UserId, userId, StringComparison.Ordinal));
+            if (existing is null) return Task.FromResult(false);
+            existing.UserName = userName;
+            return Task.FromResult(true);
+        }
+    }
+
+    public Task<bool> SetPasswordAsync(string userId, string passwordHash, DateTime updatedUtc)
+    {
+        lock (_lock)
+        {
+            var existing = _users.FirstOrDefault(u => string.Equals(u.UserId, userId, StringComparison.Ordinal));
             if (existing is null) return Task.FromResult(false);
             existing.PasswordHash = passwordHash;
-            existing.PasswordUpdatedTime = DateTime.UtcNow;
+            existing.PasswordUpdatedTime = updatedUtc;
             return Task.FromResult(true);
         }
     }

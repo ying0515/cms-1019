@@ -1,13 +1,14 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputTextModule } from 'primeng/inputtext';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { Observable, forkJoin, of } from 'rxjs';
 
+import { AuthService } from '@core/auth/auth.service';
 import { AppUser, AppUserRequest } from '@core/models/app-user.model';
 import { AppRoleLookup, LookupOption } from '@core/models/lookup.model';
 import { AppUserService } from '@core/services/app-user.service';
@@ -27,7 +28,12 @@ export class AppUserForm implements OnInit {
   private readonly service = inject(AppUserService);
   private readonly lookups = inject(LookupService);
   private readonly messages = inject(MessageService);
+  private readonly confirm = inject(ConfirmationService);
+  private readonly auth = inject(AuthService);
 
+  /** 重設為預設密碼: edit mode, Admin only (the API answers 403 to anyone else). */
+  readonly canResetPassword: boolean;
+  readonly resetting = signal(false);
   readonly isEdit: boolean;
   readonly pkid: number;
   readonly loading = signal(true);
@@ -46,6 +52,7 @@ export class AppUserForm implements OnInit {
     const id = this.route.snapshot.paramMap.get('id');
     this.pkid = id ? Number(id) : 0;
     this.isEdit = this.pkid > 0;
+    this.canResetPassword = this.isEdit && this.auth.hasRole('Admin');
   }
 
   get roleOptions(): LookupOption<string>[] {
@@ -93,6 +100,38 @@ export class AppUserForm implements OnInit {
     else this.router.navigate(['/app-users']);
   }
 
+  /** Resets the edited user's password to the system default; only the UserId is sent. Unsaved form edits stay. */
+  confirmResetPassword(): void {
+    const userId = this.form.controls.userId.value;
+    if (!this.canResetPassword || !userId) return;
+    this.confirm.confirm({
+      header: '重設為預設密碼',
+      message: `確定要將使用者 <b>${escapeHtml(userId)}</b> 的密碼重設為系統預設密碼？`,
+      icon: 'pi pi-key',
+      acceptLabel: '重設',
+      rejectLabel: '取消',
+      acceptButtonProps: { severity: 'warn' },
+      rejectButtonProps: { severity: 'secondary', outlined: true },
+      accept: () => {
+        this.resetting.set(true);
+        this.service.resetPassword(userId).subscribe({
+          next: () => {
+            this.resetting.set(false);
+            this.messages.add({ severity: 'success', summary: '已重設密碼', detail: userId });
+          },
+          error: (err) => {
+            this.resetting.set(false);
+            this.messages.add({
+              severity: 'error',
+              summary: '重設失敗',
+              detail: httpErrorMessage(err),
+            });
+          },
+        });
+      },
+    });
+  }
+
   save(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -129,4 +168,8 @@ export class AppUserForm implements OnInit {
       },
     });
   }
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 }
