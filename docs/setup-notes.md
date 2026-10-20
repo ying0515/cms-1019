@@ -54,6 +54,7 @@ Reference context for CLAUDE.md: layout, environment, tooling gotchas, git, feat
 
 Newest first, one dated line per meaningful change.
 
+- 2026-10-20 — Added `database/refresh-promo-dates.sql`: dev-data helper that shifts all `FeaturedPromoItem.ScheduleOn` dates so the newest is ~30 days from today (keeps relative spacing), so the weekly schedule page has rows to show.
 - 2026-10-20 — Added QR code to Course detail 基本資料 panel: new `features/courses/course-qr-code` component (`qrcode` npm package, allowed as CommonJS in `angular.json`) encodes `https://www.uuu.com.tw/Course/Show/{pkid}/{CourseId}` (CourseId trimmed + URI-encoded), draws CourseId as a title above the code on one canvas, and 下載 QR Code saves it as `{CourseId}-QRCode.png`. Tests: `course-qr-code.spec.ts` (URL, module matrix vs canvas pixels, title, PNG download) + detail spec.
 - 2026-10-20 — Added FeaturedPromoItem custom CRUD (spec `spec/custom/FeaturedPromoItem/`): weekly schedule page (TrainingCenter tabs, Mon–Sun week navigator, slots 1–3 per day) with inline Edit/New form, PromoCode autocomplete (`GET /api/lookups/promotions`, prefills Topic/Description), +/− slot swap endpoints, Copy/Paste, Delete; new lookup `training-centers`, `DuplicateKeyException` (SQL 2627/2601 → 409), `addDays`/`startOfWeek` in `date.util.ts`. New sidebar group 首頁 Home (first). Tests: `FeaturedPromoItemsControllerTests`, list/form/service specs.
 
