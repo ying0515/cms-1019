@@ -158,3 +158,44 @@ body {
   flex-wrap: wrap;
   white-space: normal !important;
 }
+
+/* Print: .print-only shows only on paper, .screen-only only on screen (e.g. course handout).
+   Applies to every page: buttons, toasts, dialogs and tooltips never belong on paper. */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+
+    /* Defining margin boxes makes Chrome/Edge drop their own header and footer, which print the
+       CMS URL (with the pkid) when 「頁首和頁尾」 is left checked. */
+    @top-center {
+      content: '';
+    }
+
+    @bottom-center {
+      content: counter(page) ' / ' counter(pages);
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+      font-size: 9pt;
+    }
+  }
+
+  body {
+    background: #fff;
+  }
+
+  p-toast,
+  p-confirmdialog,
+  p-button,
+  .p-tooltip,
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+}

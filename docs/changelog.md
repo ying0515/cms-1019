@@ -2,6 +2,13 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-21 — Course handout (PR #23 review): today's date for the QR rule is refreshed on `beforeprint`; a blank courseId omits the 簡介代碼 part and prints the fallback line instead of a QR; handout specs use a mocked clock (no 2036 time bomb).
+- 2026-10-21 — Print `@page` margin boxes: page number `n / N` at the bottom; defining them also suppresses the Chrome/Edge header and footer (no CMS URL on printed pages, verified with headless `--print-to-pdf`).
+- 2026-10-21 — `PublishStatusLookup` gains `IsPublished` (course JOIN + `GET /api/lookups/publish-statuses`); the course handout prints its QR only when the status is published and today is within `ScheduleOn`–`ScheduleOff`, otherwise a 「課程網頁上架後，可至 uuu.com.tw 查詢本課程」 line.
+- 2026-10-21 — Course handout review fixes (/autoplan): reading-order whitelist + `HANDOUT_EXCLUDED_KEYS` classification spec, typed `ContentKey`; hours ≤0 omitted, trimmed courseId, 「掃描查看課程網頁」 caption, `CourseQrCode` `showCaption` (global figcaption print rule removed); `print()` try/finally + error toast, title falls back to course title; persistent print hint on the detail page; print hides `.p-tooltip`, resets `.layout` min-height; `docs/conventions.md` › Print.
+- 2026-10-21 — CLAUDE.md compacted: Agent skills sections folded into the 「Read before」 list (details stay in `docs/agents/*.md`).
+- 2026-10-21 — Course detail 「列印講義」: print-only `<app-course-handout>` (whitelist `HANDOUT_CONTENT_KEYS`, QR without URL caption), global `.print-only`/`.screen-only` + A4 `@page` rules, shell print reset in `app.scss`; title set to `{courseId}-課程講義` while printing; unit tests.
+- 2026-10-21 — Design: course handout print (B: print-only `<app-course-handout>`, whitelist fields, browser print-to-PDF). See `docs/designs/course-handout-print.md`.
 - 2026-10-20 — #1: applied `database/agent.sql` (ModelPrice, AgentTokenUsage) to local `CMS`; added re-runnable `database/agent-seed.sql` with Opus/Sonnet/Haiku 5.5 prices (USD/1M; cache write = 1h rate; Haiku cache read assumed 0.1x input).
 - 2026-10-20 — Agent token usage PRD published as GitHub issue #6 (parent of #1–#5); cost calculation moved from SQL to a shared C# calculator so it can be tested at the HTTP seam (specs and issues #2/#3 updated).
 - 2026-10-20 — Designed agent token usage report: specs `spec/agent/AgentTokenUsage.md`, `spec/agent/ModelPrice.md`; schema `database/agent.sql` (ModelPrice, AgentTokenUsage; not yet applied); build tracked in GitHub issues #1–#5.

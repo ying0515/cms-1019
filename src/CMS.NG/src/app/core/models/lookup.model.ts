@@ -12,6 +12,7 @@ export interface AppRoleLookup {
 export interface PublishStatusLookup {
   pkid: number;
   description: string;
+  isPublished: boolean;
 }
 
 export interface PartnerLookup {

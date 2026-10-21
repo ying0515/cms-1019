@@ -24,7 +24,7 @@ public class LookupRepository(IDbConnectionFactory db) : ILookupRepository
     {
         using var conn = await db.CreateOpenConnectionAsync();
         return await conn.QueryAsync<PublishStatusLookup>(
-            "SELECT pkid, Description FROM PublishStatus ORDER BY pkid ASC");
+            "SELECT pkid, Description, IsPublished FROM PublishStatus ORDER BY pkid ASC");
     }
 
     public async Task<IEnumerable<PartnerLookup>> GetPartnersAsync()

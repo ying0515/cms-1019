@@ -1,0 +1,84 @@
+// No :host display rule: the global .print-only class decides when the handout is shown.
+// Long text flows onto more pages; never clip (overflow / max-height) or shrink the font.
+.handout {
+  color: #000;
+  font-size: 11pt;
+  line-height: 1.6;
+}
+
+.handout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #000;
+  break-inside: avoid;
+}
+
+.handout-heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.handout-title {
+  margin: 0 0 4px;
+  font-size: 18pt;
+  line-height: 1.3;
+}
+
+.handout-official-title,
+.handout-meta,
+.handout-partner {
+  margin: 2px 0;
+}
+
+.handout-qr {
+  flex: none;
+  width: 34mm;
+  text-align: center;
+
+  app-course-qr-code {
+    display: block;
+  }
+}
+
+.handout-offline {
+  flex: none;
+  width: 34mm;
+  margin: 0;
+  font-size: 9pt;
+}
+
+.handout-qr-caption {
+  margin: 2px 0 0;
+  font-size: 9pt;
+}
+
+.handout-section {
+  margin-bottom: 12px;
+
+  h2 {
+    margin: 0 0 4px;
+    font-size: 13pt;
+    break-after: avoid;
+  }
+
+  ul {
+    margin: 0;
+    padding-left: 1.4em;
+  }
+
+  li {
+    break-inside: avoid;
+  }
+}
+
+.handout-text {
+  margin: 0;
+  orphans: 3;
+  widows: 3;
+  white-space: pre-wrap;
+  word-break: break-word;
+}

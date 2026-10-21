@@ -4,16 +4,27 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { ChipModule } from 'primeng/chip';
+import { TooltipModule } from 'primeng/tooltip';
 
 import { Course } from '@core/models/course.model';
 import { CertificationLookup } from '@core/models/lookup.model';
 import { CourseService } from '@core/services/course.service';
 import { httpErrorMessage } from '@core/utils/http-error.util';
+import { CONTENT_FIELDS } from '../course-content-fields';
+import { CourseHandout } from '../course-handout/course-handout';
 import { CourseQrCode } from '../course-qr-code/course-qr-code';
 
 @Component({
   selector: 'app-course-detail',
-  imports: [DecimalPipe, RouterLink, ButtonModule, ChipModule, CourseQrCode],
+  imports: [
+    DecimalPipe,
+    RouterLink,
+    ButtonModule,
+    ChipModule,
+    TooltipModule,
+    CourseHandout,
+    CourseQrCode,
+  ],
   templateUrl: './course-detail.html',
   styleUrl: './course-detail.scss',
 })
@@ -29,16 +40,7 @@ export class CourseDetail implements OnInit {
   readonly notFound = signal(false);
 
   /** Long text fields shown in the 課程內容 panel, in display order. */
-  readonly contentFields: { key: keyof Course; label: string }[] = [
-    { key: 'material', label: '教材' },
-    { key: 'objective', label: '課程目標' },
-    { key: 'target', label: '適合對象' },
-    { key: 'prerequisites', label: '先備知識' },
-    { key: 'outline', label: '課程大綱' },
-    { key: 'towardCertOrExam', label: '考試／認證說明' },
-    { key: 'note', label: '備註' },
-    { key: 'otherInfo', label: '其他資訊' },
-  ];
+  readonly contentFields = CONTENT_FIELDS;
 
   ngOnInit(): void {
     // pkid is int IDENTITY
@@ -79,6 +81,26 @@ export class CourseDetail implements OnInit {
 
   back(): void {
     this.router.navigate(['/courses']);
+  }
+
+  /** Prints the handout; the document title becomes the default "Save as PDF" file name. */
+  print(): void {
+    const item = this.item();
+    if (!item) return;
+    // Read now, not at construction: the router sets the route title after creating the component.
+    const pageTitle = document.title;
+    document.title = `${item.courseId.trim() || item.title.trim()}-課程講義`;
+    try {
+      window.print();
+    } catch {
+      this.messages.add({
+        severity: 'error',
+        summary: '無法開啟列印視窗',
+        detail: '請改用 Ctrl+P 列印',
+      });
+    } finally {
+      document.title = pageTitle;
+    }
   }
 
   edit(): void {

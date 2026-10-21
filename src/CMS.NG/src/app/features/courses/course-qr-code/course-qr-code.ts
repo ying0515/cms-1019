@@ -29,6 +29,8 @@ const TITLE_MAX_FONT_PX = 22;
 export class CourseQrCode {
   readonly pkid = input.required<number>();
   readonly courseId = input.required<string>();
+  /** Shows the public URL under the code; the printed handout turns it off. */
+  readonly showCaption = input(true);
 
   readonly title = computed(() => this.courseId().trim());
   readonly url = computed(() => courseQrUrl(this.pkid(), this.courseId()));

@@ -18,8 +18,8 @@ export const COURSE_GROUPS: CourseGroupLookup[] = [
 ];
 
 export const PUBLISH_STATUSES: PublishStatusLookup[] = [
-  { pkid: 1, description: '草稿' },
-  { pkid: 2, description: '已發布' },
+  { pkid: 1, description: '草稿', isPublished: false },
+  { pkid: 2, description: '已發布', isPublished: true },
 ];
 
 export const CERTIFICATIONS: CertificationLookup[] = [

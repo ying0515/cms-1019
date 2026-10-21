@@ -183,6 +183,7 @@ public class CoursesControllerTests : IDisposable
         Assert.Equal("AWS-SAA", item.CourseId);
         Assert.Equal("AWS", item.Partner?.Name);
         Assert.Null(item.CourseGroupPkid);
+        Assert.False(item.PublishStatus?.IsPublished); // 草稿
         Assert.Empty(item.Certifications);
         Assert.Equal(["系統管理", "軟體開發"], item.JobCategories.Select(j => j.Description));
     }
