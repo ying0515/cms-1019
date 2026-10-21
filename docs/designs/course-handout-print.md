@@ -204,7 +204,8 @@ print(): void {
     - 對照組：頁首印日期與分頁標題，頁尾印 `http://localhost:4300/courses/3340` 與頁數，證實 P8（網址含 pkid）。
     - 只加 `@bottom-center { content: counter(page) ' / ' counter(pages) }`：瀏覽器頁尾（含網址）消失，改印「1 / 1」；瀏覽器頁首（日期、標題）仍在。
     - 再加空的 `@top-center { content: '' }`：瀏覽器頁首也消失。兩個瀏覽器結果相同。
-    - 結論：定義 margin box 就能壓掉瀏覽器頁首頁尾，不必依賴使用者取消勾選，還多了頁碼。margin box 預設是襯線字型，採用時要指定字型。尚未在互動式列印視窗確認；`margin: 0` 方案因 margin box 已可行而未測。使用者決定採用（2026-10-21）：全域 `@page` 加上 `@top-center`（空）與 `@bottom-center`（頁碼），常駐提示與 tooltip 保留當保險。採用後以長課程（7 頁）在 Chrome、Edge 重印確認：每頁印「n / 7」，沒有瀏覽器頁首頁尾。互動式列印視窗仍待人工確認。
+    - 結論：定義 margin box 就能壓掉瀏覽器頁首頁尾，不必依賴使用者取消勾選，還多了頁碼。margin box 預設是襯線字型，採用時要指定字型。尚未在互動式列印視窗確認；`margin: 0` 方案因 margin box 已可行而未測。使用者決定採用（2026-10-21）：全域 `@page` 加上 `@top-center`（空）與 `@bottom-center`（頁碼），常駐提示與 tooltip 保留當保險。採用後以長課程（7 頁）在 Chrome、Edge 重印確認：每頁印「n / 7」，沒有瀏覽器頁首頁尾。
+  - **互動式列印視窗人工確認（2026-10-21，使用者在 GStack Browser／Chromium 對 COMPJ-M 操作）**：頁碼正常；「頁首和頁尾」保持勾選時仍沒有日期、標題或網址；沒有印出 tooltip；「另存為 PDF」預設檔名為 `COMPJ-M-課程講義`（P7 成立）；關閉列印視窗後分頁標題還原為「檢視課程」。Edge 的互動式視窗未另外測試。
 
 ## Distribution Plan
 
