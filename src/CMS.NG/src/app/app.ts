@@ -1,7 +1,8 @@
-import { Component, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
+import { AuthService } from '@core/services/auth.service';
 
 export interface NavItem {
   label: string;
@@ -23,7 +24,16 @@ export interface NavGroup {
   styleUrl: './app.scss',
 })
 export class App {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly collapsed = signal(false);
+  protected readonly user = this.auth.user;
+  /** Sidebar only for a usable session: login and the forced password change render alone. */
+  protected readonly showShell = computed(() => {
+    const user = this.user();
+    return !!user && !user.mustChangePassword;
+  });
 
   protected readonly navGroups: NavGroup[] = [
     {
@@ -68,5 +78,9 @@ export class App {
 
   toggleSidebar(): void {
     this.collapsed.update((v) => !v);
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe(() => this.router.navigate(['/login']));
   }
 }

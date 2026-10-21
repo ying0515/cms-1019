@@ -1,4 +1,3 @@
-using System.Text.Json;
 using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Repositories;
@@ -10,7 +9,6 @@ namespace CMS.API.Controllers;
 [Route("api/app-users")]
 public class AppUsersController(IAppUserRepository repository, ISysConfigRepository sysConfig) : ControllerBase
 {
-    private const string AppConfigKey = "appConfig";
     private const string DefaultPasswordMissing = "系統設定 appConfig 未設定 defaultPassword";
 
     [HttpGet]
@@ -66,7 +64,7 @@ public class AppUsersController(IAppUserRepository repository, ISysConfigReposit
         }
     }
 
-    /// <summary>Resets PasswordHash to the current default password. Takes no body.</summary>
+    /// <summary>Resets PasswordHash to the current default password and forces a change at next login. Takes no body.</summary>
     [HttpPost("{id:int}/reset-password")]
     public async Task<IActionResult> ResetPassword(int id)
     {
@@ -86,26 +84,9 @@ public class AppUsersController(IAppUserRepository repository, ISysConfigReposit
         return deleted ? NoContent() : NotFound();
     }
 
-    /// <summary>SHA-256 of SysConfig[appConfig].defaultPassword, or null if it is not configured.</summary>
+    /// <summary>PBKDF2 hash of SysConfig[appConfig].defaultPassword, or null if it is not configured.</summary>
     private async Task<string?> GetDefaultPasswordHashAsync()
-    {
-        var json = await sysConfig.GetValueAsync(AppConfigKey);
-        if (string.IsNullOrWhiteSpace(json)) return null;
-        try
-        {
-            using var doc = JsonDocument.Parse(json);
-            if (doc.RootElement.ValueKind == JsonValueKind.Object
-                && doc.RootElement.TryGetProperty("defaultPassword", out var value)
-                && value.ValueKind == JsonValueKind.String
-                && value.GetString() is { Length: > 0 } password)
-                return PasswordHasher.Sha256Hex(password);
-        }
-        catch (JsonException)
-        {
-            // Malformed appConfig is treated as "not configured".
-        }
-        return null;
-    }
+        => await sysConfig.GetDefaultPasswordAsync() is { } password ? PasswordHasher.Hash(password) : null;
 
     private ObjectResult DefaultPasswordError()
         => StatusCode(StatusCodes.Status500InternalServerError, new { message = DefaultPasswordMissing });

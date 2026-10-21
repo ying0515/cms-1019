@@ -29,6 +29,7 @@ CREATE TABLE [dbo].[AppUser](
 	[IsActive] [bit] NOT NULL,
 	[PasswordHash] [nvarchar](800) NOT NULL,
 	[PasswordUpdatedTime] [datetime] NULL,
+	[MustChangePassword] [bit] NOT NULL,
  CONSTRAINT [PK_AppUser] PRIMARY KEY CLUSTERED 
 (
 	[UserId] ASC
@@ -54,6 +55,8 @@ GO
 ALTER TABLE [dbo].[AppRole] ADD  CONSTRAINT [DF_AppRole_Privilege]  DEFAULT ((100)) FOR [PermissionLevel]
 GO
 ALTER TABLE [dbo].[AppUser] ADD  CONSTRAINT [DF_AppUser_IsActive]  DEFAULT ((1)) FOR [IsActive]
+GO
+ALTER TABLE [dbo].[AppUser] ADD  CONSTRAINT [DF_AppUser_MustChangePassword]  DEFAULT ((1)) FOR [MustChangePassword]
 GO
 ALTER TABLE [dbo].[AppUserRole]  WITH CHECK ADD  CONSTRAINT [FK_AppUserRole_AppRole] FOREIGN KEY([RoleId])
 REFERENCES [dbo].[AppRole] ([RoleId])

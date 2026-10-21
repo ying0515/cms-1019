@@ -111,7 +111,16 @@ public class AppUsersControllerTests : IDisposable
         Assert.NotNull(created.PasswordUpdatedTime);
         Assert.Equal($"/api/app-users/{created.Pkid}", response.Headers.Location?.AbsolutePath, ignoreCase: true);
 
-        Assert.Equal(PasswordHasher.Sha256Hex(FakeSysConfigRepository.DefaultPassword), _factory.AppUsers.PasswordHashOf(created.Pkid));
+        AssertDefaultPassword(created.Pkid);
+    }
+
+    /// <summary>Stored hash is a PBKDF2 hash of the default password, and a change is forced at login.</summary>
+    private void AssertDefaultPassword(int pkid)
+    {
+        var hash = _factory.AppUsers.PasswordHashOf(pkid);
+        Assert.NotNull(hash);
+        Assert.Equal(PasswordCheck.Success, PasswordHasher.Verify(hash, FakeSysConfigRepository.DefaultPassword));
+        Assert.True(_factory.AppUsers.MustChangePasswordOf(pkid));
     }
 
     [Fact]
@@ -122,7 +131,7 @@ public class AppUsersControllerTests : IDisposable
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<AppUser>();
-        Assert.Equal(PasswordHasher.Sha256Hex(FakeSysConfigRepository.DefaultPassword), _factory.AppUsers.PasswordHashOf(created!.Pkid));
+        AssertDefaultPassword(created!.Pkid);
     }
 
     [Fact]
@@ -218,11 +227,12 @@ public class AppUsersControllerTests : IDisposable
     [Fact]
     public async Task ResetPassword_Existing_Returns204_AndSetsDefaultHash()
     {
-        var response = await _client.PostAsync($"{BaseUrl}/1/reset-password", null);
+        // pkid 2 (jenny): pkid 1 is the signed-in test user, who would then have to change password
+        var response = await _client.PostAsync($"{BaseUrl}/2/reset-password", null);
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        Assert.Equal(PasswordHasher.Sha256Hex(FakeSysConfigRepository.DefaultPassword), _factory.AppUsers.PasswordHashOf(1));
-        Assert.NotNull((await _client.GetFromJsonAsync<AppUser>($"{BaseUrl}/1"))!.PasswordUpdatedTime);
+        AssertDefaultPassword(2);
+        Assert.NotNull((await _client.GetFromJsonAsync<AppUser>($"{BaseUrl}/2"))!.PasswordUpdatedTime);
     }
 
     [Fact]

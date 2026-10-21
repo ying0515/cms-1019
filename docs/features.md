@@ -2,7 +2,8 @@
 
 | Feature | Backend | Frontend routes |
 |---------|---------|-----------------|
-| AppUser (系統管理 Admin › 使用者) | `AppUsersController`, `AppUserRepository`, `SysConfigRepository`; n-n roles via `AppUserRole`; backend-only PasswordHash (SHA-256 of `SysConfig` appConfig `defaultPassword`); `POST /api/app-users/{id}/reset-password`; `GET /api/lookups/app-roles` | `/app-users`, `/app-users/new`, `/app-users/:id`, `/app-users/:id/edit` |
+| Sign-in (all pages) | `AuthController` (`POST /api/auth/login`, `/logout`, `/change-password`, `GET /api/auth/me`), `Auth/CmsAuth.cs` (cookie `CMS.Auth`, fallback policy: signed in and no `MustChangePassword`; session stamp check per request) | `/login`, `/change-password`; every other route behind `authGuard`; sidebar user / 變更密碼 / 登出 |
+| AppUser (系統管理 Admin › 使用者) | `AppUsersController`, `AppUserRepository`, `SysConfigRepository`; n-n roles via `AppUserRole`; backend-only PasswordHash (PBKDF2 of `SysConfig` appConfig `defaultPassword`, sets `MustChangePassword`); `POST /api/app-users/{id}/reset-password`; `GET /api/lookups/app-roles` | `/app-users`, `/app-users/new`, `/app-users/:id`, `/app-users/:id/edit` |
 | AppRole (系統管理 Admin › 角色) | `AppRolesController`, `AppRoleRepository`; n-n users via `AppUserRole`; `GET /api/lookups/app-users` | `/app-roles` (accepts `?userId=`), `/app-roles/new`, `/app-roles/:id`, `/app-roles/:id/edit` |
 | PublishStatus (系統管理 Admin › 發布狀態) | `PublishStatusesController`, `PublishStatusRepository`; user-supplied tinyint pkid; delete → 409 via `ReferenceConflictException` (SQL 547); `GET /api/lookups/publish-statuses` | `/publish-statuses`, `/publish-statuses/new`, `/publish-statuses/:id`, `/publish-statuses/:id/edit` |
 | Partner (課程管理 Course › 合作廠商) | `PartnersController`, `PartnerRepository`; smallint IDENTITY pkid; delete → 409 via `ReferenceConflictException`; `GET /api/lookups/partners` | `/partners`, `/partners/new`, `/partners/:id`, `/partners/:id/edit` |

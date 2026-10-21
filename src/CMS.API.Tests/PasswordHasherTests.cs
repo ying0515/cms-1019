@@ -11,4 +11,34 @@ public class PasswordHasherTests
     {
         Assert.Equal(expected, PasswordHasher.Sha256Hex(input));
     }
+
+    [Fact]
+    public void Hash_IsSalted_AndVerifies()
+    {
+        var first = PasswordHasher.Hash("S3cret-pass");
+        var second = PasswordHasher.Hash("S3cret-pass");
+
+        Assert.NotEqual(first, second);
+        Assert.Equal(PasswordCheck.Success, PasswordHasher.Verify(first, "S3cret-pass"));
+        Assert.Equal(PasswordCheck.Failed, PasswordHasher.Verify(first, "s3cret-pass"));
+    }
+
+    [Fact]
+    public void Verify_LegacySha256_SucceedsWithRehashNeeded()
+    {
+        var legacy = PasswordHasher.Sha256Hex("abc");
+
+        Assert.Equal(PasswordCheck.SuccessRehashNeeded, PasswordHasher.Verify(legacy, "abc"));
+        Assert.Equal(PasswordCheck.SuccessRehashNeeded, PasswordHasher.Verify(legacy.ToUpperInvariant(), "abc"));
+        Assert.Equal(PasswordCheck.Failed, PasswordHasher.Verify(legacy, "abd"));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("seed-hash")]
+    [InlineData("AQAAAAE=")]
+    public void Verify_UnrecognizedHash_Fails(string storedHash)
+    {
+        Assert.Equal(PasswordCheck.Failed, PasswordHasher.Verify(storedHash, "anything"));
+    }
 }

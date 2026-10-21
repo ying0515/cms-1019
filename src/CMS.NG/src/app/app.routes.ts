@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
+import { authGuard, signedInGuard } from '@core/auth/auth.guard';
 
-export const routes: Routes = [
+// Every back-office page requires sign-in (and a non-default password).
+const backOfficeRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'app-roles' },
   {
     path: 'app-users',
@@ -171,4 +173,20 @@ export const routes: Routes = [
       ),
   },
   { path: '**', redirectTo: 'app-roles' },
+];
+
+export const routes: Routes = [
+  {
+    path: 'login',
+    title: '登入',
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
+  {
+    path: 'change-password',
+    title: '變更密碼',
+    canActivate: [signedInGuard],
+    loadComponent: () =>
+      import('./features/auth/change-password/change-password').then((m) => m.ChangePassword),
+  },
+  { path: '', canActivateChild: [authGuard], children: backOfficeRoutes },
 ];
