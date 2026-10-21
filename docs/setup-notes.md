@@ -18,7 +18,9 @@ Layout, environment, tooling gotchas and git. Features: `docs/features.md`. Chan
 ## Environment
 
 - DB: SQL Server Express `.\SQLEXPRESS`, database `CMS`, connection string `ConnectionStrings:CMS` in `CMS.API/appsettings.json`.
-- API base URL is `environment.apiUrl` (no dev proxy; API CORS allows any loopback origin).
+- API base URL is `environment.apiUrl` (no dev proxy; API CORS allows any loopback origin, with credentials for the session cookie).
+- Sign-in: log in at `/login` with an `AppUser` account. Accounts created or reset by an admin hold the `SysConfig` default password and must change it first. Existing DBs need `database/auth-must-change-password.sql` once (`sqlcmd -S .\SQLEXPRESS -E -C -b -i database\auth-must-change-password.sql`); after it, every existing user must change password at the next login. Swagger: call `POST /api/auth/login` in Swagger first; the cookie then covers the other calls.
+- Development `AllowedHosts` is `localhost;127.0.0.1;[::1]` (blocks DNS rebinding); open the API by one of those names.
 - Production build: `cd src\CMS.NG; npm run build`.
 - Dapper `date`/`time` handlers are registered via `DapperConfig.RegisterTypeHandlers()`.
 

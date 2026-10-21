@@ -86,8 +86,8 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
         try
         {
             var pkid = await conn.ExecuteScalarAsync<int>("""
-                INSERT INTO AppUser (UserId, UserName, IsActive, PasswordHash, PasswordUpdatedTime)
-                VALUES (@UserId, @UserName, @IsActive, @PasswordHash, GETUTCDATE());
+                INSERT INTO AppUser (UserId, UserName, IsActive, PasswordHash, PasswordUpdatedTime, MustChangePassword)
+                VALUES (@UserId, @UserName, @IsActive, @PasswordHash, GETUTCDATE(), 1);
                 SELECT CAST(SCOPE_IDENTITY() AS int);
                 """, new { request.UserId, request.UserName, request.IsActive, PasswordHash = passwordHash }, tx);
 
@@ -112,7 +112,7 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
                 "SELECT UserId FROM AppUser WHERE pkid = @Pkid", new { request.Pkid }, tx);
             if (userId is null) return false;
 
-            // PasswordHash is only changed by ResetPasswordAsync.
+            // PasswordHash is only changed by the reset / change / rehash password methods.
             await conn.ExecuteAsync("""
                 UPDATE AppUser
                 SET UserName = @UserName, IsActive = @IsActive
@@ -134,9 +134,45 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
         using var conn = await db.CreateOpenConnectionAsync();
         return await conn.ExecuteAsync("""
             UPDATE AppUser
-            SET PasswordHash = @passwordHash, PasswordUpdatedTime = GETUTCDATE()
+            SET PasswordHash = @passwordHash, PasswordUpdatedTime = GETUTCDATE(), MustChangePassword = 1
             WHERE pkid = @pkid
             """, new { pkid, passwordHash }) > 0;
+    }
+
+    private const string CredentialSql = """
+        SELECT pkid, UserId, UserName, IsActive, PasswordHash, PasswordUpdatedTime, MustChangePassword
+        FROM AppUser
+        """;
+
+    public async Task<AppUserCredential?> GetCredentialAsync(string userId)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
+            CredentialSql + " WHERE UserId = @userId", new { userId });
+    }
+
+    public async Task<AppUserCredential?> GetCredentialAsync(int pkid)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
+            CredentialSql + " WHERE pkid = @pkid", new { pkid });
+    }
+
+    public async Task<bool> ChangePasswordAsync(int pkid, string passwordHash)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.ExecuteAsync("""
+            UPDATE AppUser
+            SET PasswordHash = @passwordHash, PasswordUpdatedTime = GETUTCDATE(), MustChangePassword = 0
+            WHERE pkid = @pkid
+            """, new { pkid, passwordHash }) > 0;
+    }
+
+    public async Task<bool> RehashPasswordAsync(int pkid, string passwordHash)
+    {
+        using var conn = await db.CreateOpenConnectionAsync();
+        return await conn.ExecuteAsync(
+            "UPDATE AppUser SET PasswordHash = @passwordHash WHERE pkid = @pkid", new { pkid, passwordHash }) > 0;
     }
 
     public async Task<bool> DeleteAsync(int pkid)

@@ -1,20 +1,74 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { of } from 'rxjs';
+import { CurrentUser } from '@core/models/auth.model';
+import { AuthService } from '@core/services/auth.service';
 import { App } from './app';
 
 describe('App', () => {
+  let user: ReturnType<typeof signal<CurrentUser | null | undefined>>;
+  let auth: jasmine.SpyObj<AuthService>;
+
   beforeEach(async () => {
+    user = signal<CurrentUser | null | undefined>({
+      userId: 'helen',
+      userName: 'Helen Wu',
+      mustChangePassword: false,
+    });
+    auth = jasmine.createSpyObj<AuthService>('AuthService', ['logout'], { user });
+    auth.logout.and.returnValue(of(void 0));
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([]), provideNoopAnimations(), MessageService, ConfirmationService],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        MessageService,
+        ConfirmationService,
+        { provide: AuthService, useValue: auth },
+      ],
     }).compileComponents();
   });
 
   it('should create the app', () => {
     const fixture = TestBed.createComponent(App);
     expect(fixture.componentInstance).toBeTruthy();
+  });
+
+  it('hides the sidebar when signed out or while a password change is forced', () => {
+    const fixture = TestBed.createComponent(App);
+    const el: HTMLElement = fixture.nativeElement;
+
+    user.set(null);
+    fixture.detectChanges();
+    expect(el.querySelector('.sidebar')).toBeNull();
+
+    user.set({ userId: 'helen', userName: 'Helen Wu', mustChangePassword: true });
+    fixture.detectChanges();
+    expect(el.querySelector('.sidebar')).toBeNull();
+  });
+
+  it('shows the signed-in user, 變更密碼 and 登出 in the sidebar', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const footer: HTMLElement = fixture.nativeElement.querySelector('[data-testid="sidebar-user"]');
+
+    expect(footer.textContent).toContain('Helen Wu');
+    expect(footer.querySelector('a')?.getAttribute('href')).toBe('/change-password');
+  });
+
+  it('登出 signs out and goes to /login', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate').and.resolveTo(true);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('.logout') as HTMLButtonElement).click();
+
+    expect(auth.logout).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/login']);
   });
 
   it('renders 上稿作業 FeaturedPromoItem under 首頁 Home as the first group', () => {

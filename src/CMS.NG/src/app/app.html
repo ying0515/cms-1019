@@ -1,3 +1,4 @@
+@if (showShell()) {
 <div class="layout" [class.collapsed]="collapsed()">
   <aside class="sidebar">
     <div class="sidebar-brand">
@@ -28,12 +29,29 @@
         }
       }
     </nav>
+
+    <div class="sidebar-user" data-testid="sidebar-user">
+      <span class="nav-label user-name" [title]="user()?.userId ?? ''">
+        <i class="pi pi-user"></i> {{ user()?.userName }}
+      </span>
+      <a routerLink="/change-password" title="變更密碼">
+        <i class="pi pi-key"></i>
+        <span class="nav-label">變更密碼</span>
+      </a>
+      <button type="button" class="logout" (click)="logout()" title="登出">
+        <i class="pi pi-sign-out"></i>
+        <span class="nav-label">登出</span>
+      </button>
+    </div>
   </aside>
 
   <main class="content">
     <router-outlet />
   </main>
 </div>
+} @else {
+  <router-outlet />
+}
 
 <p-toast position="top-right" />
 <p-confirmdialog />
