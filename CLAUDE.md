@@ -26,3 +26,16 @@ cd src\CMS.NG; npx ng test --watch=false --browsers=ChromeHeadless
 - **Issue tracker**: GitHub Issues `ying0515/cms-1019` via `gh`. See `docs/agents/issue-tracker.md`.
 - **Triage labels**: the default five (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
 - **Domain docs**: single-context, root `GLOSSARY.md` + `docs/adr/`. See `docs/agents/domain.md`.
+
+## gstack (recommended)
+
+This project uses [gstack](https://github.com/garrytan/gstack) for AI-assisted workflows.
+Install it for the best experience:
+
+```bash
+git clone --depth 1 https://github.com/garrytan/gstack.git ~/.claude/skills/gstack
+cd ~/.claude/skills/gstack && ./setup --team
+```
+
+Skills like /qa, /ship, /review, /investigate, and /browse become available after install.
+Use /browse for all web browsing (Aside first, the bundled gstack browser as fallback); never use the `mcp__claude-in-chrome__*` tools. Use ~/.claude/skills/gstack/... for gstack file paths.
