@@ -55,6 +55,15 @@ describe('CourseQrCode', () => {
     expect(mismatches).toBe(0);
   });
 
+  it('hides the URL caption when showCaption is false', async () => {
+    const fixture = await create(1, 'AZ-104');
+    fixture.componentRef.setInput('showCaption', false);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('figcaption')).toBeNull();
+    expect(canvasOf(fixture)).not.toBeNull();
+  });
+
   it('re-encodes when the record changes', async () => {
     const fixture = await create(1, 'AZ-104');
     fixture.componentRef.setInput('pkid', 2);

@@ -1,0 +1,44 @@
+<article class="handout">
+  <header class="handout-header">
+    <div class="handout-heading">
+      <h1 class="handout-title">{{ course().title }}</h1>
+      @if (course().officialTitle; as official) {
+        <p class="handout-official-title">{{ official }}</p>
+      }
+      <p class="handout-meta">{{ meta() }}</p>
+      @if (course().partner; as partner) {
+        <p class="handout-partner">原廠 {{ partner.name }}</p>
+      }
+    </div>
+    @if (isOnline()) {
+      <div class="handout-qr">
+        <app-course-qr-code
+          [pkid]="course().pkid"
+          [courseId]="course().courseId"
+          [showCaption]="false"
+        />
+        <p class="handout-qr-caption">掃描查看課程網頁</p>
+      </div>
+    } @else {
+      <p class="handout-offline">課程網頁上架後，可至 uuu.com.tw 查詢本課程</p>
+    }
+  </header>
+
+  @for (s of sections(); track s.key) {
+    <section class="handout-section" [attr.data-field]="s.key">
+      <h2>{{ s.label }}</h2>
+      <p class="handout-text">{{ s.text }}</p>
+    </section>
+  }
+
+  @if (course().certifications.length > 0) {
+    <section class="handout-section handout-certifications">
+      <h2>相關認證</h2>
+      <ul>
+        @for (cert of course().certifications; track cert.pkid) {
+          <li>{{ certificationText(cert) }}</li>
+        }
+      </ul>
+    </section>
+  }
+</article>

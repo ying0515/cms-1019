@@ -34,7 +34,7 @@ public class FakeLookupRepository(FakeAppRoleRepository appRoles, FakePublishSta
     public Task<IEnumerable<PublishStatusLookup>> GetPublishStatusesAsync()
         => Task.FromResult<IEnumerable<PublishStatusLookup>>(publishStatuses.Items
             .OrderBy(s => s.Pkid)
-            .Select(s => new PublishStatusLookup { Pkid = s.Pkid, Description = s.Description })
+            .Select(s => new PublishStatusLookup { Pkid = s.Pkid, Description = s.Description, IsPublished = s.IsPublished })
             .ToList());
 
     public Task<IEnumerable<PartnerLookup>> GetPartnersAsync()

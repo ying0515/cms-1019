@@ -88,7 +88,7 @@ describe('CourseDetail', () => {
     service.getById.and.returnValue(of(CCNA));
     const el: HTMLElement = create().nativeElement;
 
-    const panel = el.querySelector('app-course-qr-code')?.closest('section');
+    const panel = el.querySelector('.screen-only app-course-qr-code')?.closest('section');
     expect(panel?.querySelector('h2')?.textContent).toBe('基本資料');
     expect(panel?.querySelector('.qr-url')?.getAttribute('href')).toBe(
       'https://www.uuu.com.tw/Course/Show/2/CCNA',
@@ -117,6 +117,115 @@ describe('CourseDetail', () => {
       expect(el.textContent).toContain('找不到此課程資料');
     });
   }
+
+  it('renders the print-only handout once the course loads', async () => {
+    await setup('1');
+    const el: HTMLElement = create().nativeElement;
+
+    const handout = el.querySelector('app-course-handout');
+    expect(handout?.classList).toContain('print-only');
+    expect(el.querySelector('.screen-only app-course-handout')).toBeNull();
+    expect(handout?.querySelector('.handout-title')?.textContent).toBe('Microsoft Azure 管理員');
+  });
+
+  it('renders no handout and no print button when the course is not found', async () => {
+    await setup('99');
+    service.getById.and.returnValue(
+      throwError(() => new HttpErrorResponse({ status: 404, statusText: 'Not Found' })),
+    );
+    const el: HTMLElement = create().nativeElement;
+
+    expect(el.querySelector('app-course-handout')).toBeNull();
+    expect(el.querySelector('[data-testid="print-handout"]')).toBeNull();
+    expect(el.querySelector('[data-testid="print-hint"]')).toBeNull();
+  });
+
+  it('reminds the user to turn off browser headers and footers, on the button and on screen', async () => {
+    await setup('1');
+    const el: HTMLElement = create().nativeElement;
+
+    expect(el.querySelector('[data-testid="print-handout"]')?.getAttribute('ptooltip')).toBe(
+      '列印時請取消勾選「頁首和頁尾」',
+    );
+    const hint = el.querySelector('.screen-only [data-testid="print-hint"]');
+    expect(hint?.textContent).toContain('取消勾選「頁首和頁尾」');
+  });
+
+  describe('print()', () => {
+    let originalTitle: string;
+
+    beforeEach(() => (originalTitle = document.title));
+    afterEach(() => (document.title = originalTitle));
+
+    it('prints with "{courseId}-課程講義" as the document title, then restores it', async () => {
+      await setup('1');
+      const fixture = create();
+      document.title = '檢視課程';
+      let titleWhilePrinting = '';
+      spyOn(window, 'print').and.callFake(() => (titleWhilePrinting = document.title));
+
+      fixture.componentInstance.print();
+
+      expect(window.print).toHaveBeenCalledTimes(1);
+      expect(titleWhilePrinting).toBe('AZ-104-課程講義');
+      expect(document.title).toBe('檢視課程');
+    });
+
+    it('restores the title current at click time, not at construction', async () => {
+      await setup('1');
+      document.title = '課程 Course'; // previous route, as when the component is created
+      const fixture = create();
+      document.title = '檢視課程'; // router TitleStrategy runs after the component exists
+      spyOn(window, 'print');
+
+      fixture.componentInstance.print();
+      fixture.componentInstance.print();
+
+      expect(window.print).toHaveBeenCalledTimes(2);
+      expect(document.title).toBe('檢視課程');
+    });
+
+    it('uses the course title in the file name when the course id is blank', async () => {
+      await setup('1');
+      service.getById.and.returnValue(of({ ...AZ104, courseId: '  ' }));
+      const fixture = create();
+      let titleWhilePrinting = '';
+      spyOn(window, 'print').and.callFake(() => (titleWhilePrinting = document.title));
+
+      fixture.componentInstance.print();
+
+      expect(titleWhilePrinting).toBe('Microsoft Azure 管理員-課程講義');
+    });
+
+    it('restores the title and shows an error toast when printing fails', async () => {
+      await setup('1');
+      const fixture = create();
+      document.title = '檢視課程';
+      spyOn(window, 'print').and.throwError('blocked');
+      const add = spyOn(TestBed.inject(MessageService), 'add');
+
+      fixture.componentInstance.print();
+
+      expect(document.title).toBe('檢視課程');
+      expect(add).toHaveBeenCalledOnceWith({
+        severity: 'error',
+        summary: '無法開啟列印視窗',
+        detail: '請改用 Ctrl+P 列印',
+      });
+    });
+
+    it('clicking 列印講義 prints', async () => {
+      await setup('1');
+      const fixture = create();
+      spyOn(window, 'print');
+
+      (fixture.nativeElement as HTMLElement)
+        .querySelector<HTMLButtonElement>('[data-testid="print-handout"] button')
+        ?.click();
+
+      expect(window.print).toHaveBeenCalledTimes(1);
+    });
+  });
 
   it('edit() navigates to the edit form', async () => {
     await setup('1');

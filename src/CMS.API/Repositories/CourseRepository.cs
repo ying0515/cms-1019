@@ -16,7 +16,7 @@ public class CourseRepository(IDbConnectionFactory db) : ICourseRepository
                c.Outline, c.TowardCertOrExam, c.Note, c.OtherInfo, c.CanRepeat,
                p.pkid, p.Name,
                cg.pkid, cg.Description,
-               ps.pkid, ps.Description
+               ps.pkid, ps.Description, ps.IsPublished
         FROM Course c
         INNER JOIN Partner p ON p.pkid = c.Partner_pkid
         LEFT JOIN CourseGroup cg ON cg.pkid = c.CourseGroup_pkid

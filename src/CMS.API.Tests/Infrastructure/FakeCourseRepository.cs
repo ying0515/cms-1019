@@ -202,7 +202,10 @@ public class FakeCourseRepository(FakePartnerRepository partners, FakeCourseGrou
             CanRepeat = r.CanRepeat,
             Partner = partner is null ? null : new PartnerLookup { Pkid = partner.Pkid, Name = partner.Name },
             CourseGroup = group is null ? null : new CourseGroupLookup { Pkid = group.Pkid, Description = group.Description },
-            PublishStatus = status is null ? null : new PublishStatusLookup { Pkid = status.Pkid, Description = status.Description },
+            PublishStatus = status is null ? null : new PublishStatusLookup
+            {
+                Pkid = status.Pkid, Description = status.Description, IsPublished = status.IsPublished,
+            },
         };
     }
 

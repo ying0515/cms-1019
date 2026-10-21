@@ -215,6 +215,7 @@ public class PublishStatusesControllerTests : IDisposable
 
         Assert.NotNull(items);
         Assert.Equal(["草稿", "已發布", "已下架"], items.Select(s => s.Description));
+        Assert.Equal([false, true, false], items.Select(s => s.IsPublished));
     }
 
     private async Task<List<PublishStatus>> PostQuery(PublishStatusQuery query)

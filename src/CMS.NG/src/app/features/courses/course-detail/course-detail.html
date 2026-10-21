@@ -1,8 +1,19 @@
+<div class="screen-only">
 <div class="page-header">
   <h1 class="title">檢視課程</h1>
   <div class="actions">
     <p-button label="返回" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
     @if (item()) {
+      <p-button
+        label="列印講義"
+        icon="pi pi-print"
+        severity="secondary"
+        [outlined]="true"
+        data-testid="print-handout"
+        pTooltip="列印時請取消勾選「頁首和頁尾」"
+        tooltipPosition="bottom"
+        (onClick)="print()"
+      />
       <p-button
         label="刪除"
         icon="pi pi-trash"
@@ -14,6 +25,12 @@
     }
   </div>
 </div>
+
+@if (item()) {
+  <p class="print-hint text-muted" data-testid="print-hint">
+    <i class="pi pi-info-circle"></i> 列印講義時，請在列印視窗取消勾選「頁首和頁尾」，以免印出系統網址。
+  </p>
+}
 
 @if (loading()) {
   <div class="panel text-muted"><i class="pi pi-spin pi-spinner"></i> 載入中…</div>
@@ -112,4 +129,9 @@
       </dd>
     </dl>
   </section>
+}
+</div>
+
+@if (item(); as c) {
+  <app-course-handout class="print-only" [course]="c" />
 }
