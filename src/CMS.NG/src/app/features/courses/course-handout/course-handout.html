@@ -5,7 +5,9 @@
       @if (course().officialTitle; as official) {
         <p class="handout-official-title">{{ official }}</p>
       }
-      <p class="handout-meta">{{ meta() }}</p>
+      @if (meta()) {
+        <p class="handout-meta">{{ meta() }}</p>
+      }
       @if (course().partner; as partner) {
         <p class="handout-partner">原廠 {{ partner.name }}</p>
       }

@@ -10,6 +10,13 @@ import { AZ104, CCNA, PUBLISH_STATUSES } from '../testing/course.fixtures';
 import { CourseHandout } from './course-handout';
 
 describe('CourseHandout', () => {
+  // Fixed clock: whether the QR prints depends on today versus the fixtures' schedules.
+  beforeEach(() => {
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 9, 21, 12));
+  });
+  afterEach(() => jasmine.clock().uninstall());
+
   function render(course: Course): HTMLElement {
     TestBed.configureTestingModule({ imports: [CourseHandout] });
     const fixture = TestBed.createComponent(CourseHandout);
@@ -63,6 +70,30 @@ describe('CourseHandout', () => {
     const el = render({ ...AZ104, courseId: ' AZ-104  ', hour: 0 });
 
     expect(el.querySelector('.handout-meta')?.textContent).toBe('簡介代碼 AZ-104');
+  });
+
+  it('leaves out a blank course id and prints the fallback line instead of the QR', () => {
+    const el = render({ ...AZ104, courseId: '  ' });
+
+    expect(el.querySelector('.handout-meta')?.textContent).toBe('時數 32 小時');
+    expect(el.querySelector('app-course-qr-code')).toBeNull();
+    expect(el.querySelector('.handout-offline')).not.toBeNull();
+  });
+
+  it('omits the meta line when there is neither a course id nor hours', () => {
+    const el = render({ ...AZ104, courseId: '', hour: 0 });
+
+    expect(el.querySelector('.handout-meta')).toBeNull();
+  });
+
+  it('re-checks the schedule against today right before printing', () => {
+    const el = render({ ...AZ104, scheduleOn: '2026-10-22' });
+    expect(el.querySelector('app-course-qr-code')).toBeNull();
+
+    jasmine.clock().mockDate(new Date(2026, 9, 22, 9)); // tab left open overnight
+    window.dispatchEvent(new Event('beforeprint'));
+
+    expect(el.querySelector('app-course-qr-code')).not.toBeNull();
   });
 
   it('prints the QR without its URL caption, with its own scan caption', () => {

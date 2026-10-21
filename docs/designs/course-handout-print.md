@@ -159,6 +159,9 @@ print(): void {
 
 公開課程頁打得開才印 QR，避免紙本講義上的 QR 連到錯誤頁。規則（使用者 2026-10-21 確認）：`publishStatus.isPublished` 為真，且 `scheduleOn ≤ 今天 ≤ scheduleOff`（本機日期）。否則在 QR 的位置改印「課程網頁上架後，可至 uuu.com.tw 查詢本課程」。
 
+- 「今天」在 `beforeprint` 時重新取得並立即重繪講義（按鈕與 Ctrl+P 都會觸發），分頁開過夜再列印也以列印當天判斷（PR #23 審查）。
+- 公開網址需要簡介代碼，所以簡介代碼空白時也改印替代文字；標題列的「簡介代碼」與「時數」各自為空時略過，兩者皆空則整行不印。
+
 - 後端：`PublishStatusLookup` 新增 `IsPublished`，課程查詢（`CourseRepository` 的 JOIN）與 `GET /api/lookups/publish-statuses` 都帶出這個欄位；fake 與 API 測試一併更新。
 - 測試：`course-handout.spec.ts` 以草稿狀態、已過下架日、尚未到上架日三種情況，斷言不印 QR、改印替代文字。
 
