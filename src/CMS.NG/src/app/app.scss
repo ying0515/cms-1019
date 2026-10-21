@@ -144,6 +144,11 @@
   padding: 20px 24px;
 }
 
+/* No sidebar (login, forced password change): the page fills the window itself */
+.layout.bare .content {
+  padding: 0;
+}
+
 .layout.collapsed {
   .sidebar {
     width: 56px;

@@ -50,6 +50,19 @@ describe('App', () => {
     expect(el.querySelector('.sidebar')).toBeNull();
   });
 
+  it('keeps the same router-outlet on sign-out, so the current page is not re-created', () => {
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+    const outlet = el.querySelector('router-outlet');
+
+    user.set(null);
+    fixture.detectChanges();
+
+    expect(el.querySelectorAll('router-outlet').length).toBe(1);
+    expect(el.querySelector('router-outlet')).toBe(outlet);
+  });
+
   it('shows the signed-in user, 變更密碼 and 登出 in the sidebar', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();

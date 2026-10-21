@@ -1,5 +1,7 @@
-@if (showShell()) {
-<div class="layout" [class.collapsed]="collapsed()">
+<!-- One router-outlet whether or not the sidebar shows: swapping outlets on sign-out would
+     re-create the current page and re-fire its API calls (all 401). -->
+<div class="layout" [class.collapsed]="collapsed()" [class.bare]="!showShell()">
+  @if (showShell()) {
   <aside class="sidebar">
     <div class="sidebar-brand">
       <span class="brand-text">CMS</span>
@@ -44,14 +46,12 @@
       </button>
     </div>
   </aside>
+  }
 
   <main class="content">
     <router-outlet />
   </main>
 </div>
-} @else {
-  <router-outlet />
-}
 
 <p-toast position="top-right" />
 <p-confirmdialog />
