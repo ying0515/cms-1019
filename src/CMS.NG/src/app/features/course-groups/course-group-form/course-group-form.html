@@ -1,0 +1,49 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">{{ isEdit ? '編輯課程群組' : '新增課程群組' }}</h1>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="取消"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button
+        type="submit"
+        label="儲存"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="loading()"
+      />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>課程群組資料</h2>
+
+    @if (isEdit) {
+      <div class="field">
+        <label for="pkid">主代碼</label>
+        <input pInputText id="pkid" [value]="pkid" disabled />
+      </div>
+    }
+
+    <div class="field">
+      <label for="description" class="required">群組名稱</label>
+      <input
+        pInputText
+        id="description"
+        formControlName="description"
+        maxlength="100"
+        placeholder="請輸入群組名稱"
+        [class.ng-dirty]="isInvalid('description')"
+      />
+      @if (isInvalid('description')) {
+        <small class="error">
+          {{ form.controls.description.hasError('maxlength') ? '最多 100 字' : '請輸入群組名稱' }}
+        </small>
+      }
+    </div>
+  </section>
+</form>

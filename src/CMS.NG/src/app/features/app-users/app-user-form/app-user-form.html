@@ -1,0 +1,86 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">{{ isEdit ? '編輯使用者' : '新增使用者' }}</h1>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="取消"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button
+        type="submit"
+        label="儲存"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="loading()"
+      />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>使用者資料</h2>
+
+    <div class="field">
+      <label for="userId" class="required">使用者帳號</label>
+      <input
+        pInputText
+        id="userId"
+        formControlName="userId"
+        placeholder="請輸入使用者帳號"
+        [class.ng-dirty]="isInvalid('userId')"
+      />
+      @if (isInvalid('userId')) {
+        <small class="error">
+          {{ form.controls.userId.hasError('maxlength') ? '最多 200 字' : '請輸入使用者帳號' }}
+        </small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="userName" class="required">使用者名稱</label>
+      <input
+        pInputText
+        id="userName"
+        formControlName="userName"
+        [class.ng-dirty]="isInvalid('userName')"
+      />
+      @if (isInvalid('userName')) {
+        <small class="error">
+          {{ form.controls.userName.hasError('maxlength') ? '最多 200 字' : '請輸入使用者名稱' }}
+        </small>
+      }
+    </div>
+
+    <div class="field flag">
+      <p-checkbox inputId="isActive" formControlName="isActive" [binary]="true" />
+      <label for="isActive">啟用</label>
+    </div>
+
+    @if (!isEdit) {
+      <small class="hint"><i class="pi pi-info-circle"></i> 新使用者將使用系統預設密碼</small>
+    }
+  </section>
+
+  <section class="panel">
+    <h2>角色</h2>
+    <div class="field roles-field">
+      <p-multiselect
+        inputId="roleIds"
+        formControlName="roleIds"
+        [options]="roleOptions"
+        optionLabel="label"
+        optionValue="pkid"
+        display="chip"
+        [maxSelectedLabels]="9999"
+        [filter]="true"
+        [showClear]="true"
+        placeholder="選擇角色（可複選）"
+        appendTo="body"
+        [virtualScroll]="roleOptions.length >= 100"
+        [virtualScrollItemSize]="43"
+      />
+    </div>
+  </section>
+</form>

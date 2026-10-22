@@ -33,17 +33,17 @@
   >
     <ng-template #header>
       <tr>
-        <th pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
-        <th pSortableColumn="roleId">角色代碼 <p-sortIcon field="roleId" /></th>
-        <th pSortableColumn="roleName">角色名稱 <p-sortIcon field="roleName" /></th>
-        <th pSortableColumn="permissionLevel" class="text-center" style="width: 8rem">
+        <th scope="col" pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
+        <th scope="col" pSortableColumn="roleId">角色代碼 <p-sortIcon field="roleId" /></th>
+        <th scope="col" pSortableColumn="roleName">角色名稱 <p-sortIcon field="roleName" /></th>
+        <th scope="col" pSortableColumn="permissionLevel" class="text-center" style="width: 8rem">
           權限等級 <p-sortIcon field="permissionLevel" />
         </th>
-        <th pSortableColumn="description">描述 <p-sortIcon field="description" /></th>
-        <th pSortableColumn="userCount" class="text-center" style="width: 8rem">
+        <th scope="col" pSortableColumn="description">描述 <p-sortIcon field="description" /></th>
+        <th scope="col" pSortableColumn="userCount" class="text-center" style="width: 8rem">
           使用者數 <p-sortIcon field="userCount" />
         </th>
-        <th class="text-center" style="width: 9rem">操作</th>
+        <th scope="col" class="text-center" style="width: 9rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>

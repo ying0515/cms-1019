@@ -1,0 +1,49 @@
+<div class="auth-page">
+  <form class="panel auth-card" [formGroup]="form" (ngSubmit)="submit()">
+    <h1 class="title">CMS 後台登入</h1>
+
+    @if (error(); as message) {
+      <p class="auth-error" role="alert" data-testid="login-error">{{ message }}</p>
+    }
+
+    <div class="field">
+      <label for="userId" class="required">使用者帳號</label>
+      <input
+        pInputText
+        id="userId"
+        formControlName="userId"
+        autocomplete="username"
+        placeholder="請輸入使用者帳號"
+        [class.ng-dirty]="isInvalid('userId')"
+      />
+      @if (isInvalid('userId')) {
+        <small class="error">請輸入使用者帳號</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="password" class="required">密碼</label>
+      <p-password
+        inputId="password"
+        formControlName="password"
+        [feedback]="false"
+        [toggleMask]="true"
+        autocomplete="current-password"
+        placeholder="請輸入密碼"
+        styleClass="w-full"
+        [inputStyle]="{ width: '100%' }"
+      />
+      @if (isInvalid('password')) {
+        <small class="error">請輸入密碼</small>
+      }
+    </div>
+
+    <p-button
+      type="submit"
+      label="登入"
+      icon="pi pi-sign-in"
+      [loading]="saving()"
+      styleClass="w-full"
+    />
+  </form>
+</div>

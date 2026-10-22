@@ -1,0 +1,79 @@
+<div class="page-header">
+  <h1 class="title">檢視使用者</h1>
+  <div class="actions">
+    <p-button label="返回" icon="pi pi-arrow-left" severity="secondary" (onClick)="back()" />
+    @if (item()) {
+      <p-button
+        label="刪除"
+        icon="pi pi-trash"
+        severity="danger"
+        [outlined]="true"
+        (onClick)="confirmDelete()"
+      />
+      <p-button
+        label="查看角色"
+        icon="pi pi-id-card"
+        severity="help"
+        [outlined]="true"
+        (onClick)="viewRoles()"
+      />
+      <p-button
+        label="重設密碼"
+        icon="pi pi-key"
+        severity="warn"
+        [outlined]="true"
+        (onClick)="confirmResetPassword()"
+      />
+      <p-button label="編輯" icon="pi pi-pencil" (onClick)="edit()" />
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="panel text-muted"><i class="pi pi-spin pi-spinner"></i> 載入中…</div>
+} @else if (notFound()) {
+  <div class="panel text-muted not-found">找不到此使用者資料</div>
+} @else if (item(); as u) {
+  <section class="panel">
+    <h2>使用者資料</h2>
+    <dl class="view-grid">
+      <dt>主代碼</dt>
+      <dd>{{ u.pkid }}</dd>
+      <dt>使用者帳號</dt>
+      <dd class="user-id">{{ u.userId }}</dd>
+      <dt>使用者名稱</dt>
+      <dd class="user-name">{{ u.userName }}</dd>
+      <dt>啟用</dt>
+      <dd>
+        <p-tag
+          [value]="u.isActive ? '是' : '否'"
+          [severity]="u.isActive ? 'success' : 'secondary'"
+        />
+      </dd>
+      <dt>密碼更新時間</dt>
+      <dd class="pwd-time" [class.text-muted]="!u.passwordUpdatedTime">
+        {{
+          u.passwordUpdatedTime ? (u.passwordUpdatedTime + 'Z' | date: 'yyyy-MM-dd HH:mm:ss') : '—'
+        }}
+      </dd>
+    </dl>
+  </section>
+
+  <section class="panel">
+    <h2>
+      角色 <span class="count">({{ u.roles.length }})</span>
+    </h2>
+    @if (u.roles.length) {
+      <ul class="role-list">
+        @for (r of u.roles; track r.roleId) {
+          <li>
+            <i class="pi pi-id-card"></i>
+            <span>{{ r.roleName }} ({{ r.roleId }})</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <span class="text-muted">尚未指派角色</span>
+    }
+  </section>
+}

@@ -1,9 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CMS.API.Models;
 
 public class AppRoleRequest
 {
+    [JsonRequired]
     public int Pkid { get; set; }
 
     [Required, StringLength(200)]

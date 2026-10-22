@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { of, throwError } from 'rxjs';
 
@@ -126,6 +126,28 @@ describe('AppRoleList', () => {
     expect(component.rows).toBe(10);
     expect(component.first).toBe(10);
     expect(roleService.query).toHaveBeenCalledWith(jasmine.objectContaining({ keyword: 'user', userId: 'miles' }));
+  });
+
+  it('an incoming ?userId= query param replaces saved filters and resets to page 1', () => {
+    sessionStorage.setItem(FILTERS_KEY, JSON.stringify({ keyword: 'user' }));
+    sessionStorage.setItem(PAGE_KEY, JSON.stringify({ first: 20, rows: 10 }));
+    const route = TestBed.inject(ActivatedRoute);
+    spyOnProperty(route.snapshot, 'queryParamMap').and.returnValue(
+      convertToParamMap({ userId: 'helen' }),
+    );
+
+    create();
+
+    expect(component.filters).toEqual({
+      keyword: null,
+      permissionLevelFrom: null,
+      permissionLevelTo: null,
+      userId: 'helen',
+    });
+    expect(component.first).toBe(0);
+    expect(roleService.query).toHaveBeenCalledOnceWith(
+      jasmine.objectContaining({ userId: 'helen', keyword: null }),
+    );
   });
 
   function badgeText(): string | null {

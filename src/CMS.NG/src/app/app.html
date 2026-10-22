@@ -1,4 +1,7 @@
-<div class="layout" [class.collapsed]="collapsed()">
+<!-- One router-outlet whether or not the sidebar shows: swapping outlets on sign-out would
+     re-create the current page and re-fire its API calls (all 401). -->
+<div class="layout" [class.collapsed]="collapsed()" [class.bare]="!showShell()">
+  @if (showShell()) {
   <aside class="sidebar">
     <div class="sidebar-brand">
       <span class="brand-text">CMS</span>
@@ -8,7 +11,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (group of navGroups; track group.key) {
+      @for (group of visibleNavGroups(); track group.key) {
         <button type="button" class="nav-group" (click)="toggleGroup(group.key)" [attr.aria-expanded]="!!expanded()[group.key]">
           <i [class]="group.icon"></i>
           <span class="nav-label">{{ group.label }}</span>
@@ -28,7 +31,22 @@
         }
       }
     </nav>
+
+    <div class="sidebar-user" data-testid="sidebar-user">
+      <span class="nav-label user-name" [title]="user()?.userId ?? ''">
+        <i class="pi pi-user"></i> {{ user()?.userName }}
+      </span>
+      <a routerLink="/change-password" title="變更密碼">
+        <i class="pi pi-key"></i>
+        <span class="nav-label">變更密碼</span>
+      </a>
+      <button type="button" class="logout" (click)="logout()" title="登出">
+        <i class="pi pi-sign-out"></i>
+        <span class="nav-label">登出</span>
+      </button>
+    </div>
   </aside>
+  }
 
   <main class="content">
     <router-outlet />

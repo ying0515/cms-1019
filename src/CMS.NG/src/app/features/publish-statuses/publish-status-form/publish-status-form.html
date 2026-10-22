@@ -1,0 +1,58 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">{{ isEdit ? '編輯發布狀態' : '新增發布狀態' }}</h1>
+    <div class="actions">
+      <p-button type="button" label="取消" icon="pi pi-times" severity="secondary" (onClick)="cancel()" />
+      <p-button type="submit" label="儲存" icon="pi pi-check" [loading]="saving()" [disabled]="loading()" />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>發布狀態資料</h2>
+
+    <div class="field">
+      <label for="pkid" class="required">主代碼</label>
+      <p-inputnumber
+        inputId="pkid"
+        formControlName="pkid"
+        [useGrouping]="false"
+        placeholder="0–255"
+      />
+      @if (isInvalid('pkid')) {
+        <small class="error">請輸入 0–255 的主代碼</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="description" class="required">狀態名稱</label>
+      <input
+        pInputText
+        id="description"
+        formControlName="description"
+        maxlength="50"
+        placeholder="請輸入狀態名稱"
+        [class.ng-dirty]="isInvalid('description')"
+      />
+      @if (isInvalid('description')) {
+        <small class="error">
+          {{ form.controls.description.hasError('maxlength') ? '最多 50 字' : '請輸入狀態名稱' }}
+        </small>
+      }
+    </div>
+
+    <div class="field flags">
+      <div class="flag">
+        <p-checkbox inputId="isDraft" formControlName="isDraft" [binary]="true" />
+        <label for="isDraft">草稿</label>
+      </div>
+      <div class="flag">
+        <p-checkbox inputId="isPublished" formControlName="isPublished" [binary]="true" />
+        <label for="isPublished">已發布</label>
+      </div>
+      <div class="flag">
+        <p-checkbox inputId="isDiscontinued" formControlName="isDiscontinued" [binary]="true" />
+        <label for="isDiscontinued">已停用</label>
+      </div>
+    </div>
+  </section>
+</form>

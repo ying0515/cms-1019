@@ -1,0 +1,27 @@
+:host ::ng-deep {
+  .p-inputnumber input {
+    width: 100%;
+  }
+
+  .p-inputnumber input:disabled {
+    background: #e2e8f0;
+    color: #64748b;
+  }
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 0;
+}
+
+.flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  label {
+    margin: 0;
+  }
+}

@@ -49,12 +49,12 @@ export class AppRoleDetail implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/app-roles']);
+    void this.router.navigate(['/app-roles']);
   }
 
   edit(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/app-roles', item.pkid, 'edit']);
+    if (item) void this.router.navigate(['/app-roles', item.pkid, 'edit']);
   }
 
   confirmDelete(): void {

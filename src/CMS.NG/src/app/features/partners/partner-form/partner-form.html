@@ -1,0 +1,115 @@
+<form [formGroup]="form" (ngSubmit)="save()">
+  <div class="page-header form-toolbar" data-testid="form-toolbar">
+    <h1 class="title">{{ isEdit ? '編輯合作廠商' : '新增合作廠商' }}</h1>
+    <div class="actions">
+      <p-button
+        type="button"
+        label="取消"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="cancel()"
+      />
+      <p-button
+        type="submit"
+        label="儲存"
+        icon="pi pi-check"
+        [loading]="saving()"
+        [disabled]="loading()"
+      />
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>合作廠商資料</h2>
+
+    @if (isEdit) {
+      <div class="field">
+        <label for="pkid">主代碼</label>
+        <input pInputText id="pkid" [value]="pkid" disabled />
+      </div>
+    }
+
+    <div class="field">
+      <label for="name" class="required">廠商名稱</label>
+      <input
+        pInputText
+        id="name"
+        formControlName="name"
+        maxlength="50"
+        placeholder="請輸入廠商名稱"
+        [class.ng-dirty]="isInvalid('name')"
+      />
+      @if (isInvalid('name')) {
+        <small class="error">{{ textError('name', '廠商名稱', 50) }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="appKey" class="required">應用代碼</label>
+      <input
+        pInputText
+        id="appKey"
+        formControlName="appKey"
+        maxlength="10"
+        placeholder="請輸入應用代碼"
+        [class.ng-dirty]="isInvalid('appKey')"
+      />
+      @if (isInvalid('appKey')) {
+        <small class="error">{{ textError('appKey', '應用代碼', 10) }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="nameOnPartnerMenu" class="required">廠商選單名稱</label>
+      <input
+        pInputText
+        id="nameOnPartnerMenu"
+        formControlName="nameOnPartnerMenu"
+        maxlength="200"
+        placeholder="請輸入廠商選單名稱"
+        [class.ng-dirty]="isInvalid('nameOnPartnerMenu')"
+      />
+      @if (isInvalid('nameOnPartnerMenu')) {
+        <small class="error">{{ textError('nameOnPartnerMenu', '廠商選單名稱', 200) }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="nameOnCourseDetailPage" class="required">課程頁顯示名稱</label>
+      <input
+        pInputText
+        id="nameOnCourseDetailPage"
+        formControlName="nameOnCourseDetailPage"
+        maxlength="50"
+        placeholder="請輸入課程頁顯示名稱"
+        [class.ng-dirty]="isInvalid('nameOnCourseDetailPage')"
+      />
+      @if (isInvalid('nameOnCourseDetailPage')) {
+        <small class="error">{{ textError('nameOnCourseDetailPage', '課程頁顯示名稱', 50) }}</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="displayOrder" class="required">顯示順序</label>
+      <p-inputnumber inputId="displayOrder" formControlName="displayOrder" [useGrouping]="false" />
+      @if (isInvalid('displayOrder')) {
+        <small class="error">請輸入顯示順序</small>
+      }
+    </div>
+
+    <div class="field">
+      <label for="imageFilename">圖檔名稱</label>
+      <input
+        pInputText
+        id="imageFilename"
+        formControlName="imageFilename"
+        maxlength="50"
+        placeholder="例如 logo.png"
+        [class.ng-dirty]="isInvalid('imageFilename')"
+      />
+      @if (isInvalid('imageFilename')) {
+        <small class="error">最多 50 字</small>
+      }
+    </div>
+  </section>
+</form>

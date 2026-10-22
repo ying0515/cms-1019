@@ -1,0 +1,44 @@
+.print-hint {
+  margin: -4px 0 12px;
+  font-size: 0.85rem;
+}
+
+.not-found {
+  text-align: center;
+  padding: 40px;
+}
+
+.link {
+  color: var(--p-primary-color);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.certifications,
+.job-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  white-space: normal;
+}
+
+.basic-info {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+
+  > .view-grid {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .basic-info {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

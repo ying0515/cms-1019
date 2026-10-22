@@ -7,6 +7,7 @@ import { of, throwError } from 'rxjs';
 
 import { AppRoleService } from '@core/services/app-role.service';
 import { LookupService } from '@core/services/lookup.service';
+import { expectPinnedToolbar } from '@core/testing/form-toolbar';
 import { ADMIN_ROLE, APP_USERS } from '../testing/app-role.fixtures';
 import { AppRoleForm } from './app-role-form';
 
@@ -122,6 +123,10 @@ describe('AppRoleForm', () => {
       expect(c.saving()).toBeFalse();
     });
 
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
+    });
+
     it('cancel() returns to the list', () => {
       create().componentInstance.cancel();
       expect(router.navigate).toHaveBeenCalledWith(['/app-roles']);
@@ -165,6 +170,10 @@ describe('AppRoleForm', () => {
       });
       expect(roleService.create).not.toHaveBeenCalled();
       expect(router.navigate).toHaveBeenCalledWith(['/app-roles', 1]);
+    });
+
+    it('pins the Save/Cancel toolbar to the top of the form', () => {
+      expectPinnedToolbar(create().nativeElement);
     });
 
     it('cancel() returns to the detail page', () => {

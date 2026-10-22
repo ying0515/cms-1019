@@ -398,9 +398,13 @@ Each row has a calendar button (icon: `pi pi-calendar`, label: 查看開課時�
 
 The list table displays partner name, course group description, and publish status description (not raw FK values). Load these via `forkJoin` of lookup endpoints on init.
 
+### List — Inline Cell Edit
+
+Double-click a list cell to edit it in place; blur saves via `PUT /api/courses` (after `GET /api/courses/{id}` so n-n relations are kept). All columns except 主代碼, 原廠 and 課程群組 are editable, each with its matching editor (text, number, date picker, 上架狀態 select, 允許重聽 checkbox), validated inline (required, ≥ 0, valid dates, 上架日期 ≤ 下架日期); a failed save reverts the cell. See `spec/course/Course.md` → *List — Inline Edit* for the column table and `spec/inline-edit.md` for the pattern.
+
 ### Detail — Inline QR Code
 
-Auto-generated on course load inside the 基本資料 card. See `spec/course/Course.md` for canvas compositing details.
+Auto-generated on course load inside the 基本資料 card. See `spec/course/Course.md` → *Detail — QR Code* for canvas compositing details.
 
 ### Detail — 列印PDF
 

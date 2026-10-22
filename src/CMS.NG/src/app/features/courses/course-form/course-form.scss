@@ -1,0 +1,57 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 20px;
+
+  .span-2 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+
+    .span-2 {
+      grid-column: span 1;
+    }
+  }
+}
+
+.checkbox-field {
+  flex-direction: row;
+  align-items: center;
+  align-self: end;
+  min-height: 38px;
+}
+
+.hint {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+.fk-link {
+  margin-left: 6px;
+  color: var(--p-primary-color);
+  font-size: 0.8rem;
+}
+
+:host ::ng-deep {
+  .p-inputnumber input,
+  .p-datepicker,
+  .p-datepicker input {
+    width: 100%;
+  }
+
+  // Wrap selected chips onto multiple lines
+  .chips-field .p-multiselect-label {
+    flex-wrap: wrap;
+    gap: 4px;
+    white-space: normal;
+  }
+}
+
+input:disabled {
+  background: #e2e8f0;
+  color: #64748b;
+}

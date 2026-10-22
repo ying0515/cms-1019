@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DrawerModule } from 'primeng/drawer';
@@ -55,6 +55,7 @@ const EMPTY_FILTERS: AppRoleListFilters = {
 export class AppRoleList implements OnInit {
   private readonly service = inject(AppRoleService);
   private readonly lookups = inject(LookupService);
+  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly confirm = inject(ConfirmationService);
   private readonly messages = inject(MessageService);
@@ -102,6 +103,14 @@ export class AppRoleList implements OnInit {
   }
 
   private restoreFiltersAndSearch(): void {
+    // An incoming ?userId= (from AppUser 查看角色) replaces the saved filters and starts from page 1
+    const userId = this.route.snapshot.queryParamMap.get('userId');
+    if (userId) {
+      this.filters = { ...EMPTY_FILTERS, userId };
+      this.search();
+      return;
+    }
+
     const saved = loadSession<AppRoleListFilters>(FILTERS_KEY);
     if (saved) this.filters = { ...EMPTY_FILTERS, ...saved };
     this.search(false);
@@ -161,7 +170,7 @@ export class AppRoleList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/app-roles/new']);
+    void this.router.navigate(['/app-roles/new']);
   }
 
   confirmDelete(item: AppRole): void {

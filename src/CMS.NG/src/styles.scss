@@ -48,6 +48,16 @@ body {
   }
 }
 
+/* Form Save/Cancel toolbar: stays pinned while the form body scrolls. The page scrolls at the
+   document level and there is no top app bar, so top: 0 pins it within the content column
+   (beside the sidebar). z-index keeps it above positioned PrimeNG field wrappers. */
+.page-header.form-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+
 /* White content panel */
 .panel {
   background: #fff;
@@ -147,4 +157,45 @@ body {
 .p-multiselect-label {
   flex-wrap: wrap;
   white-space: normal !important;
+}
+
+/* Print: .print-only shows only on paper, .screen-only only on screen (e.g. course handout).
+   Applies to every page: buttons, toasts, dialogs and tooltips never belong on paper. */
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+
+    /* Defining margin boxes makes Chrome/Edge drop their own header and footer, which print the
+       CMS URL (with the pkid) when 「頁首和頁尾」 is left checked. */
+    @top-center {
+      content: '';
+    }
+
+    @bottom-center {
+      content: counter(page) ' / ' counter(pages);
+      font-family: 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+      font-size: 9pt;
+    }
+  }
+
+  body {
+    background: #fff;
+  }
+
+  p-toast,
+  p-confirmdialog,
+  p-button,
+  .p-tooltip,
+  .screen-only {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
 }

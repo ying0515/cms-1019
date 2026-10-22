@@ -33,6 +33,7 @@
 
   ### Form page
   - Reactive Forms; `forkJoin` for parallel lookup calls on init
+  - Header toolbar (title + 取消 / 儲存) pinned while scrolling: `class="page-header form-toolbar" data-testid="form-toolbar"`; test with `expectPinnedToolbar()`
   - `p-datepicker`: convert ISO string ↔ `Date` on load/save
   - `p-datepicker [timeOnly]="true"` for `time` columns; `parseTime`/`toTimeStr` helpers
   - `p-multiselect` for n-n: `[maxSelectedLabels]="9999"`; wrap chips via `::ng-deep`

@@ -1,0 +1,35 @@
+.inline-form {
+  border: 2px solid #1e293b;
+  border-radius: 6px;
+  background: #fff;
+  padding: 14px 16px 6px;
+  margin: 6px 0 10px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.suggestion {
+  display: flex;
+  gap: 12px;
+
+  .code {
+    font-weight: 600;
+  }
+
+  .topic {
+    color: #64748b;
+  }
+}
+
+:host ::ng-deep .p-autocomplete,
+:host ::ng-deep .p-autocomplete input {
+  width: 100%;
+}

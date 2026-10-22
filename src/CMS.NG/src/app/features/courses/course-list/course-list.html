@@ -1,0 +1,453 @@
+<div class="page-header">
+  <h1 class="title">課程 Course <span class="subtitle">訓練課程主資料</span></h1>
+  <div class="actions">
+    <p-button
+      label="搜尋條件"
+      icon="pi pi-filter"
+      severity="secondary"
+      [badge]="activeFilterCount() ? '' + activeFilterCount() : undefined"
+      badgeSeverity="success"
+      (onClick)="drawerVisible = true"
+    />
+    <p-button label="新增" icon="pi pi-plus" (onClick)="add()" />
+  </div>
+</div>
+
+<div class="table-card">
+  <p-table
+    [value]="items()"
+    [loading]="loading()"
+    dataKey="pkid"
+    [paginator]="true"
+    paginatorPosition="top"
+    [rows]="rows"
+    [first]="first"
+    [rowsPerPageOptions]="rowsPerPageOptions"
+    [showCurrentPageReport]="true"
+    currentPageReportTemplate="{first}–{last} 筆，共 {totalRecords} 筆"
+    [sortField]="sortField"
+    [sortOrder]="sortOrder"
+    (onSort)="onSort($event)"
+    (onPage)="onPage($event)"
+    [scrollable]="true"
+    [tableStyle]="{ 'min-width': '110rem' }"
+  >
+    <ng-template #header>
+      <tr>
+        <th scope="col" pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
+        <th scope="col" pSortableColumn="displayOrder" class="text-center" style="width: 7rem">
+          顯示順序 <p-sortIcon field="displayOrder" />
+        </th>
+        <th scope="col" pSortableColumn="courseId">簡介代碼 <p-sortIcon field="courseId" /></th>
+        <th scope="col" pSortableColumn="prodCourseId">科目代碼 <p-sortIcon field="prodCourseId" /></th>
+        <th scope="col" pSortableColumn="title" style="min-width: 16rem">
+          課程名稱 <p-sortIcon field="title" />
+        </th>
+        <th scope="col" pSortableColumn="partner.name">原廠 <p-sortIcon field="partner.name" /></th>
+        <th scope="col" pSortableColumn="courseGroup.description">
+          課程群組 <p-sortIcon field="courseGroup.description" />
+        </th>
+        <th scope="col" pSortableColumn="publishStatus.description">
+          上架狀態 <p-sortIcon field="publishStatus.description" />
+        </th>
+        <th scope="col" pSortableColumn="scheduleOn">上架日期 <p-sortIcon field="scheduleOn" /></th>
+        <th scope="col" pSortableColumn="scheduleOff">下架日期 <p-sortIcon field="scheduleOff" /></th>
+        <th scope="col" pSortableColumn="hour" class="text-right">時數 <p-sortIcon field="hour" /></th>
+        <th scope="col" pSortableColumn="listPrice" class="text-right">
+          定價 <p-sortIcon field="listPrice" />
+        </th>
+        <th scope="col" pSortableColumn="learningCredit" class="text-right">
+          點數 <p-sortIcon field="learningCredit" />
+        </th>
+        <th scope="col" pSortableColumn="canRepeat" class="text-center">
+          允許重聽 <p-sortIcon field="canRepeat" />
+        </th>
+        <th scope="col" class="text-center" style="width: 9rem">操作</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-item>
+      <tr
+        (dblclick)="onCellDblClick($event, item)"
+        (focusout)="onEditorFocusOut($event)"
+        (keydown.escape)="cancelEdit()"
+      >
+        <td class="pkid">{{ item.pkid }}</td>
+        <td
+          class="text-center display-order"
+          data-field="displayOrder"
+          [class.cell-editing]="isEditing(item, 'displayOrder')"
+        >
+          @if (isEditing(item, 'displayOrder')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [useGrouping]="false"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.displayOrder }}
+          }
+        </td>
+        <td
+          class="course-id"
+          data-field="courseId"
+          [class.cell-editing]="isEditing(item, 'courseId')"
+        >
+          @if (isEditing(item, 'courseId')) {
+            <input pInputText aria-label="簡介代碼" [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.courseId }}
+          }
+        </td>
+        <td
+          class="prod-course-id"
+          data-field="prodCourseId"
+          [class.cell-editing]="isEditing(item, 'prodCourseId')"
+        >
+          @if (isEditing(item, 'prodCourseId')) {
+            <input pInputText aria-label="科目代碼" [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.prodCourseId }}
+          }
+        </td>
+        <!-- No link on editable cells: the first click of a double-click would navigate (use 檢視) -->
+        <td class="title" data-field="title" [class.cell-editing]="isEditing(item, 'title')">
+          @if (isEditing(item, 'title')) {
+            <input pInputText aria-label="課程名稱" [(ngModel)]="editValue" (keydown.enter)="commitEdit()" />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.title }}
+          }
+        </td>
+        <td class="partner">
+          <a [routerLink]="['/partners', item.partnerPkid]" class="link">{{
+            item.partner?.name
+          }}</a>
+        </td>
+        <td class="course-group">
+          @if (item.courseGroup) {
+            <a [routerLink]="['/course-groups', item.courseGroupPkid]" class="link">{{
+              item.courseGroup.description
+            }}</a>
+          } @else {
+            <span class="text-muted">—</span>
+          }
+        </td>
+        <td
+          class="publish-status"
+          data-field="publishStatusPkid"
+          [class.cell-editing]="isEditing(item, 'publishStatusPkid')"
+        >
+          @if (isEditing(item, 'publishStatusPkid')) {
+            <p-select
+              [(ngModel)]="editValue"
+              [options]="publishStatusOptions"
+              optionLabel="label"
+              optionValue="pkid"
+              appendTo="body"
+              (onShow)="onOverlayShow()"
+              (onHide)="onOverlayHide()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.publishStatus?.description }}
+          }
+        </td>
+        <td
+          class="nowrap schedule-on"
+          data-field="scheduleOn"
+          [class.cell-editing]="isEditing(item, 'scheduleOn')"
+        >
+          @if (isEditing(item, 'scheduleOn')) {
+            <ng-container *ngTemplateOutlet="dateEditor" />
+          } @else {
+            {{ item.scheduleOn }}
+          }
+        </td>
+        <td
+          class="nowrap schedule-off"
+          data-field="scheduleOff"
+          [class.cell-editing]="isEditing(item, 'scheduleOff')"
+        >
+          @if (isEditing(item, 'scheduleOff')) {
+            <ng-container *ngTemplateOutlet="dateEditor" />
+          } @else {
+            {{ item.scheduleOff }}
+          }
+        </td>
+        <td
+          class="text-right hour"
+          data-field="hour"
+          [class.cell-editing]="isEditing(item, 'hour')"
+        >
+          @if (isEditing(item, 'hour')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [useGrouping]="false"
+              [min]="0"
+              [max]="32767"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.hour }}
+          }
+        </td>
+        <td
+          class="text-right list-price"
+          data-field="listPrice"
+          [class.cell-editing]="isEditing(item, 'listPrice')"
+        >
+          @if (isEditing(item, 'listPrice')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [min]="0"
+              [max]="999999999"
+              [maxFractionDigits]="0"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.listPrice | number }}
+          }
+        </td>
+        <td
+          class="text-right learning-credit"
+          data-field="learningCredit"
+          [class.cell-editing]="isEditing(item, 'learningCredit')"
+        >
+          @if (isEditing(item, 'learningCredit')) {
+            <p-inputnumber
+              [(ngModel)]="editValue"
+              [min]="0"
+              [max]="99999999.9"
+              [minFractionDigits]="1"
+              [maxFractionDigits]="1"
+              (keydown.enter)="commitEdit()"
+            />
+            <ng-container *ngTemplateOutlet="cellError" />
+          } @else {
+            {{ item.learningCredit | number: '1.1-1' }}
+          }
+        </td>
+        <td
+          class="text-center can-repeat-cell"
+          data-field="canRepeat"
+          [class.cell-editing]="isEditing(item, 'canRepeat')"
+        >
+          @if (isEditing(item, 'canRepeat')) {
+            <p-checkbox [(ngModel)]="editValue" [binary]="true" ariaLabel="允許重聽" />
+          } @else if (item.canRepeat) {
+            <i class="pi pi-check can-repeat" aria-label="是"></i>
+          } @else {
+            <span class="text-muted" aria-label="否">—</span>
+          }
+        </td>
+        <td>
+          <div class="row-actions">
+            <p-button
+              icon="pi pi-eye"
+              [text]="true"
+              [rounded]="true"
+              severity="secondary"
+              pTooltip="檢視"
+              ariaLabel="檢視"
+              [routerLink]="['/courses', item.pkid]"
+            />
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              [rounded]="true"
+              severity="info"
+              pTooltip="編輯"
+              ariaLabel="編輯"
+              [routerLink]="['/courses', item.pkid, 'edit']"
+            />
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              [rounded]="true"
+              severity="danger"
+              pTooltip="刪除"
+              ariaLabel="刪除"
+              (onClick)="confirmDelete(item)"
+            />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="15" class="text-center text-muted empty">查無資料</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<ng-template #dateEditor>
+  <p-datepicker
+    [(ngModel)]="editValue"
+    dataType="string"
+    dateFormat="yy-mm-dd"
+    appendTo="body"
+    (onShow)="onOverlayShow()"
+    (onClose)="onOverlayHide()"
+    (keydown.enter)="commitEdit()"
+  />
+  <ng-container *ngTemplateOutlet="cellError" />
+</ng-template>
+
+<ng-template #cellError>
+  @if (editError(); as error) {
+    <small class="cell-error" role="alert">{{ error }}</small>
+  }
+</ng-template>
+
+<p-drawer [(visible)]="drawerVisible" position="right" header="搜尋條件" styleClass="filter-drawer">
+  <form (ngSubmit)="search()">
+    <div class="field">
+      <label for="f-keyword">關鍵字</label>
+      <input
+        pInputText
+        id="f-keyword"
+        name="keyword"
+        [(ngModel)]="filters.keyword"
+        placeholder="課程名稱 / 簡介代碼 / 科目代碼 / 友善網址"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-partner">原廠</label>
+      <p-select
+        inputId="f-partner"
+        name="partnerPkid"
+        [(ngModel)]="filters.partnerPkid"
+        [options]="partnerOptions"
+        optionLabel="label"
+        optionValue="pkid"
+        [showClear]="true"
+        [filter]="partnerOptions.length >= 10"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-courseGroup">課程群組</label>
+      <p-select
+        inputId="f-courseGroup"
+        name="courseGroupPkid"
+        [(ngModel)]="filters.courseGroupPkid"
+        [options]="courseGroupOptions"
+        optionLabel="label"
+        optionValue="pkid"
+        [showClear]="true"
+        [filter]="courseGroupOptions.length >= 10"
+        [virtualScroll]="courseGroupOptions.length >= 100"
+        [virtualScrollItemSize]="43"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-publishStatus">上架狀態</label>
+      <p-select
+        inputId="f-publishStatus"
+        name="publishStatusPkid"
+        [(ngModel)]="filters.publishStatusPkid"
+        [options]="publishStatusOptions"
+        optionLabel="label"
+        optionValue="pkid"
+        [showClear]="true"
+        [filter]="publishStatusOptions.length >= 10"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="field">
+      <label for="f-onFrom">上架日期</label>
+      <div class="range">
+        <p-datepicker
+          inputId="f-onFrom"
+          name="scheduleOnFrom"
+          [(ngModel)]="filters.scheduleOnFrom"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="起"
+          appendTo="body"
+        />
+        <span>～</span>
+        <p-datepicker
+          inputId="f-onTo"
+          name="scheduleOnTo"
+          [(ngModel)]="filters.scheduleOnTo"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="迄"
+          appendTo="body"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-offFrom">下架日期</label>
+      <div class="range">
+        <p-datepicker
+          inputId="f-offFrom"
+          name="scheduleOffFrom"
+          [(ngModel)]="filters.scheduleOffFrom"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="起"
+          appendTo="body"
+        />
+        <span>～</span>
+        <p-datepicker
+          inputId="f-offTo"
+          name="scheduleOffTo"
+          [(ngModel)]="filters.scheduleOffTo"
+          dataType="string"
+          dateFormat="yy-mm-dd"
+          [showButtonBar]="true"
+          placeholder="迄"
+          appendTo="body"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-canRepeat">允許重聽</label>
+      <p-select
+        inputId="f-canRepeat"
+        name="canRepeat"
+        [(ngModel)]="filters.canRepeat"
+        [options]="canRepeatOptions"
+        optionLabel="label"
+        optionValue="value"
+        [showClear]="true"
+        placeholder="全部"
+        appendTo="body"
+      />
+    </div>
+
+    <div class="drawer-actions">
+      <p-button
+        type="button"
+        label="清除"
+        icon="pi pi-times"
+        severity="secondary"
+        (onClick)="clearFilters()"
+      />
+      <p-button type="submit" label="查詢" icon="pi pi-search" />
+    </div>
+  </form>
+</p-drawer>

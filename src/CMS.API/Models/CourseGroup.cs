@@ -1,0 +1,7 @@
+namespace CMS.API.Models;
+
+public class CourseGroup
+{
+    public short Pkid { get; set; }
+    public string Description { get; set; } = string.Empty;
+}
