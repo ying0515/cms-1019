@@ -168,7 +168,7 @@ export class AppUserList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/app-users/new']);
+    void this.router.navigate(['/app-users/new']);
   }
 
   confirmDelete(item: AppUser): void {

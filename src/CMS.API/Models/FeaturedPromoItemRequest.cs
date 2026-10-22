@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CMS.API.Models;
 
@@ -8,6 +9,7 @@ public class FeaturedPromoItemRequest
     public const byte MaxSlot = 3;
 
     // IDENTITY: ignored on create, identifies the row on update
+    [JsonRequired]
     public int Pkid { get; set; }
 
     // Nullable so a missing date is a 400 instead of 0001-01-01

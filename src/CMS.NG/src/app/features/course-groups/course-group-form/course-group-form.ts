@@ -68,8 +68,8 @@ export class CourseGroupForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/course-groups', this.pkid]);
-    else this.router.navigate(['/course-groups']);
+    if (this.isEdit) void this.router.navigate(['/course-groups', this.pkid]);
+    else void this.router.navigate(['/course-groups']);
   }
 
   save(): void {
@@ -91,7 +91,7 @@ export class CourseGroupForm implements OnInit {
       next: (created) => {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.description });
-        this.router.navigate(['/course-groups', created ? created.pkid : this.pkid]);
+        void this.router.navigate(['/course-groups', created ? created.pkid : this.pkid]);
       },
       error: (err) => {
         this.saving.set(false);

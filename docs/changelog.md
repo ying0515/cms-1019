@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-22 — SonarQube MEDIUM fixes: `void` on unhandled `router.navigate()`, `scope="col"` on list `<th>`, `aria-label` on course-list inline inputs, `Number.NaN`, `await app.RunAsync()`; `[JsonRequired]` on value-type `{T}Request` fields (a missing field is now 400 instead of 0/false).
 - 2026-10-22 — Add `/sonar-scan` project skill (SonarQube analysis via `dotnet-sonarscanner`, token from `SONAR_TOKEN` env var); ignore `.sonarqube/`.
 - 2026-10-21 — Course handout (PR #23 review): today's date for the QR rule is refreshed on `beforeprint`; a blank courseId omits the 簡介代碼 part and prints the fallback line instead of a QR; handout specs use a mocked clock (no 2036 time bomb).
 - 2026-10-21 — Print `@page` margin boxes: page number `n / N` at the bottom; defining them also suppresses the Chrome/Edge header and footer (no CMS URL on printed pages, verified with headless `--print-to-pdf`).

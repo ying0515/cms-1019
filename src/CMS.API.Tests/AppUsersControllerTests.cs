@@ -118,7 +118,7 @@ public class AppUsersControllerTests : IDisposable
     public async Task Create_IgnoresPasswordHashInBody()
     {
         var response = await _client.PostAsJsonAsync(BaseUrl,
-            new { userId = "eve", userName = "Eve", isActive = true, passwordHash = "attacker-chosen" });
+            new { pkid = 0, userId = "eve", userName = "Eve", isActive = true, passwordHash = "attacker-chosen" });
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var created = await response.Content.ReadFromJsonAsync<AppUser>();

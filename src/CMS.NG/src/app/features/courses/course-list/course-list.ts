@@ -322,7 +322,7 @@ export class CourseList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/courses/new']);
+    void this.router.navigate(['/courses/new']);
   }
 
   confirmDelete(item: Course): void {

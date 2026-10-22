@@ -28,7 +28,7 @@ export class PublishStatusDetail implements OnInit {
   ngOnInit(): void {
     // pkid is tinyint (0–255)
     const id = this.route.snapshot.paramMap.get('id');
-    const pkid = id === null || id.trim() === '' ? NaN : Number(id);
+    const pkid = id === null || id.trim() === '' ? Number.NaN : Number(id);
     if (!Number.isInteger(pkid) || pkid < 0 || pkid > 255) {
       this.loading.set(false);
       this.notFound.set(true);
@@ -55,17 +55,17 @@ export class PublishStatusDetail implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/publish-statuses']);
+    void this.router.navigate(['/publish-statuses']);
   }
 
   edit(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/publish-statuses', item.pkid, 'edit']);
+    if (item) void this.router.navigate(['/publish-statuses', item.pkid, 'edit']);
   }
 
   viewCourses(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/courses'], { queryParams: { publishStatusPkid: item.pkid } });
+    if (item) void this.router.navigate(['/courses'], { queryParams: { publishStatusPkid: item.pkid } });
   }
 
   confirmDelete(): void {

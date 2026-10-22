@@ -89,8 +89,8 @@ export class AppUserForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/app-users', this.pkid]);
-    else this.router.navigate(['/app-users']);
+    if (this.isEdit) void this.router.navigate(['/app-users', this.pkid]);
+    else void this.router.navigate(['/app-users']);
   }
 
   save(): void {
@@ -117,7 +117,7 @@ export class AppUserForm implements OnInit {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.userId });
         const pkid = this.isEdit ? this.pkid : (result as AppUser).pkid;
-        this.router.navigate(['/app-users', pkid]);
+        void this.router.navigate(['/app-users', pkid]);
       },
       error: (err) => {
         this.saving.set(false);

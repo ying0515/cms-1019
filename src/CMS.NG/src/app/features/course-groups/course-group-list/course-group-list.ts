@@ -131,7 +131,7 @@ export class CourseGroupList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/course-groups/new']);
+    void this.router.navigate(['/course-groups/new']);
   }
 
   confirmDelete(item: CourseGroup): void {

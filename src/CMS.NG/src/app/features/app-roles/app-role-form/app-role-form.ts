@@ -92,8 +92,8 @@ export class AppRoleForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/app-roles', this.pkid]);
-    else this.router.navigate(['/app-roles']);
+    if (this.isEdit) void this.router.navigate(['/app-roles', this.pkid]);
+    else void this.router.navigate(['/app-roles']);
   }
 
   save(): void {
@@ -119,7 +119,7 @@ export class AppRoleForm implements OnInit {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.roleId });
         const pkid = this.isEdit ? this.pkid : (result as AppRole).pkid;
-        this.router.navigate(['/app-roles', pkid]);
+        void this.router.navigate(['/app-roles', pkid]);
       },
       error: (err) => {
         this.saving.set(false);

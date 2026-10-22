@@ -151,7 +151,7 @@ export class PublishStatusList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/publish-statuses/new']);
+    void this.router.navigate(['/publish-statuses/new']);
   }
 
   confirmDelete(item: PublishStatus): void {

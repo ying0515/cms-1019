@@ -88,8 +88,8 @@ export class PartnerForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/partners', this.pkid]);
-    else this.router.navigate(['/partners']);
+    if (this.isEdit) void this.router.navigate(['/partners', this.pkid]);
+    else void this.router.navigate(['/partners']);
   }
 
   save(): void {
@@ -117,7 +117,7 @@ export class PartnerForm implements OnInit {
       next: (created) => {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.name });
-        this.router.navigate(['/partners', created ? created.pkid : this.pkid]);
+        void this.router.navigate(['/partners', created ? created.pkid : this.pkid]);
       },
       error: (err) => {
         this.saving.set(false);

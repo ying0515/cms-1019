@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CMS.API.Models;
 
 public class CourseRequest : IValidatableObject
 {
     // IDENTITY: ignored on create, identifies the row on update
+    [JsonRequired]
     public int Pkid { get; set; }
 
     [Required, StringLength(200)]
@@ -22,6 +24,7 @@ public class CourseRequest : IValidatableObject
     [Required, StringLength(100)]
     public string FriendlyUrl { get; set; } = string.Empty;
 
+    [JsonRequired]
     public int DisplayOrder { get; set; }
 
     [Range(1, short.MaxValue)]
@@ -72,6 +75,7 @@ public class CourseRequest : IValidatableObject
     [StringLength(4000)]
     public string? OtherInfo { get; set; }
 
+    [JsonRequired]
     public bool CanRepeat { get; set; }
 
     // n-n CourseInCertification

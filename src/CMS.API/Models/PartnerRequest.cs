@@ -1,10 +1,12 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CMS.API.Models;
 
 public class PartnerRequest
 {
     // IDENTITY: ignored on create, identifies the row on update
+    [JsonRequired]
     public short Pkid { get; set; }
 
     [Required, StringLength(50)]
@@ -19,6 +21,7 @@ public class PartnerRequest
     [Required, StringLength(50)]
     public string NameOnCourseDetailPage { get; set; } = string.Empty;
 
+    [JsonRequired]
     public int DisplayOrder { get; set; }
 
     [StringLength(50)]

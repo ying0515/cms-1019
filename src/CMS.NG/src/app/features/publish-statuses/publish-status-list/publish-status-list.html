@@ -35,18 +35,18 @@
   >
     <ng-template #header>
       <tr>
-        <th pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
-        <th pSortableColumn="description">狀態名稱 <p-sortIcon field="description" /></th>
-        <th pSortableColumn="isDraft" class="text-center" style="width: 7rem">
+        <th scope="col" pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
+        <th scope="col" pSortableColumn="description">狀態名稱 <p-sortIcon field="description" /></th>
+        <th scope="col" pSortableColumn="isDraft" class="text-center" style="width: 7rem">
           草稿 <p-sortIcon field="isDraft" />
         </th>
-        <th pSortableColumn="isPublished" class="text-center" style="width: 7rem">
+        <th scope="col" pSortableColumn="isPublished" class="text-center" style="width: 7rem">
           已發布 <p-sortIcon field="isPublished" />
         </th>
-        <th pSortableColumn="isDiscontinued" class="text-center" style="width: 7rem">
+        <th scope="col" pSortableColumn="isDiscontinued" class="text-center" style="width: 7rem">
           已停用 <p-sortIcon field="isDiscontinued" />
         </th>
-        <th class="text-center" style="width: 11rem">操作</th>
+        <th scope="col" class="text-center" style="width: 11rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>
