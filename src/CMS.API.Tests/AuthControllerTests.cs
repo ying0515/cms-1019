@@ -26,6 +26,7 @@ public class AuthControllerTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // ---- Every API requires sign-in ----

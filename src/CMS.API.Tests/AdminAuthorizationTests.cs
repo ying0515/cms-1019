@@ -27,6 +27,7 @@ public class AdminAuthorizationTests : IDisposable
         _admin.Dispose();
         _user.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // ---- Non-admin ----

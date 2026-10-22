@@ -21,6 +21,7 @@ public class PartnersControllerTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private static PartnerRequest ValidRequest(short pkid = 0) => new()

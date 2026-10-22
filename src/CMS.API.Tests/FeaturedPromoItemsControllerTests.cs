@@ -23,6 +23,7 @@ public class FeaturedPromoItemsControllerTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // Wednesday 2026-03-18 has no rows for 台北 yet
