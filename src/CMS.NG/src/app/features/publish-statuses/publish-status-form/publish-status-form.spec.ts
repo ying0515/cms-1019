@@ -85,6 +85,24 @@ describe('PublishStatusForm', () => {
       expect(c.form.controls.pkid.hasError('min')).toBeTrue();
     });
 
+    // Regression: ISSUE-003 — typed pkid above 255 was silently clamped to 255 and saved
+    // Found by /qa on 2026-10-22
+    // Report: .gstack/qa-reports/qa-report-localhost-2026-10-22.md
+    it('rejects a typed pkid above 255 instead of clamping it', () => {
+      const fixture = create();
+      const c = fixture.componentInstance;
+      const input: HTMLInputElement = fixture.nativeElement.querySelector('#pkid');
+      c.form.controls.description.setValue('超出範圍');
+
+      input.value = '256';
+      input.dispatchEvent(new Event('blur'));
+      c.save();
+
+      expect(c.form.controls.pkid.value).toBe(256);
+      expect(c.form.controls.pkid.hasError('max')).toBeTrue();
+      expect(service.create).not.toHaveBeenCalled();
+    });
+
     it('creates with the entered pkid and trimmed description, then navigates to detail', () => {
       const c = create().componentInstance;
       c.form.setValue({ pkid: 10, description: ' 審核中 ', isDraft: true, isPublished: false, isDiscontinued: false });
