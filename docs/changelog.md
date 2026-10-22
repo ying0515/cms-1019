@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-22 — Add `/sonar-scan` project skill (SonarQube analysis via `dotnet-sonarscanner`, token from `SONAR_TOKEN` env var); ignore `.sonarqube/`.
 - 2026-10-21 — Course handout (PR #23 review): today's date for the QR rule is refreshed on `beforeprint`; a blank courseId omits the 簡介代碼 part and prints the fallback line instead of a QR; handout specs use a mocked clock (no 2036 time bomb).
 - 2026-10-21 — Print `@page` margin boxes: page number `n / N` at the bottom; defining them also suppresses the Chrome/Edge header and footer (no CMS URL on printed pages, verified with headless `--print-to-pdf`).
 - 2026-10-21 — `PublishStatusLookup` gains `IsPublished` (course JOIN + `GET /api/lookups/publish-statuses`); the course handout prints its QR only when the status is published and today is within `ScheduleOn`–`ScheduleOff`, otherwise a 「課程網頁上架後，可至 uuu.com.tw 查詢本課程」 line.
