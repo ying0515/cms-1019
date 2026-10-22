@@ -8,6 +8,8 @@ export interface NavItem {
   label: string;
   icon: string;
   route: string;
+  /** Shown only to the Admin role (the API answers 403 to others) */
+  adminOnly?: boolean;
 }
 
 export interface NavGroup {
@@ -49,8 +51,8 @@ export class App {
       label: '系統管理 Admin',
       icon: 'pi pi-shield',
       items: [
-        { label: '使用者 AppUser', icon: 'pi pi-user', route: '/app-users' },
-        { label: '角色 AppRole', icon: 'pi pi-id-card', route: '/app-roles' },
+        { label: '使用者 AppUser', icon: 'pi pi-user', route: '/app-users', adminOnly: true },
+        { label: '角色 AppRole', icon: 'pi pi-id-card', route: '/app-roles', adminOnly: true },
         { label: '發布狀態 PublishStatus', icon: 'pi pi-flag', route: '/publish-statuses' },
       ],
     },
@@ -65,6 +67,14 @@ export class App {
       ],
     },
   ];
+
+  /** navGroups without admin-only items for non-admins (a group left empty is dropped). */
+  protected readonly visibleNavGroups = computed(() => {
+    const isAdmin = !!this.user()?.isAdmin;
+    return this.navGroups
+      .map((g) => ({ ...g, items: g.items.filter((i) => isAdmin || !i.adminOnly) }))
+      .filter((g) => g.items.length > 0);
+  });
 
   protected readonly expanded = signal<Record<string, boolean>>({
     home: true,

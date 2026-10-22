@@ -189,10 +189,10 @@ public class AppRolesControllerTests : IDisposable
     public async Task Update_ClearsUsers_WhenEmptyList()
     {
         var response = await _client.PutAsJsonAsync(BaseUrl,
-            new AppRoleRequest { Pkid = 1, RoleId = "Admin", RoleName = "Administrator", PermissionLevel = 1, UserIds = [] });
+            new AppRoleRequest { Pkid = 2, RoleId = "User", RoleName = "User", PermissionLevel = 100, UserIds = [] });
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        var fetched = await _client.GetFromJsonAsync<AppRole>($"{BaseUrl}/1");
+        var fetched = await _client.GetFromJsonAsync<AppRole>($"{BaseUrl}/2");
         Assert.Empty(fetched!.Users);
     }
 

@@ -25,3 +25,11 @@ export const signedInGuard: CanActivateFn = () => {
     .ensureLoaded()
     .pipe(map((user) => (user ? true : router.createUrlTree(['/login']))));
 };
+
+/** User and role management: the Admin role only; others land on the home page. */
+export const adminGuard: CanActivateFn = () => {
+  const router = inject(Router);
+  return inject(AuthService)
+    .ensureLoaded()
+    .pipe(map((user) => (user?.isAdmin ? true : router.createUrlTree(['/featured-promo-items']))));
+};

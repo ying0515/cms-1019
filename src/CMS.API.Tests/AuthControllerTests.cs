@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+using CMS.API.Auth;
 using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Tests.Infrastructure;
@@ -214,6 +215,81 @@ public class AuthControllerTests : IDisposable
         _factory.AppUsers.SetActive("helen", false);
 
         Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync("/api/app-users")).StatusCode);
+    }
+
+    // ---- Admin role ----
+
+    [Fact]
+    public async Task Me_ReportsIsAdmin()
+    {
+        var user = await (await Login("helen", Password)).Content.ReadFromJsonAsync<CurrentUser>();
+
+        Assert.True(user!.IsAdmin);
+        Assert.True((await _client.GetFromJsonAsync<CurrentUser>("/api/auth/me"))!.IsAdmin);
+    }
+
+    [Fact]
+    public async Task AdminRoleRemoved_AppliesToTheOpenSession()
+    {
+        await Login("helen", Password);
+
+        _factory.AppUsers.SetRoles("helen", ["User"]);
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await _client.GetAsync("/api/app-users")).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await _client.GetAsync("/api/courses")).StatusCode);
+        Assert.False((await _client.GetFromJsonAsync<CurrentUser>("/api/auth/me"))!.IsAdmin);
+    }
+
+    // ---- Login throttling ----
+
+    [Fact]
+    public async Task Login_LockedOutAfterRepeatedFailures_EvenWithTheRightPassword()
+    {
+        for (var i = 0; i < LoginThrottle.MaxFailures; i++)
+            Assert.Equal(HttpStatusCode.Unauthorized, (await Login("helen", "wrong-password")).StatusCode);
+
+        var locked = await Login("HELEN", Password);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, locked.StatusCode);
+        Assert.Contains(CmsAuth.TooManyAttempts, await locked.Content.ReadAsStringAsync());
+        Assert.Equal(HttpStatusCode.Unauthorized, (await _client.GetAsync("/api/auth/me")).StatusCode);
+
+        _factory.Clock.Advance(LoginThrottle.Window);
+        Assert.Equal(HttpStatusCode.OK, (await Login("helen", Password)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_UnknownUser_LocksOutTheSameWay()
+    {
+        for (var i = 0; i < LoginThrottle.MaxFailures; i++)
+            Assert.Equal(HttpStatusCode.Unauthorized, (await Login("nobody", "wrong-password")).StatusCode);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, (await Login("nobody", "wrong-password")).StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_Success_ClearsEarlierFailures()
+    {
+        for (var i = 0; i < LoginThrottle.MaxFailures - 1; i++)
+            await Login("helen", "wrong-password");
+        Assert.Equal(HttpStatusCode.OK, (await Login("helen", Password)).StatusCode);
+
+        for (var i = 0; i < LoginThrottle.MaxFailures - 1; i++)
+            await Login("helen", "wrong-password");
+        Assert.Equal(HttpStatusCode.OK, (await Login("helen", Password)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Login_TooManyAttemptsFromOneClient_Returns429()
+    {
+        // Different UserIds, so only the per-IP limit applies.
+        for (var i = 0; i < CmsAuth.LoginsPerMinutePerIp; i++)
+            Assert.Equal(HttpStatusCode.Unauthorized, (await Login($"guess{i}", "wrong-password")).StatusCode);
+
+        var limited = await Login("helen", Password);
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, limited.StatusCode);
+        Assert.Contains(CmsAuth.TooManyAttempts, await limited.Content.ReadAsStringAsync());
     }
 
     private Task<HttpResponseMessage> Login(string userId, string password)
