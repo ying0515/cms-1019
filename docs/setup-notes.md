@@ -30,6 +30,12 @@ Layout, environment, tooling gotchas and git. Features: `docs/features.md`. Chan
 - `sqlcmd` needs `-C` (trust the self-signed cert): `sqlcmd -S .\SQLEXPRESS -d CMS -E -C -Q "..."`.
 - Apply a schema or seed script: `sqlcmd -S .\SQLEXPRESS -E -C -b -i database\agent.sql` (scripts start with `USE [CMS]`).
 - No Python on this machine; use PowerShell/Node for scripting.
+- gstack browse (`$B`): `click @ref` on a PrimeNG confirm-popup button fails with "Selector matched multiple elements"; click it via `$B js` on `.p-confirmpopup button` filtered by text.
+
+### Angular / PrimeNG gotchas
+
+- `p-inputnumber` `[min]`/`[max]` clamp the value on blur, so `Validators.min/max` never fire and an out-of-range number is saved silently. Enforce ranges with the validators only. `course-form` 時數／定價／點數 still clamp.
+- Routed components are created before `TitleStrategy.updateTitle` runs (NavigationEnd), so `document.title` read in a constructor or field initializer is the previous page's title. Read it when it is used.
 
 ## Git
 
