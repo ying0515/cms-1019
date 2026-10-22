@@ -8,11 +8,13 @@ Project rules for API and Angular code. Scaffolding patterns per table: `spec/co
 - Register repos in `Program.cs`; swap in fakes in `CmsApiFactory` for tests (`src/CMS.API.Tests/Infrastructure/Fake*`).
 - `RTRIM()` nchar columns; `date`/`time` → `DateOnly`/`TimeOnly`. n-n: delete-then-reinsert in one transaction.
 - FK errors (SQL 547): delete blocked → `ReferenceConflictException` → 409; bad FK on write → `InvalidReferenceException` → 400.
-- Backend-only columns (e.g. `AppUser.PasswordHash`): never in `{T}Request`, response models or SELECTs.
+- Backend-only columns (e.g. `AppUser.PasswordHash`): never in `{T}Request`, response models or SELECTs. Login reads them through `AppUserCredential`, which no endpoint returns.
+- Auth: every endpoint requires sign-in by default (fallback policy in `Auth/CmsAuth.cs`); don't add `[Authorize]`. Only `AuthController` opts out (`[AllowAnonymous]`, or `CmsAuth.SignedInPolicy` for pages a must-change-password user may reach). Passwords: `PasswordHasher.Hash` / `Verify` (PBKDF2; legacy SHA-256 verifies with rehash). Tests: `CreateClient()` is signed in as `helen` via the `X-Test-User` header (`TestAuthHandler`); `CreateAnonymousClient()` uses the real cookie login.
 
 ## Frontend (`src/CMS.NG`)
 
 - Standalone components, `inject()`, signals; lazy routes in `app.routes.ts` (`/new` before `/:id`); sidebar in `app.ts` `navGroups`; aliases `@core/*`, `@env/*`.
+- Auth: new back-office routes go in `backOfficeRoutes` (`app.routes.ts`), which `authGuard` covers. API calls must use `environment.apiUrl` so `authInterceptor` adds `withCredentials` (the session cookie) and sends a 401 to `/login`. Redirect targets from query params go through `safeReturnUrl()`.
 - List state: `session-state.util.ts` (`{table}-list-filters|sort|page`). Errors: `httpErrorMessage()`.
 - Form pages: header toolbar is `<div class="page-header form-toolbar" data-testid="form-toolbar">` (pinned via the global rule in `styles.scss`); spec with `expectPinnedToolbar()` from `@core/testing/form-toolbar` in add and edit mode.
 - Delete confirm: `確定要刪除主代碼 <b>{pkid}</b>「{name}」？` (escape name).

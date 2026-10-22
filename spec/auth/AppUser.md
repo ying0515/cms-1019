@@ -115,17 +115,18 @@ Deleting a user deletes its `AppUserRole` rows first (same transaction), so dele
 | `POST` | `/api/app-users` | Create — **409** if UserId exists; **500** if default password not configured; sets PasswordHash + PasswordUpdatedTime |
 | `PUT` | `/api/app-users` | Update (pkid from body); UserId and PasswordHash are not changed |
 | `DELETE` | `/api/app-users/{id:int}` | Delete (removes AppUserRole rows first) |
-| `POST` | `/api/app-users/{id:int}/reset-password` | **No body.** Resets PasswordHash to SHA-256 of the current default password, sets PasswordUpdatedTime; 204 / 404 / 500 if not configured |
+| `POST` | `/api/app-users/{id:int}/reset-password` | **No body.** Resets PasswordHash to a PBKDF2 hash of the current default password, sets PasswordUpdatedTime and MustChangePassword (ends the user's sessions); 204 / 404 / 500 if not configured |
 
 ---
 
 ## Password Handling (backend only)
 
 - Default password source: `SELECT configValue FROM SysConfig WHERE configKey = 'appConfig'`; value is JSON, read string property `defaultPassword`.
-- Hash: `SHA256(UTF-8 bytes)` → lowercase hex (64 chars) → `PasswordHash`.
+- Hash: `PasswordHasher.Hash` — salted PBKDF2 (ASP.NET Core Identity v3 format) → `PasswordHash`. Rows written before 2026-10-21 hold `SHA256(UTF-8 bytes)` lowercase hex (64 chars); `PasswordHasher.Verify` still accepts them and login rewrites them as PBKDF2.
 - Missing row / invalid JSON / missing or empty `defaultPassword` → controller returns 500 `{ message: "系統設定 appConfig 未設定 defaultPassword" }`; nothing is written.
-- `PasswordUpdatedTime = GETUTCDATE()` on create and on reset-password (UTC, so the UI appends `'Z'`).
-- New `ISysConfigRepository.GetValueAsync(configKey)` (Dapper) + static `PasswordHasher.Sha256Hex` in `Data/`. The controller resolves the hash and passes it to `CreateAsync(request, passwordHash)` / `ResetPasswordAsync(pkid, passwordHash)`.
+- `PasswordUpdatedTime = GETUTCDATE()` on create, reset-password and change-password (UTC, so the UI appends `'Z'`). It is also the session stamp: changing it signs the user out everywhere else.
+- `MustChangePassword` (bit, default 1): set by create and reset-password, cleared by `POST /api/auth/change-password`. While set, login succeeds but every API except `/api/auth/*` returns 403.
+- `ISysConfigRepository.GetValueAsync(configKey)` (Dapper); `GetDefaultPasswordAsync()` extension reads `defaultPassword`. The controller hashes it and passes the hash to `CreateAsync(request, passwordHash)` / `ResetPasswordAsync(pkid, passwordHash)`.
 
 ---
 

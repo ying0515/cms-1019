@@ -1,3 +1,4 @@
+using CMS.API.Auth;
 using CMS.API.Data;
 using CMS.API.Repositories;
 
@@ -16,8 +17,11 @@ builder.Services.AddCors(options =>
     options.AddPolicy(CorsPolicy, policy => policy
         .SetIsOriginAllowed(origin => Uri.TryCreate(origin, UriKind.Absolute, out var uri) && uri.IsLoopback)
         .AllowAnyHeader()
-        .AllowAnyMethod());
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
+
+builder.Services.AddCmsAuth();
 
 builder.Services.AddSingleton<IDbConnectionFactory, SqlConnectionFactory>();
 builder.Services.AddScoped<IAppUserRepository, AppUserRepository>();
@@ -40,6 +44,7 @@ app.UseSwaggerUI(options =>
 });
 
 app.UseCors(CorsPolicy);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 

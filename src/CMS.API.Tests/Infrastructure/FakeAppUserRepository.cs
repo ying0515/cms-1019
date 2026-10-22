@@ -1,3 +1,4 @@
+using CMS.API.Data;
 using CMS.API.Models;
 using CMS.API.Repositories;
 
@@ -19,6 +20,7 @@ public class FakeAppUserRepository : IAppUserRepository
         public bool IsActive { get; set; }
         public string PasswordHash { get; set; } = string.Empty;
         public DateTime? PasswordUpdatedTime { get; set; }
+        public bool MustChangePassword { get; set; }
         public List<string> RoleIds { get; set; } = [];
     }
 
@@ -45,6 +47,28 @@ public class FakeAppUserRepository : IAppUserRepository
     public string? PasswordHashOf(int pkid)
     {
         lock (_lock) return _users.FirstOrDefault(u => u.Pkid == pkid)?.PasswordHash;
+    }
+
+    public bool? MustChangePasswordOf(int pkid)
+    {
+        lock (_lock) return _users.FirstOrDefault(u => u.Pkid == pkid)?.MustChangePassword;
+    }
+
+    /// <summary>Gives a seeded user a known password, as stored by the API (PBKDF2) unless a hash is passed.</summary>
+    public void SetPassword(string userId, string password, bool mustChangePassword = false, string? hash = null)
+    {
+        lock (_lock)
+        {
+            var row = _users.Single(u => u.UserId == userId);
+            row.PasswordHash = hash ?? PasswordHasher.Hash(password);
+            row.PasswordUpdatedTime = DateTime.UtcNow;
+            row.MustChangePassword = mustChangePassword;
+        }
+    }
+
+    public void SetActive(string userId, bool isActive)
+    {
+        lock (_lock) _users.Single(u => u.UserId == userId).IsActive = isActive;
     }
 
     private AppUser ToModel(Row r, bool withRoles)
@@ -113,6 +137,7 @@ public class FakeAppUserRepository : IAppUserRepository
                 IsActive = request.IsActive,
                 PasswordHash = passwordHash,
                 PasswordUpdatedTime = DateTime.UtcNow,
+                MustChangePassword = true,
                 RoleIds = roleIds,
             };
             _users.Add(row);
@@ -142,6 +167,7 @@ public class FakeAppUserRepository : IAppUserRepository
             if (existing is null) return Task.FromResult(false);
             existing.PasswordHash = passwordHash;
             existing.PasswordUpdatedTime = DateTime.UtcNow;
+            existing.MustChangePassword = true;
             return Task.FromResult(true);
         }
     }
@@ -151,6 +177,58 @@ public class FakeAppUserRepository : IAppUserRepository
         lock (_lock)
             return Task.FromResult(_users.RemoveAll(x => x.Pkid == pkid) > 0);
     }
+
+    public Task<AppUserCredential?> GetCredentialAsync(string userId)
+    {
+        lock (_lock)
+            return Task.FromResult(ToCredential(_users.FirstOrDefault(u =>
+                string.Equals(u.UserId, userId, StringComparison.OrdinalIgnoreCase))));
+    }
+
+    public Task<AppUserCredential?> GetCredentialAsync(int pkid)
+    {
+        lock (_lock) return Task.FromResult(ToCredential(_users.FirstOrDefault(u => u.Pkid == pkid)));
+    }
+
+    public Task<bool> ChangePasswordAsync(int pkid, string passwordHash)
+    {
+        lock (_lock)
+        {
+            var existing = _users.FirstOrDefault(x => x.Pkid == pkid);
+            if (existing is null) return Task.FromResult(false);
+            existing.PasswordHash = passwordHash;
+            // Always a new stamp, even within the same clock tick
+            var now = DateTime.UtcNow;
+            existing.PasswordUpdatedTime = existing.PasswordUpdatedTime is { } previous && previous >= now
+                ? previous.AddMilliseconds(10)
+                : now;
+            existing.MustChangePassword = false;
+            return Task.FromResult(true);
+        }
+    }
+
+    public Task<bool> RehashPasswordAsync(int pkid, string passwordHash)
+    {
+        lock (_lock)
+        {
+            var existing = _users.FirstOrDefault(x => x.Pkid == pkid);
+            if (existing is null) return Task.FromResult(false);
+            existing.PasswordHash = passwordHash;
+            return Task.FromResult(true);
+        }
+    }
+
+    private static AppUserCredential? ToCredential(Row? r)
+        => r is null ? null : new AppUserCredential
+        {
+            Pkid = r.Pkid,
+            UserId = r.UserId,
+            UserName = r.UserName,
+            IsActive = r.IsActive,
+            PasswordHash = r.PasswordHash,
+            PasswordUpdatedTime = r.PasswordUpdatedTime,
+            MustChangePassword = r.MustChangePassword,
+        };
 
     // Mirrors the FK_AppUserRole_AppRole violation (SQL 547).
     private List<string> ValidRoleIds(IEnumerable<string> roleIds)

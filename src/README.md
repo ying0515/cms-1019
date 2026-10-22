@@ -39,6 +39,17 @@ npx ng test --watch=false --browsers=ChromeHeadless   # CI / single run
 
 ## Features
 
+### Sign-in (all pages)
+
+Every `/api/*` endpoint requires a signed-in user (cookie `CMS.Auth`, HttpOnly); anonymous calls get `401`. A user whose password is a default one (just created or reset, or equal to `SysConfig` `defaultPassword`) gets `403` everywhere except `/api/auth/*` until it is changed.
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| POST   | `/api/auth/login` | `{ userId, password }` → current user and session cookie; `401` 「帳號或密碼錯誤」 for an unknown, inactive or wrong-password account |
+| POST   | `/api/auth/logout` | Ends the session |
+| GET    | `/api/auth/me` | Current user (`userId`, `userName`, `mustChangePassword`); `401` when signed out |
+| POST   | `/api/auth/change-password` | `{ currentPassword, newPassword }` (8–128 chars, not the current or default password); clears `mustChangePassword`, signs out other sessions |
+
 ### AppUser (`系統管理 Admin › 使用者 AppUser`)
 
 | Method | Route | Description |
@@ -52,7 +63,7 @@ npx ng test --watch=false --browsers=ChromeHeadless   # CI / single run
 | DELETE | `/api/app-users/{pkid}` | Delete (also removes its `AppUserRole` rows) |
 | GET    | `/api/lookups/app-roles` | AppRole lookup for the role picker |
 
-`PasswordHash` is backend-only: it is never in a request, response or Angular model. On create and reset-password it is set to the lowercase-hex SHA-256 of `defaultPassword` from the JSON in `SysConfig` (`configKey = 'appConfig'`), and `PasswordUpdatedTime` is set to `GETUTCDATE()`.
+`PasswordHash` is backend-only: it is never in a request, response or Angular model. On create and reset-password it is set to a salted PBKDF2 hash of `defaultPassword` from the JSON in `SysConfig` (`configKey = 'appConfig'`), `MustChangePassword` to 1 and `PasswordUpdatedTime` to `GETUTCDATE()`. Older rows hold a SHA-256 hex hash; login still accepts it and rewrites it as PBKDF2.
 
 Frontend routes: `/app-users` (list), `/app-users/new`, `/app-users/:id` (view), `/app-users/:id/edit`.
 The list keeps its filters, sort and page in sessionStorage (`app-user-list-filters`, `app-user-list-sort`, `app-user-list-page`). 查看角色 opens `/app-roles?userId={userId}`.
