@@ -26,18 +26,28 @@ Token 由每位成員在 SonarQube「My Account → Security」自行產生，�
 ## 步驟
 
 1. **前置檢查**：`$env:SONAR_TOKEN` 有值；`dotnet-sonarscanner` 已安裝，沒有就 `dotnet tool install --global dotnet-sonarscanner`。不需另外裝 Java（掃描器會自動下載 JRE）。
-2. **掃描**（在 repo 根目錄執行，log 寫到暫存目錄）：
+2. **掃描**（在 repo 根目錄執行，log 寫到暫存目錄）。工作目錄有未完成的修改時先問使用者：上傳的是工作目錄，不是 HEAD。
 
    ```powershell
    $env:PATH += ";$env:USERPROFILE\.dotnet\tools"
    dotnet-sonarscanner begin /k:"ying0515_cms-1019" /n:"ying0515_cms-1019" `
      /d:sonar.host.url="http://10.0.1.41:9000" /d:sonar.token="$env:SONAR_TOKEN" `
-     /d:sonar.exclusions="**/node_modules/**,**/dist/**,**/.angular/**,**/bin/**,**/obj/**"
+     /d:sonar.exclusions="**/node_modules/**,**/dist/**,**/.angular/**,**/bin/**,**/obj/**,**/coverage/**" `
+     /d:sonar.cs.opencover.reportsPaths=".sonarqube/coverage/**/coverage.opencover.xml" `
+     /d:sonar.javascript.lcov.reportPaths="src/CMS.NG/coverage/cms-ng/lcov.info" `
+     /d:sonar.coverage.exclusions="**/*.spec.ts,**/testing/**,src/CMS.NG/karma.conf.js" `
+     /d:sonar.cpd.exclusions="src/CMS.NG/src/app/features/**"
    dotnet build src\CMS.sln --no-incremental
+   dotnet test src\CMS.sln --no-build --collect "XPlat Code Coverage;Format=opencover" --results-directory .sonarqube\coverage
+   Push-Location src\CMS.NG; npx ng test --watch=false --browsers=ChromeHeadless --code-coverage; Pop-Location
    dotnet-sonarscanner end /d:sonar.token="$env:SONAR_TOKEN"
    ```
 
-   任一步驟失敗就停下，回報 log 最後 30 行。成功時 log 會出現 `ANALYSIS SUCCESSFUL`。
+   任一步驟失敗就停下，回報 log 最後 30 行。成功時 log 會出現 `ANALYSIS SUCCESSFUL`，且有 `Sensor JavaScript/TypeScript Coverage` 與 `C# Tests Coverage Report Import`。
+
+   - lcov 屬性是 `reportPaths`（OpenCover 才是 `reportsPaths`），打錯不會報錯，只會讓前端覆蓋率變 0。
+   - `karma.conf.js` 的 `lcovonly` 以 repo 根目錄為 `projectRoot`，SonarQube 才對得到檔案。
+   - `features/**` 是 `/crud` 樣板產生的頁面，刻意排除在重複檢查外；共用邏輯的重構另案處理。
 3. **取回結果**（`Authorization: Bearer $env:SONAR_TOKEN`）：
    - `GET /api/qualitygates/project_status?projectKey=ying0515_cms-1019`
    - `GET /api/measures/component?component=ying0515_cms-1019&metricKeys=bugs,vulnerabilities,code_smells,coverage,duplicated_lines_density,ncloc,reliability_rating,security_rating,sqale_rating`
@@ -49,5 +59,6 @@ Token 由每位成員在 SonarQube「My Account → Security」自行產生，�
 
 ## 注意
 
-- 掃描會在 repo 根目錄產生 `.sonarqube/`，已列入 `.gitignore`，不要 commit。
+- 掃描會在 repo 根目錄產生 `.sonarqube/`（含覆蓋率報告），已列入 `.gitignore`，不要 commit。前端報告在 `src/CMS.NG/coverage/`，也已忽略。
+- Quality Gate 看「新程式碼」：覆蓋率 ≥ 80%、重複率 ≤ 3%、新問題 0。
 - 不修改程式碼；修正問題需使用者另外要求。
