@@ -10,11 +10,11 @@ import { Observable, firstValueFrom, of } from 'rxjs';
 
 import { CurrentUser } from '@core/models/auth.model';
 import { AuthService } from '@core/services/auth.service';
-import { authGuard, signedInGuard } from './auth.guard';
+import { adminGuard, authGuard, signedInGuard } from './auth.guard';
 import { safeReturnUrl } from './return-url';
 
 describe('auth guards', () => {
-  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false };
+  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false, isAdmin: true };
   let auth: jasmine.SpyObj<AuthService>;
   let router: Router;
 
@@ -58,6 +58,17 @@ describe('auth guards', () => {
     TestBed.resetTestingModule();
     setup(null);
     expect(router.serializeUrl((await run(signedInGuard)) as UrlTree)).toBe('/login');
+  });
+
+  it('adminGuard lets an admin through', async () => {
+    setup(helen);
+    expect(await run(adminGuard, '/app-users')).toBeTrue();
+  });
+
+  it('adminGuard sends a non-admin to the home page', async () => {
+    setup({ ...helen, isAdmin: false });
+    const tree = (await run(adminGuard, '/app-users')) as UrlTree;
+    expect(router.serializeUrl(tree)).toBe('/featured-promo-items');
   });
 });
 

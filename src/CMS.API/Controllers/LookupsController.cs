@@ -1,5 +1,7 @@
+using CMS.API.Auth;
 using CMS.API.Models;
 using CMS.API.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CMS.API.Controllers;
@@ -8,10 +10,13 @@ namespace CMS.API.Controllers;
 [Route("api/lookups")]
 public class LookupsController(ILookupRepository repository) : ControllerBase
 {
+    // Used only by the user / role management pages
+    [Authorize(Policy = CmsAuth.AdminPolicy)]
     [HttpGet("app-users")]
     public async Task<ActionResult<IEnumerable<AppUserLookup>>> GetAppUsers()
         => Ok(await repository.GetAppUsersAsync());
 
+    [Authorize(Policy = CmsAuth.AdminPolicy)]
     [HttpGet("app-roles")]
     public async Task<ActionResult<IEnumerable<AppRoleLookup>>> GetAppRoles()
         => Ok(await repository.GetAppRolesAsync());

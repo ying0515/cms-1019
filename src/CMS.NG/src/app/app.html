@@ -11,7 +11,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      @for (group of navGroups; track group.key) {
+      @for (group of visibleNavGroups(); track group.key) {
         <button type="button" class="nav-group" (click)="toggleGroup(group.key)" [attr.aria-expanded]="!!expanded()[group.key]">
           <i [class]="group.icon"></i>
           <span class="nav-label">{{ group.label }}</span>

@@ -43,7 +43,7 @@ describe('authInterceptor', () => {
   });
 
   it('on 401 ends the session and goes to /login with the current page', () => {
-    auth.user.set({ userId: 'helen', userName: 'Helen', mustChangePassword: false });
+    auth.user.set({ userId: 'helen', userName: 'Helen', mustChangePassword: false, isAdmin: true });
     spyOnProperty(router, 'url').and.returnValue('/courses/7');
 
     http.get(`${environment.apiUrl}/api/courses`).subscribe({ error: () => undefined });
