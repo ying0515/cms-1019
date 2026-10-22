@@ -27,7 +27,7 @@ export class CourseGroupDetail implements OnInit {
   ngOnInit(): void {
     // pkid is smallint IDENTITY (1–32767)
     const id = this.route.snapshot.paramMap.get('id');
-    const pkid = id === null || id.trim() === '' ? NaN : Number(id);
+    const pkid = id === null || id.trim() === '' ? Number.NaN : Number(id);
     if (!Number.isInteger(pkid) || pkid < 1 || pkid > 32767) {
       this.loading.set(false);
       this.notFound.set(true);
@@ -54,17 +54,17 @@ export class CourseGroupDetail implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/course-groups']);
+    void this.router.navigate(['/course-groups']);
   }
 
   edit(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/course-groups', item.pkid, 'edit']);
+    if (item) void this.router.navigate(['/course-groups', item.pkid, 'edit']);
   }
 
   viewCourses(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/courses'], { queryParams: { courseGroupPkid: item.pkid } });
+    if (item) void this.router.navigate(['/courses'], { queryParams: { courseGroupPkid: item.pkid } });
   }
 
   confirmDelete(): void {

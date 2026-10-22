@@ -242,8 +242,8 @@ export class CourseForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/courses', this.pkid]);
-    else this.router.navigate(['/courses']);
+    if (this.isEdit) void this.router.navigate(['/courses', this.pkid]);
+    else void this.router.navigate(['/courses']);
   }
 
   save(): void {
@@ -290,7 +290,7 @@ export class CourseForm implements OnInit {
       next: (created) => {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.title });
-        this.router.navigate(['/courses', created ? created.pkid : this.pkid]);
+        void this.router.navigate(['/courses', created ? created.pkid : this.pkid]);
       },
       error: (err) => {
         this.saving.set(false);

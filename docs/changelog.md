@@ -2,8 +2,9 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-22 — SonarQube MEDIUM fixes: `void` on unhandled `router.navigate()`, `scope="col"` on list `<th>`, `aria-label` on course-list inline inputs, `Number.NaN`, `await app.RunAsync()`; `[JsonRequired]` on value-type `{T}Request` fields (a missing field is now 400 instead of 0/false).
+- 2026-10-22 — Add `/sonar-scan` project skill (SonarQube analysis via `dotnet-sonarscanner`, token from `SONAR_TOKEN` env var); ignore `.sonarqube/`.
 - 2026-10-21 — Sign-in required (fixes /cso finding: every `/api/*` was anonymous). Cookie auth (`CMS.Auth`, HttpOnly, SameSite=Strict, 8h sliding) with a fallback policy on every controller; `AuthController` `POST /api/auth/login`, `/logout`, `/change-password`, `GET /me`. PasswordHash is now salted PBKDF2 (Identity v3); legacy SHA-256 hashes still log in and are upgraded. New `AppUser.MustChangePassword` (create / reset set it): such users, and anyone logging in with the default password, get 403 everywhere until they change it. Sessions end on logout, deactivation or a password change/reset (session stamp = `PasswordUpdatedTime`). Development `AllowedHosts` limited to loopback (DNS rebinding). Angular: `/login`, `/change-password`, `authGuard`, `authInterceptor` (withCredentials, 401 → login), sidebar user / 變更密碼 / 登出. **Run `database/auth-must-change-password.sql` on existing DBs.**
-
 - 2026-10-21 — Course handout (PR #23 review): today's date for the QR rule is refreshed on `beforeprint`; a blank courseId omits the 簡介代碼 part and prints the fallback line instead of a QR; handout specs use a mocked clock (no 2036 time bomb).
 - 2026-10-21 — Print `@page` margin boxes: page number `n / N` at the bottom; defining them also suppresses the Chrome/Edge header and footer (no CMS URL on printed pages, verified with headless `--print-to-pdf`).
 - 2026-10-21 — `PublishStatusLookup` gains `IsPublished` (course JOIN + `GET /api/lookups/publish-statuses`); the course handout prints its QR only when the status is published and today is within `ScheduleOn`–`ScheduleOff`, otherwise a 「課程網頁上架後，可至 uuu.com.tw 查詢本課程」 line.

@@ -33,9 +33,9 @@
   >
     <ng-template #header>
       <tr>
-        <th pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
-        <th pSortableColumn="description">群組名稱 <p-sortIcon field="description" /></th>
-        <th class="text-center" style="width: 11rem">操作</th>
+        <th scope="col" pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
+        <th scope="col" pSortableColumn="description">群組名稱 <p-sortIcon field="description" /></th>
+        <th scope="col" class="text-center" style="width: 11rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>

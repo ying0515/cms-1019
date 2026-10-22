@@ -170,7 +170,7 @@ export class AppRoleList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/app-roles/new']);
+    void this.router.navigate(['/app-roles/new']);
   }
 
   confirmDelete(item: AppRole): void {

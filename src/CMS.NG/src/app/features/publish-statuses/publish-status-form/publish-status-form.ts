@@ -77,8 +77,8 @@ export class PublishStatusForm implements OnInit {
   }
 
   cancel(): void {
-    if (this.isEdit) this.router.navigate(['/publish-statuses', this.pkid]);
-    else this.router.navigate(['/publish-statuses']);
+    if (this.isEdit) void this.router.navigate(['/publish-statuses', this.pkid]);
+    else void this.router.navigate(['/publish-statuses']);
   }
 
   save(): void {
@@ -102,7 +102,7 @@ export class PublishStatusForm implements OnInit {
       next: () => {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '已儲存', detail: request.description });
-        this.router.navigate(['/publish-statuses', request.pkid]);
+        void this.router.navigate(['/publish-statuses', request.pkid]);
       },
       error: (err) => {
         this.saving.set(false);

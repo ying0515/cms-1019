@@ -71,7 +71,7 @@ export class ChangePassword {
       next: () => {
         this.saving.set(false);
         this.messages.add({ severity: 'success', summary: '成功', detail: '密碼已變更' });
-        this.router.navigateByUrl(this.returnUrl());
+        void this.router.navigateByUrl(this.returnUrl());
       },
       error: (err) => {
         this.saving.set(false);
@@ -81,7 +81,7 @@ export class ChangePassword {
   }
 
   cancel(): void {
-    this.router.navigateByUrl(this.returnUrl());
+    void this.router.navigateByUrl(this.returnUrl());
   }
 
   logout(): void {

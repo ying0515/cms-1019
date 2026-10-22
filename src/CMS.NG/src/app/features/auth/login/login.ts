@@ -46,9 +46,9 @@ export class Login {
         this.saving.set(false);
         const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
         if (user.mustChangePassword) {
-          this.router.navigate(['/change-password'], { queryParams: { returnUrl } });
+          void this.router.navigate(['/change-password'], { queryParams: { returnUrl } });
         } else {
-          this.router.navigateByUrl(returnUrl);
+          void this.router.navigateByUrl(returnUrl);
         }
       },
       error: (err) => {

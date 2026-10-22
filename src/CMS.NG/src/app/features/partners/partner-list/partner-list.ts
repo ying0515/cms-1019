@@ -131,7 +131,7 @@ export class PartnerList implements OnInit {
   }
 
   add(): void {
-    this.router.navigate(['/partners/new']);
+    void this.router.navigate(['/partners/new']);
   }
 
   confirmDelete(item: Partner): void {

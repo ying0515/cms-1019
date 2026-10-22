@@ -33,20 +33,20 @@
   >
     <ng-template #header>
       <tr>
-        <th pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
-        <th pSortableColumn="name">廠商名稱 <p-sortIcon field="name" /></th>
-        <th pSortableColumn="appKey">應用代碼 <p-sortIcon field="appKey" /></th>
-        <th pSortableColumn="nameOnPartnerMenu">
+        <th scope="col" pSortableColumn="pkid" style="width: 6rem">主代碼 <p-sortIcon field="pkid" /></th>
+        <th scope="col" pSortableColumn="name">廠商名稱 <p-sortIcon field="name" /></th>
+        <th scope="col" pSortableColumn="appKey">應用代碼 <p-sortIcon field="appKey" /></th>
+        <th scope="col" pSortableColumn="nameOnPartnerMenu">
           廠商選單名稱 <p-sortIcon field="nameOnPartnerMenu" />
         </th>
-        <th pSortableColumn="nameOnCourseDetailPage">
+        <th scope="col" pSortableColumn="nameOnCourseDetailPage">
           課程頁顯示名稱 <p-sortIcon field="nameOnCourseDetailPage" />
         </th>
-        <th pSortableColumn="displayOrder" class="text-center" style="width: 8rem">
+        <th scope="col" pSortableColumn="displayOrder" class="text-center" style="width: 8rem">
           顯示順序 <p-sortIcon field="displayOrder" />
         </th>
-        <th pSortableColumn="imageFilename">圖檔名稱 <p-sortIcon field="imageFilename" /></th>
-        <th class="text-center" style="width: 11rem">操作</th>
+        <th scope="col" pSortableColumn="imageFilename">圖檔名稱 <p-sortIcon field="imageFilename" /></th>
+        <th scope="col" class="text-center" style="width: 11rem">操作</th>
       </tr>
     </ng-template>
     <ng-template #body let-item>

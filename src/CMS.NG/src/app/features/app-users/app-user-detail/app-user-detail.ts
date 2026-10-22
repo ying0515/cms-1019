@@ -57,17 +57,17 @@ export class AppUserDetail implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/app-users']);
+    void this.router.navigate(['/app-users']);
   }
 
   edit(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/app-users', item.pkid, 'edit']);
+    if (item) void this.router.navigate(['/app-users', item.pkid, 'edit']);
   }
 
   viewRoles(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/app-roles'], { queryParams: { userId: item.userId } });
+    if (item) void this.router.navigate(['/app-roles'], { queryParams: { userId: item.userId } });
   }
 
   confirmResetPassword(): void {

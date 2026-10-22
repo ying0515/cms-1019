@@ -45,7 +45,7 @@ export class CourseDetail implements OnInit {
   ngOnInit(): void {
     // pkid is int IDENTITY
     const id = this.route.snapshot.paramMap.get('id');
-    const pkid = id === null || id.trim() === '' ? NaN : Number(id);
+    const pkid = id === null || id.trim() === '' ? Number.NaN : Number(id);
     if (!Number.isInteger(pkid) || pkid < 1 || pkid > 2147483647) {
       this.loading.set(false);
       this.notFound.set(true);
@@ -80,7 +80,7 @@ export class CourseDetail implements OnInit {
   }
 
   back(): void {
-    this.router.navigate(['/courses']);
+    void this.router.navigate(['/courses']);
   }
 
   /** Prints the handout; the document title becomes the default "Save as PDF" file name. */
@@ -105,7 +105,7 @@ export class CourseDetail implements OnInit {
 
   edit(): void {
     const item = this.item();
-    if (item) this.router.navigate(['/courses', item.pkid, 'edit']);
+    if (item) void this.router.navigate(['/courses', item.pkid, 'edit']);
   }
 
   confirmDelete(): void {
