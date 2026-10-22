@@ -133,6 +133,25 @@ describe('App', () => {
     expect(first?.textContent).toContain('課程 Course');
   });
 
+  // Regression: ISSUE-004 — on a phone the expanded sidebar took ~60% of the width
+  // Found by /qa on 2026-10-22
+  // Report: .gstack/qa-reports/qa-report-localhost-2026-10-22.md
+  it('starts with the sidebar collapsed on a narrow (≤768px) viewport', () => {
+    spyOn(window, 'matchMedia').and.callFake((q: string) => ({ matches: q === '(max-width: 768px)' }) as MediaQueryList);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.layout')!.classList).toContain('collapsed');
+  });
+
+  it('starts with the sidebar expanded on a wide viewport', () => {
+    spyOn(window, 'matchMedia').and.returnValue({ matches: false } as MediaQueryList);
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+
+    expect((fixture.nativeElement as HTMLElement).querySelector('.layout')!.classList).not.toContain('collapsed');
+  });
+
   it('collapses a nav group when toggled', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();

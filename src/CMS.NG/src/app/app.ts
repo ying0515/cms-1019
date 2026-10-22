@@ -29,7 +29,8 @@ export class App {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
 
-  protected readonly collapsed = signal(false);
+  /** Starts collapsed on phones (same 768px breakpoint as app.scss) so content gets the width. */
+  protected readonly collapsed = signal(window.matchMedia('(max-width: 768px)').matches);
   protected readonly user = this.auth.user;
   /** Sidebar only for a usable session: login and the forced password change render alone. */
   protected readonly showShell = computed(() => {
