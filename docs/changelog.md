@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-22 — Sidebar starts collapsed on a ≤768px viewport (same breakpoint as `app.scss`); on a phone the expanded 214px sidebar squeezed page headers into one character per line (/qa ISSUE-004).
 - 2026-10-22 — PublishStatus form: dropped `[min]`/`[max]` on the `pkid` `p-inputnumber`, which clamped a typed 256+ to 255 on blur and saved it (or showed 「主代碼 255 已存在」); `Validators.min/max` now show 「請輸入 0–255 的主代碼」 (/qa ISSUE-003).
 - 2026-10-22 — SonarQube new-code issues: `ctx.Principal!` in `CmsAuth.ValidateSessionAsync` (CS8604; null already returns early), `GC.SuppressFinalize(this)` in every test class `Dispose()` (CA1816).
 - 2026-10-22 — Swagger (`/swagger`) only in Development: it is middleware outside the auth fallback policy, so other environments exposed the API schema anonymously (/cso follow-up).
