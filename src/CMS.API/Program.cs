@@ -36,12 +36,16 @@ builder.Services.AddScoped<ILookupRepository, LookupRepository>();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+// Swagger is middleware, so the auth fallback policy doesn't cover it: keep it out of production.
+if (app.Environment.IsDevelopment())
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CMS.API v1");
-    options.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "CMS.API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
 
 app.UseCors(CorsPolicy);
 app.UseAuthentication();
