@@ -2,6 +2,7 @@
 
 Newest first, one dated line per meaningful change. Add new lines at the top.
 
+- 2026-10-22 — SonarQube new-code issues: `ctx.Principal!` in `CmsAuth.ValidateSessionAsync` (CS8604; null already returns early), `GC.SuppressFinalize(this)` in every test class `Dispose()` (CA1816).
 - 2026-10-22 — Swagger (`/swagger`) only in Development: it is middleware outside the auth fallback policy, so other environments exposed the API schema anonymously (/cso follow-up).
 - 2026-10-22 — Admin role and login throttling (fixes /cso findings: any signed-in user could reset any password and manage users/roles; unlimited login guessing). `AdminPolicy` (role `Admin`, re-read from `AppUserRole` per request) on `/api/app-users`, `/api/app-roles` and lookups `app-users` / `app-roles`; an admin cannot demote, deactivate or delete themselves or delete the Admin role; password resets are logged. Login: 20 attempts/min per IP and a per-UserId lockout (5 failures → 15 min), both 429 「登入嘗試次數過多，請稍後再試」. `CurrentUser.isAdmin`; Angular `adminGuard` and admin-only sidebar items.
 - 2026-10-22 — SonarQube MEDIUM fixes: `void` on unhandled `router.navigate()`, `scope="col"` on list `<th>`, `aria-label` on course-list inline inputs, `Number.NaN`, `await app.RunAsync()`; `[JsonRequired]` on value-type `{T}Request` fields (a missing field is now 400 instead of 0/false).

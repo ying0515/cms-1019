@@ -124,7 +124,7 @@ public static class CmsAuth
             return;
         }
 
-        ctx.ReplacePrincipal(CreatePrincipal(user, ctx.Scheme.Name, MustChangePassword(ctx.Principal)));
+        ctx.ReplacePrincipal(CreatePrincipal(user, ctx.Scheme.Name, MustChangePassword(ctx.Principal!)));
     }
 
     private static Task SetStatus(RedirectContext<CookieAuthenticationOptions> ctx, int status)

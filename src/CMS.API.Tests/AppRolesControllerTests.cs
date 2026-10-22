@@ -21,6 +21,7 @@ public class AppRolesControllerTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     // ---- List ----

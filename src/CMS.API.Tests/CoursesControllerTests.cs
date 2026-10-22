@@ -23,6 +23,7 @@ public class CoursesControllerTests : IDisposable
     {
         _client.Dispose();
         _factory.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private static CourseRequest ValidRequest(int pkid = 0) => new()
