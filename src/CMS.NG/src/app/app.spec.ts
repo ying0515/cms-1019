@@ -17,6 +17,7 @@ describe('App', () => {
       userId: 'helen',
       userName: 'Helen Wu',
       mustChangePassword: false,
+      isAdmin: true,
     });
     auth = jasmine.createSpyObj<AuthService>('AuthService', ['logout'], { user });
     auth.logout.and.returnValue(of(void 0));
@@ -45,7 +46,7 @@ describe('App', () => {
     fixture.detectChanges();
     expect(el.querySelector('.sidebar')).toBeNull();
 
-    user.set({ userId: 'helen', userName: 'Helen Wu', mustChangePassword: true });
+    user.set({ userId: 'helen', userName: 'Helen Wu', mustChangePassword: true, isAdmin: true });
     fixture.detectChanges();
     expect(el.querySelector('.sidebar')).toBeNull();
   });
@@ -143,5 +144,17 @@ describe('App', () => {
 
     expect(el.querySelectorAll('.nav-items').length).toBe(before - 1);
     expect(el.querySelector('.nav-items a[href="/featured-promo-items"]')).toBeNull();
+  });
+
+  it('hides 使用者 / 角色 from a non-admin but keeps the rest of 系統管理 Admin', () => {
+    user.set({ userId: 'miles', userName: 'Miles Sun', mustChangePassword: false, isAdmin: false });
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    const el: HTMLElement = fixture.nativeElement;
+
+    expect(el.querySelector('a[href="/app-users"]')).toBeNull();
+    expect(el.querySelector('a[href="/app-roles"]')).toBeNull();
+    expect(el.querySelector('a[href="/publish-statuses"]')).not.toBeNull();
+    expect(el.querySelector('a[href="/courses"]')).not.toBeNull();
   });
 });

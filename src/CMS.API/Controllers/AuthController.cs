@@ -6,12 +6,14 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CMS.API.Controllers;
 
 [ApiController]
 [Route("api/auth")]
-public class AuthController(IAppUserRepository users, ISysConfigRepository sysConfig) : ControllerBase
+public class AuthController(
+    IAppUserRepository users, ISysConfigRepository sysConfig, LoginThrottle throttle) : ControllerBase
 {
     private const string LoginFailed = "帳號或密碼錯誤";
 
@@ -19,13 +21,23 @@ public class AuthController(IAppUserRepository users, ISysConfigRepository sysCo
     private static readonly string UnknownUserHash = PasswordHasher.Hash(Guid.NewGuid().ToString());
 
     [AllowAnonymous]
+    [EnableRateLimiting(CmsAuth.LoginRateLimitPolicy)]
     [HttpPost("login")]
     public async Task<ActionResult<CurrentUser>> Login([FromBody] LoginRequest request)
     {
-        var user = await users.GetCredentialAsync(request.UserId.Trim());
+        var userId = request.UserId.Trim();
+        // Locked out: not even the right password gets in, so guessing on stops paying off.
+        if (throttle.IsLockedOut(userId))
+            return StatusCode(StatusCodes.Status429TooManyRequests, new { message = CmsAuth.TooManyAttempts });
+
+        var user = await users.GetCredentialAsync(userId);
         var check = PasswordHasher.Verify(user?.PasswordHash ?? UnknownUserHash, request.Password);
         if (user is null || !user.IsActive || check == PasswordCheck.Failed)
+        {
+            throttle.RecordFailure(userId);
             return Unauthorized(new { message = LoginFailed });
+        }
+        throttle.Reset(userId);
 
         if (check == PasswordCheck.SuccessRehashNeeded)
             await users.RehashPasswordAsync(user.Pkid, PasswordHasher.Hash(request.Password));
@@ -85,5 +97,11 @@ public class AuthController(IAppUserRepository users, ISysConfigRepository sysCo
             CmsAuth.CreatePrincipal(user, CookieAuthenticationDefaults.AuthenticationScheme, mustChangePassword));
 
     private static CurrentUser ToCurrentUser(AppUserCredential user, bool mustChangePassword)
-        => new() { UserId = user.UserId, UserName = user.UserName, MustChangePassword = mustChangePassword };
+        => new()
+        {
+            UserId = user.UserId,
+            UserName = user.UserName,
+            MustChangePassword = mustChangePassword,
+            IsAdmin = CmsAuth.IsAdmin(user),
+        };
 }

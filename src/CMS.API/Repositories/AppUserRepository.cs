@@ -147,15 +147,24 @@ public class AppUserRepository(IDbConnectionFactory db) : IAppUserRepository
     public async Task<AppUserCredential?> GetCredentialAsync(string userId)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
-            CredentialSql + " WHERE UserId = @userId", new { userId });
+        return await WithRoleIdsAsync(conn, await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
+            CredentialSql + " WHERE UserId = @userId", new { userId }));
     }
 
     public async Task<AppUserCredential?> GetCredentialAsync(int pkid)
     {
         using var conn = await db.CreateOpenConnectionAsync();
-        return await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
-            CredentialSql + " WHERE pkid = @pkid", new { pkid });
+        return await WithRoleIdsAsync(conn, await conn.QuerySingleOrDefaultAsync<AppUserCredential>(
+            CredentialSql + " WHERE pkid = @pkid", new { pkid }));
+    }
+
+    private static async Task<AppUserCredential?> WithRoleIdsAsync(IDbConnection conn, AppUserCredential? user)
+    {
+        if (user is null) return null;
+        var roleIds = await conn.QueryAsync<string>(
+            "SELECT RTRIM(RoleId) FROM AppUserRole WHERE UserId = @UserId", new { user.UserId });
+        user.RoleIds = roleIds.ToList();
+        return user;
     }
 
     public async Task<bool> ChangePasswordAsync(int pkid, string passwordHash)

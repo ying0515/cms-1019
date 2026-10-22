@@ -71,6 +71,11 @@ public class FakeAppUserRepository : IAppUserRepository
         lock (_lock) _users.Single(u => u.UserId == userId).IsActive = isActive;
     }
 
+    public void SetRoles(string userId, List<string> roleIds)
+    {
+        lock (_lock) _users.Single(u => u.UserId == userId).RoleIds = roleIds;
+    }
+
     private AppUser ToModel(Row r, bool withRoles)
     {
         var roles = _appRoles.Roles.ToDictionary(x => x.RoleId);
@@ -228,6 +233,7 @@ public class FakeAppUserRepository : IAppUserRepository
             PasswordHash = r.PasswordHash,
             PasswordUpdatedTime = r.PasswordUpdatedTime,
             MustChangePassword = r.MustChangePassword,
+            RoleIds = [.. r.RoleIds],
         };
 
     // Mirrors the FK_AppUserRole_AppRole violation (SQL 547).

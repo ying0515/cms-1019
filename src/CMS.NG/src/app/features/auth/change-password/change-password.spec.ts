@@ -11,7 +11,7 @@ import { AuthService } from '@core/services/auth.service';
 import { ChangePassword } from './change-password';
 
 describe('ChangePassword', () => {
-  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false };
+  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false, isAdmin: true };
   let auth: jasmine.SpyObj<AuthService>;
   let router: Router;
 

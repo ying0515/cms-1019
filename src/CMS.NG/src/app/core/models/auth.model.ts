@@ -4,6 +4,8 @@ export interface CurrentUser {
   userName: string;
   /** Default (created / reset) password: every other API returns 403 until it is changed */
   mustChangePassword: boolean;
+  /** Admin role: may open user / role management (/app-users, /app-roles) */
+  isAdmin: boolean;
 }
 
 /** POST /api/auth/login */

@@ -1,53 +1,61 @@
 import { Routes } from '@angular/router';
-import { authGuard, signedInGuard } from '@core/auth/auth.guard';
+import { adminGuard, authGuard, signedInGuard } from '@core/auth/auth.guard';
 
-// Every back-office page requires sign-in (and a non-default password).
+// Every back-office page requires sign-in (and a non-default password); user / role pages also adminGuard.
 const backOfficeRoutes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'app-roles' },
   {
     path: 'app-users',
+    canActivate: [adminGuard],
     title: '使用者 AppUser',
     loadComponent: () =>
       import('./features/app-users/app-user-list/app-user-list').then((m) => m.AppUserList),
   },
   {
     path: 'app-users/new',
+    canActivate: [adminGuard],
     title: '新增使用者',
     loadComponent: () =>
       import('./features/app-users/app-user-form/app-user-form').then((m) => m.AppUserForm),
   },
   {
     path: 'app-users/:id',
+    canActivate: [adminGuard],
     title: '檢視使用者',
     loadComponent: () =>
       import('./features/app-users/app-user-detail/app-user-detail').then((m) => m.AppUserDetail),
   },
   {
     path: 'app-users/:id/edit',
+    canActivate: [adminGuard],
     title: '編輯使用者',
     loadComponent: () =>
       import('./features/app-users/app-user-form/app-user-form').then((m) => m.AppUserForm),
   },
   {
     path: 'app-roles',
+    canActivate: [adminGuard],
     title: '角色 AppRole',
     loadComponent: () =>
       import('./features/app-roles/app-role-list/app-role-list').then((m) => m.AppRoleList),
   },
   {
     path: 'app-roles/new',
+    canActivate: [adminGuard],
     title: '新增角色',
     loadComponent: () =>
       import('./features/app-roles/app-role-form/app-role-form').then((m) => m.AppRoleForm),
   },
   {
     path: 'app-roles/:id',
+    canActivate: [adminGuard],
     title: '檢視角色',
     loadComponent: () =>
       import('./features/app-roles/app-role-detail/app-role-detail').then((m) => m.AppRoleDetail),
   },
   {
     path: 'app-roles/:id/edit',
+    canActivate: [adminGuard],
     title: '編輯角色',
     loadComponent: () =>
       import('./features/app-roles/app-role-form/app-role-form').then((m) => m.AppRoleForm),

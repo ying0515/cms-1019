@@ -22,6 +22,8 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     public FakeAppUserRepository AppUsers { get; }
     public FakeSysConfigRepository SysConfig { get; } = new();
     public FakeFeaturedPromoItemRepository FeaturedPromoItems { get; } = new();
+    /// <summary>The API's TimeProvider (login lockout).</summary>
+    public ManualClock Clock { get; } = new();
 
     public CmsApiFactory()
     {
@@ -53,6 +55,8 @@ public class CmsApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<ILookupRepository>();
             services.AddSingleton<ILookupRepository>(new FakeLookupRepository(
                 AppRoles, PublishStatuses, Partners, CourseGroups, Courses, FeaturedPromoItems));
+            services.RemoveAll<TimeProvider>();
+            services.AddSingleton<TimeProvider>(Clock);
 
             // The X-Test-User header picks TestAuthHandler; without it the real cookie scheme runs.
             services.AddAuthentication()
@@ -70,6 +74,15 @@ public class CmsApiFactory : WebApplicationFactory<Program>
     {
         base.ConfigureClient(client);
         client.DefaultRequestHeaders.Add(TestAuthHandler.Header, TestUserId);
+    }
+
+    /// <summary>A client signed in as another fake user, e.g. the non-admin "miles".</summary>
+    public HttpClient CreateClientAs(string userId)
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Remove(TestAuthHandler.Header);
+        client.DefaultRequestHeaders.Add(TestAuthHandler.Header, userId);
+        return client;
     }
 
     /// <summary>A client with no test sign-in: it goes through the real cookie login (keeps cookies).</summary>

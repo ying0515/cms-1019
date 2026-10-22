@@ -8,7 +8,7 @@ import { CurrentUser } from '../models/auth.model';
 
 describe('AuthService', () => {
   const baseUrl = `${environment.apiUrl}/api/auth`;
-  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false };
+  const helen: CurrentUser = { userId: 'helen', userName: 'Helen', mustChangePassword: false, isAdmin: true };
   let service: AuthService;
   let http: HttpTestingController;
 
